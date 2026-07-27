@@ -1,0 +1,129 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-primary: #f5d90a;
+  --color-primary-hover: #e5c908;
+  --color-background: #f4f1e1;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f9f9f9;
+  --color-warning: #f59e0b;
+  --color-success: #10b981;
+  --color-error: #ef4444;
+  --color-inverse-surface: #313129;
+  --color-inverse-on-surface: #f4f1e6;
+  
+  --color-on-background: #111111;
+  --color-secondary: #555555;
+  --color-text-muted: #888888;
+  --color-surface-variant: #e5e2d8;
+  --color-primary-container: #e5f876;
+  
+  --font-display: "Archivo Narrow", sans-serif;
+  --font-h1-mobile: "Archivo Narrow", sans-serif;
+  --font-h1: "Archivo Narrow", sans-serif;
+  --font-h2: "Archivo Narrow", sans-serif;
+  --font-h3: "Archivo Narrow", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-body-lg: "Inter", sans-serif;
+  --font-label: "JetBrains Mono", monospace;
+  --font-numeric: "JetBrains Mono", monospace;
+
+  --spacing-sidebar-width: 280px;
+  --spacing-margin-mobile: 1rem;
+  --spacing-gutter: 1.5rem;
+  --spacing-topbar-height: 80px;
+  --spacing-max-width: 1440px;
+  --spacing-margin-desktop: 2rem;
+  --spacing-base: 8px;
+
+  /* Custom Easings for Design Engineering */
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-on-background);
+    font-family: var(--font-body);
+  }
+}
+
+@layer utilities {
+  /* Material Symbols */
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@utility animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+@layer utilities {
+  /* Structural Cuts */
+  .cut-corner {
+    clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 0 100%);
+  }
+  .cut-corner-lg {
+    clip-path: polygon(0 0, calc(100% - 40px) 0, 100% 40px, 100% 100%, 0 100%);
+  }
+
+  /* Brutal Shadows */
+  .brutal-shadow {
+    box-shadow: 6px 6px 0px 0px var(--color-on-background);
+  }
+  .brutal-shadow-sm {
+    box-shadow: 4px 4px 0px 0px var(--color-on-background);
+  }
+
+  /* Hover States */
+  .brutal-hover:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 4px 4px 0px 0px var(--color-on-background);
+    transition: all 0.2s var(--ease-out-strong);
+  }
+  .brutal-hover:active {
+    transform: translate(4px, 4px);
+    box-shadow: 2px 2px 0px 0px var(--color-on-background);
+    transition: all 0.1s var(--ease-out-strong);
+  }
+
+  /* Textures */
+  .noise-bg {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+
+  /* Animations */
+  .animate-spin-slow {
+    animation: spin-slow 12s linear infinite;
+  }
+  
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Layer 1: Legacy Neobrutalism (can be phased out) */
+  .neo-border {
+    border: 3px solid var(--color-on-background);
+  }
+  .neo-shadow {
+    box-shadow: 6px 6px 0px 0px var(--color-on-background);
+  }
+  
+  /* Layer 2: Product Surface */
+  .product-border {
+    border: 1px solid #e5e7eb;
+  }
+  .interactive-scale:active {
+    transform: scale(0.97);
+    transition: transform 160ms var(--ease-out-strong);
+  }
+}
