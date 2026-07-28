@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState, useEffect, useMemo } from 'react';
+import axios from '../../lib/axios';
 import { toast } from 'sonner';
 import { 
   flexRender, 
@@ -46,12 +46,9 @@ export default function StageMappings() {
     pressure_weight: 1.00
   });
 
-  const token = localStorage.getItem('token');
-  const headers = { Authorization: `Bearer ${token}` };
-
   const fetchMappings = async () => {
     try {
-      const res = await axios.get('http://trickster.test/backend/public/api/v1/admin/stage-mappings', { headers });
+      const res = await axios.get('/api/v1/admin/stage-mappings');
       setMappings(res.data);
       if (initialFetch) setInitialFetch(false);
     } catch (err) {
@@ -69,7 +66,7 @@ export default function StageMappings() {
     setLoading(true);
     const toastId = toast.loading('Saving stage mapping...');
     try {
-      await axios.post('http://trickster.test/backend/public/api/v1/admin/stage-mappings', form, { headers });
+      await axios.post('/api/v1/admin/stage-mappings', form);
       fetchMappings();
       toast.success('Mapping saved successfully!', { id: toastId });
       setForm({ ...form, raw_label: '' });
@@ -81,9 +78,7 @@ export default function StageMappings() {
     setLoading(false);
   };
 
-  const table = useReactTable({
-    data: mappings,
-    columns: [
+  const tableColumns = useMemo(() => [
       columnHelper.accessor('raw_label', {
         header: 'RAW_LABEL',
         cell: info => <span className="font-['JetBrains_Mono'] text-[12px] uppercase font-bold">{info.getValue()}</span>
@@ -114,7 +109,11 @@ export default function StageMappings() {
           );
         }
       }),
-    ],
+    ], []);
+
+  const table = useReactTable({
+    data: mappings,
+    columns: tableColumns,
     getCoreRowModel: getCoreRowModel(),
   });
 

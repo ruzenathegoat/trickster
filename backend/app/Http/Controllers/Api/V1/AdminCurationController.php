@@ -13,7 +13,7 @@ class AdminCurationController extends Controller
     public function storePatchRating(Request $request)
     {
         $validated = $request->validate([
-            'patch_id' => 'required|uuid',
+'patch_version' => 'required|string',
             'agent' => 'required|string',
             'role' => 'required|string',
             'tier' => 'required|string|in:S,A,B,C,D',
@@ -21,14 +21,23 @@ class AdminCurationController extends Controller
             'notes' => 'nullable|string'
         ]);
 
-        $rating = AgentPatchRating::create($validated);
+        $patch = \App\Models\Patch::firstOrCreate(['version' => $validated['patch_version']]);
+
+        $rating = AgentPatchRating::create([
+            'patch_id' => $patch->id,
+            'agent' => $validated['agent'],
+            'role' => $validated['role'],
+            'tier' => $validated['tier'],
+            'direction' => $validated['direction'],
+            'notes' => $validated['notes'] ?? null,
+        ]);
         return response()->json($rating, 201);
     }
 
     public function storeMapRating(Request $request)
     {
         $validated = $request->validate([
-            'patch_id' => 'required|uuid',
+'patch_version' => 'required|string',
             'agent' => 'required|string',
             'map' => 'required|string',
             'score' => 'required|numeric|min:1|max:10',
@@ -37,7 +46,17 @@ class AdminCurationController extends Controller
             'confidence_level' => 'nullable|string|in:early_speculative,confirmed_by_tournament'
         ]);
 
-        $rating = AgentMapRating::create($validated);
+        $patch = \App\Models\Patch::firstOrCreate(['version' => $validated['patch_version']]);
+
+        $rating = AgentMapRating::create([
+            'patch_id' => $patch->id,
+            'agent' => $validated['agent'],
+            'map' => $validated['map'],
+            'score' => $validated['score'],
+            'effective_date' => $validated['effective_date'] ?? null,
+            'source_reference' => $validated['source_reference'] ?? null,
+            'confidence_level' => $validated['confidence_level'] ?? null,
+        ]);
         return response()->json($rating, 201);
     }
 

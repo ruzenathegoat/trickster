@@ -32,8 +32,10 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function
     Route::put('/agent-map-ratings/{id}/supersede', [AdminCurationController::class, 'supersedeMapRating']);
     
     // Scraper
-    Route::post('/scraper/run', [\App\Http\Controllers\Api\V1\AdminScraperController::class, 'runScraper']);
+    Route::post('/scraper/fetch-events', [\App\Http\Controllers\Api\V1\AdminScraperController::class, 'fetchEvents']);
+    Route::post('/scraper/process-queue', [\App\Http\Controllers\Api\V1\AdminScraperController::class, 'processQueue']);
     Route::get('/scraper/logs', [\App\Http\Controllers\Api\V1\AdminScraperController::class, 'getLogs']);
+    Route::get('/scraper/queue-stats', [\App\Http\Controllers\Api\V1\AdminScraperController::class, 'getQueueStats']);
     Route::get('/scraper/alerts', [\App\Http\Controllers\Api\V1\AdminScraperController::class, 'getAlerts']);
 });
 

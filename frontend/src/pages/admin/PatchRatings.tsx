@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState, useEffect, useMemo } from 'react';
+import axios from '../../lib/axios';
 import { toast } from 'sonner';
 import { 
   flexRender, 
@@ -58,7 +58,7 @@ export default function PatchRatings() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   const [form, setForm] = useState({
-    patch_id: '',
+    patch_version: '',
     agent: '',
     role: '',
     tier: 'A',
@@ -66,23 +66,17 @@ export default function PatchRatings() {
     notes: ''
   });
 
-  const token = localStorage.getItem('token');
-  const headers = { Authorization: `Bearer ${token}` };
-
   const fetchData = async () => {
     try {
       const [ratingsRes, patchesRes, agentsRes] = await Promise.all([
-        axios.get('http://trickster.test/backend/public/api/v1/admin/agent-patch-ratings', { headers }),
-        axios.get('http://trickster.test/backend/public/api/v1/admin/patches', { headers }),
-        axios.get('http://trickster.test/backend/public/api/v1/admin/agents', { headers })
+        axios.get('/api/v1/admin/agent-patch-ratings'),
+        axios.get('/api/v1/admin/patches'),
+        axios.get('/api/v1/admin/agents')
       ]);
       setRatings(ratingsRes.data);
       setPatches(patchesRes.data);
       setAgents(agentsRes.data);
       
-      if (patchesRes.data.length > 0 && !form.patch_id) {
-        setForm(f => ({ ...f, patch_id: patchesRes.data[0].id }));
-      }
       if (agentsRes.data.length > 0 && !form.agent) {
         setForm(f => ({ ...f, agent: agentsRes.data[0].agent, role: agentsRes.data[0].primary_role }));
       }
@@ -111,7 +105,7 @@ export default function PatchRatings() {
     setLoading(true);
     const toastId = toast.loading('Saving rating...');
     try {
-      await axios.post('http://trickster.test/backend/public/api/v1/admin/agent-patch-ratings', form, { headers });
+      await axios.post('/api/v1/admin/agent-patch-ratings', form);
       fetchData();
       toast.success('Rating saved successfully!', { id: toastId });
       setForm({ ...form, notes: '' });
@@ -123,9 +117,7 @@ export default function PatchRatings() {
     setLoading(false);
   };
 
-  const table = useReactTable({
-    data: ratings,
-    columns: [
+  const tableColumns = useMemo(() => [
       columnHelper.accessor('patch.version', {
         header: 'Patch',
         cell: info => <span className="font-['JetBrains_Mono'] text-sm font-medium">{info.getValue()}</span>
@@ -173,7 +165,11 @@ export default function PatchRatings() {
         header: 'Notes',
         cell: info => <span className="text-sm text-gray-600">{info.getValue()}</span>
       }),
-    ],
+    ], []);
+
+  const table = useReactTable({
+    data: ratings,
+    columns: tableColumns,
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -187,37 +183,35 @@ export default function PatchRatings() {
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <button className="inline-flex items-center gap-1.5 rounded-md bg-gray-900 px-3.5 py-2 text-sm font-medium text-white hover:bg-gray-800 transition-colors duration-150 ease-out active:scale-[0.97]">
-              <Plus weight="regular" size={16} />
-              Add Rating
+            <button className="flex items-center justify-center gap-2 bg-black border-2 border-black text-white px-4 py-2 font-['JetBrains_Mono'] text-[12px] font-bold uppercase tracking-wider hover:bg-transparent hover:text-black transition-colors active:translate-y-0.5 shadow-[4px_4px_0px_0px_#111111] hover:shadow-none">
+              <Plus weight="regular" size={14} />
+              ADD RATING
             </button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-xl rounded-xl border border-gray-200 bg-white p-0 shadow-xl overflow-hidden duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
-            <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+          <DialogContent className="sm:max-w-xl rounded-none border-2 border-black bg-white p-0 shadow-[8px_8px_0px_0px_#111111]">
+            <div className="px-5 py-4 border-b-2 border-black bg-yellow-300">
               <DialogHeader>
-                <DialogTitle className="text-[15px] font-semibold text-gray-900">Add New Rating</DialogTitle>
+                <DialogTitle className="text-[15px] font-['Archivo_Black'] uppercase tracking-wide text-black">ADD NEW RATING</DialogTitle>
               </DialogHeader>
             </div>
             <form onSubmit={handleSubmit} className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-[12px] font-medium text-gray-700 mb-1.5">Patch</label>
-                <select 
-                  value={form.patch_id} 
-                  onChange={e => setForm({...form, patch_id: e.target.value})}
-                  className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 bg-white focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-colors"
+                <label className="block text-[11px] font-['JetBrains_Mono'] font-bold text-black uppercase mb-1.5">Patch</label>
+                <input 
+                  type="text"
+                  value={form.patch_version} 
+                  onChange={e => setForm({...form, patch_version: e.target.value})}
+                  className="w-full px-3 py-2 text-sm rounded-none border-2 border-black bg-white focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_#111111] transition-shadow"
+                  placeholder="e.g. 8.11"
                   required
-                >
-                  {patches.map(p => (
-                    <option key={p.id} value={p.id}>{p.version}</option>
-                  ))}
-                </select>
+                />
               </div>
               <div>
-                <label className="block text-[12px] font-medium text-gray-700 mb-1.5">Agent</label>
+                <label className="block text-[11px] font-['JetBrains_Mono'] font-bold text-black uppercase mb-1.5">Agent</label>
                 <select 
                   value={form.agent} 
                   onChange={handleAgentChange}
-                  className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 bg-white focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-colors"
+                  className="w-full px-3 py-2 text-sm rounded-none border-2 border-black bg-white focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_#111111] transition-shadow"
                   required
                 >
                   {agents.map(a => (
@@ -226,20 +220,20 @@ export default function PatchRatings() {
                 </select>
               </div>
               <div>
-                <label className="block text-[12px] font-medium text-gray-400 mb-1.5">Role (Auto-filled)</label>
+                <label className="block text-[11px] font-['JetBrains_Mono'] font-bold text-gray-500 uppercase mb-1.5">Role (Auto-filled)</label>
                 <input 
                   type="text" 
                   value={form.role} 
                   readOnly
-                  className="w-full px-3 py-2 text-sm rounded-md border border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed"
+                  className="w-full px-3 py-2 text-sm rounded-none border-2 border-black bg-gray-200 text-gray-600 cursor-not-allowed focus:outline-none"
                 />
               </div>
               <div>
-                <label className="block text-[12px] font-medium text-gray-700 mb-1.5">Tier</label>
+                <label className="block text-[11px] font-['JetBrains_Mono'] font-bold text-black uppercase mb-1.5">Tier</label>
                 <select 
                   value={form.tier} 
                   onChange={e => setForm({...form, tier: e.target.value})}
-                  className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 bg-white focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-colors"
+                  className="w-full px-3 py-2 text-sm rounded-none border-2 border-black bg-white focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_#111111] transition-shadow"
                 >
                   <option value="S">S - S-Tier</option>
                   <option value="A">A - A-Tier</option>
@@ -249,11 +243,11 @@ export default function PatchRatings() {
                 </select>
               </div>
               <div>
-                <label className="block text-[12px] font-medium text-gray-700 mb-1.5">Direction</label>
+                <label className="block text-[11px] font-['JetBrains_Mono'] font-bold text-black uppercase mb-1.5">Direction</label>
                 <select 
                   value={form.direction} 
                   onChange={e => setForm({...form, direction: e.target.value})}
-                  className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 bg-white focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-colors"
+                  className="w-full px-3 py-2 text-sm rounded-none border-2 border-black bg-white focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_#111111] transition-shadow"
                 >
                   <option value="buffed">Buffed</option>
                   <option value="nerfed">Nerfed</option>
@@ -262,12 +256,12 @@ export default function PatchRatings() {
                 </select>
               </div>
               <div className="md:col-span-2">
-                <label className="block text-[12px] font-medium text-gray-700 mb-1.5">Notes</label>
+                <label className="block text-[11px] font-['JetBrains_Mono'] font-bold text-black uppercase mb-1.5">Notes</label>
                 <input 
                   type="text" 
                   value={form.notes} 
                   onChange={e => setForm({...form, notes: e.target.value})}
-                  className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 bg-white focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-colors"
+                  className="w-full px-3 py-2 text-sm rounded-none border-2 border-black bg-white focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_#111111] transition-shadow"
                   placeholder="e.g. Flash duration increased"
                 />
               </div>
@@ -275,9 +269,9 @@ export default function PatchRatings() {
                 <button 
                   type="submit" 
                   disabled={loading}
-                  className="w-full rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 transition-colors duration-150 ease-out active:scale-[0.98] disabled:opacity-50"
+                  className="w-full bg-black border-2 border-black text-white px-4 py-2.5 font-['JetBrains_Mono'] text-[12px] font-bold uppercase tracking-wider hover:bg-transparent hover:text-black transition-colors active:translate-y-0.5 disabled:opacity-50 mt-2"
                 >
-                  {loading ? 'Saving...' : 'Save Rating'}
+                  {loading ? 'SAVING...' : 'SAVE RATING'}
                 </button>
               </div>
             </form>
@@ -285,33 +279,37 @@ export default function PatchRatings() {
         </Dialog>
       </div>
 
-      <div className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden mb-12">
-        <Table>
-          <TableHeader className="bg-gray-50/50 border-b border-gray-200">
-            {table.getHeaderGroups().map(headerGroup => (
-              <TableRow key={headerGroup.id} className="border-none hover:bg-transparent">
-                {headerGroup.headers.map(header => (
-                  <TableHead key={header.id} className="h-9 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
+      <div className="mb-10">
+        <h3 className="font-['JetBrains_Mono'] text-[11px] font-bold uppercase tracking-widest text-black bg-cyan-300 inline-block px-2 py-1 mb-2 border border-black shadow-[2px_2px_0px_0px_#111111]">
+          agent_patch_ratings.db
+        </h3>
+        <div className="bg-white border-2 border-black shadow-[4px_4px_0px_0px_#111111]">
+          <Table>
+            <TableHeader className="bg-gray-100 border-b-2 border-black">
+              {table.getHeaderGroups().map(headerGroup => (
+                <TableRow key={headerGroup.id} className="border-none hover:bg-transparent">
+                  {headerGroup.headers.map(header => (
+                    <TableHead key={header.id} className="h-10 px-4 font-['JetBrains_Mono'] text-[11px] font-bold text-black uppercase tracking-wider">
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
             {initialFetch ? (
               Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={i} className="border-b border-gray-100">
-                  <TableCell className="p-4"><Skeleton className="h-4 w-12 bg-gray-200" /></TableCell>
-                  <TableCell className="p-4"><Skeleton className="h-4 w-20 bg-gray-200" /></TableCell>
-                  <TableCell className="p-4"><Skeleton className="h-5 w-8 rounded bg-gray-200" /></TableCell>
-                  <TableCell className="p-4"><Skeleton className="h-4 w-16 bg-gray-200" /></TableCell>
-                  <TableCell className="p-4"><Skeleton className="h-4 w-40 bg-gray-200" /></TableCell>
+                <TableRow key={i} className="border-b-2 border-gray-100">
+                  <TableCell className="p-4"><Skeleton className="h-4 w-12 bg-gray-200 rounded-none" /></TableCell>
+                  <TableCell className="p-4"><Skeleton className="h-4 w-20 bg-gray-200 rounded-none" /></TableCell>
+                  <TableCell className="p-4"><Skeleton className="h-5 w-8 bg-gray-200 rounded-none" /></TableCell>
+                  <TableCell className="p-4"><Skeleton className="h-4 w-16 bg-gray-200 rounded-none" /></TableCell>
+                  <TableCell className="p-4"><Skeleton className="h-4 w-40 bg-gray-200 rounded-none" /></TableCell>
                 </TableRow>
               ))
             ) : table.getRowModel().rows.length > 0 ? (
               table.getRowModel().rows.map(row => (
-                <TableRow key={row.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors duration-150">
+                <TableRow key={row.id} className="border-b-2 border-gray-100 hover:bg-gray-50 transition-colors">
                   {row.getVisibleCells().map(cell => (
                     <TableCell key={cell.id} className="px-4 py-3">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -327,7 +325,8 @@ export default function PatchRatings() {
               </TableRow>
             )}
           </TableBody>
-        </Table>
+          </Table>
+        </div>
       </div>
     </div>
   );

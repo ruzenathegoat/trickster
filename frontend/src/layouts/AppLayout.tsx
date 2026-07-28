@@ -13,13 +13,16 @@ import {
   List,
   CaretLeft,
   Bell,
-  Globe
+  Globe,
+  SignOut
 } from '@phosphor-icons/react';
 import clsx from 'clsx';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   const navItems = [
     { label: 'Dashboard', icon: SquaresFour, path: '/app/dashboard' },
@@ -99,6 +102,18 @@ export default function AppLayout() {
             )}
           </Link>
 
+          <button 
+            onClick={logout}
+            className="w-full flex items-center gap-3 hover:bg-red-50 p-2 mb-2 rounded-md transition-colors text-red-600"
+          >
+            <div className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+              <SignOut weight="regular" className="text-[18px]" />
+            </div>
+            {!collapsed && (
+              <p className="text-[13px] font-semibold">Logout</p>
+            )}
+          </button>
+
           <Link 
             to="/app/account"
             className="flex items-center gap-3 hover:bg-gray-100 p-2 rounded-md transition-colors"
@@ -108,8 +123,8 @@ export default function AppLayout() {
             </div>
             {!collapsed && (
               <div className="overflow-hidden">
-                <p className="text-[13px] font-semibold text-gray-900 truncate">Test User</p>
-                <p className="text-[11px] text-gray-500 truncate">test@example.com</p>
+                <p className="text-[13px] font-semibold text-gray-900 truncate">{user?.name || 'User'}</p>
+                <p className="text-[11px] text-gray-500 truncate">{user?.email || 'user@example.com'}</p>
               </div>
             )}
           </Link>

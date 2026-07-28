@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import { useAuth } from '../../contexts/AuthContext';
+import { toast } from 'sonner';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('admin@example.com');
@@ -9,6 +10,7 @@ export default function AdminLogin() {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login, logout } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -18,14 +20,21 @@ export default function AdminLogin() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post('http://trickster.test/backend/public/api/v1/auth/login', {
-        email,
-        password
-      });
-      localStorage.setItem('token', res.data.access_token);
+      const user = await login({ email, password });
+      
+      if (user.role !== 'admin') {
+        await logout();
+        throw new Error('Not an admin');
+      }
+      
+      toast.success('Admin authenticated');
       navigate('/admin/scraper');
-    } catch (err) {
-      alert('Login failed');
+    } catch (err: any) {
+      toast.error('Login Failed', {
+        description: err.message === 'Not an admin' 
+          ? 'You do not have administrative privileges.' 
+          : 'Invalid credentials or server error.',
+      });
       setLoading(false);
     }
   };
