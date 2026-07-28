@@ -23,7 +23,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Terminal, Plus } from 'lucide-react';
+import { Terminal, Plus } from '@phosphor-icons/react';
 
 interface StageMapping {
   id: string;
@@ -124,7 +124,7 @@ export default function StageMappings() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-black pb-6">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Terminal size={18} />
+            <Terminal weight="regular" size={18} />
             <h2 className="text-2xl font-['Archivo_Black'] uppercase tracking-tight text-black leading-none mt-1">
               Stage Mappings
             </h2>
@@ -137,7 +137,7 @@ export default function StageMappings() {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <button className="flex items-center gap-2 bg-black border-2 border-black text-white px-4 py-2 font-['JetBrains_Mono'] text-[12px] font-bold uppercase tracking-wider hover:bg-transparent hover:text-black transition-colors active:translate-y-0.5">
-              <Plus size={14} />
+              <Plus weight="regular" size={14} />
               NEW MAPPING
             </button>
           </DialogTrigger>

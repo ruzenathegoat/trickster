@@ -13,6 +13,10 @@ Route::prefix('v1/auth')->group(function () {
     Route::post('/logout', [\App\Http\Controllers\Api\V1\AuthController::class, 'logout'])->middleware('auth:sanctum');
 });
 
+Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
+    return $request->user();
+});
+
 Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
     // Curation GET endpoints
     Route::get('/stage-mappings', [AdminCurationController::class, 'getStageMappings']);

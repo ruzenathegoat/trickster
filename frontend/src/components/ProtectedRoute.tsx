@@ -1,20 +1,30 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useAuth } from '../contexts/AuthContext';
+import { useEffect } from 'react';
 
 export default function ProtectedRoute() {
-  // TODO: Replace with actual auth context/state once backend auth is integrated
-  const isAuthenticated = localStorage.getItem('trickster_token') !== null;
-  // For development purposes, if you want to bypass auth, you can temporarily set a dummy token in localStorage: 
-  // localStorage.setItem('trickster_token', 'dummy')
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
 
-  if (!isAuthenticated) {
-    // We defer the toast slightly so it doesn't fire during the initial render phase
-    setTimeout(() => {
+  useEffect(() => {
+    if (!isLoading && !user) {
       toast.error('Authentication Required', {
         description: 'You must be logged in to access the Trickster Dashboard.',
       });
-    }, 100);
-    return <Navigate to="/login" replace />;
+    }
+  }, [isLoading, user]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-surface)]">
+        <div className="w-8 h-8 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return <Outlet />;

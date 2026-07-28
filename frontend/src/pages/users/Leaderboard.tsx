@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-table';
 import type { SortingState } from '@tanstack/react-table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Filter, Search, User } from 'lucide-react';
+import { Funnel, MagnifyingGlass, User } from '@phosphor-icons/react';
 import clsx from 'clsx';
 
 interface PlayerRank {
@@ -60,7 +60,7 @@ export default function Leaderboard() {
       cell: info => (
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
-            <User size={16} className="text-gray-400" />
+            <User weight="regular" size={16} className="text-gray-400" />
           </div>
           <div>
             <div className="font-bold text-[14px] leading-tight">{info.getValue()}</div>
@@ -139,7 +139,7 @@ export default function Leaderboard() {
       {/* Filter Bar */}
       <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Filter size={16} className="text-gray-400" />
+          <Funnel weight="regular" size={16} className="text-gray-400" />
           <span className="text-[13px] font-semibold text-gray-700 mr-2">Filters:</span>
           
           <div className="flex gap-2">
@@ -161,7 +161,7 @@ export default function Leaderboard() {
         </div>
 
         <div className="relative w-64">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <MagnifyingGlass weight="regular" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input 
             type="text" 
             placeholder="Search player..." 
@@ -215,7 +215,7 @@ export default function Leaderboard() {
               <tr>
                 <td colSpan={columns.length} className="px-4 py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center">
-                    <User size={48} className="text-gray-300 mb-4" />
+                    <User weight="regular" size={48} className="text-gray-300 mb-4" />
                     <p className="font-semibold text-gray-700 mb-1">No players found</p>
                     <p className="text-[13px]">Try adjusting your filters.</p>
                   </div>

@@ -2,7 +2,7 @@ export default function Footer() {
   return (
     <footer className="bg-[var(--color-surface)] border-t-2 border-[var(--color-on-background)] w-full py-12 px-[var(--spacing-margin-desktop)] mt-24">
       <div className="flex flex-col md:flex-row justify-between items-center max-w-[var(--spacing-max-width)] mx-auto gap-[var(--spacing-gutter)]">
-        <div className="flex items-center gap-3 font-['Archivo_Narrow'] text-[1.5rem] font-bold text-[var(--color-on-background)] uppercase tracking-tighter">
+        <div className="flex items-center gap-3 font-['Archivo_Black'] text-[1.5rem] font-bold text-[var(--color-on-background)] uppercase tracking-tighter">
           <img src="/logo.png" alt="Trickster Logo" className="w-8 h-8 object-contain" />
           TRICKSTER*
         </div>

@@ -9,7 +9,7 @@ export default function AuthLayout() {
         
         {/* Brand Logo Area */}
         <div className="z-10">
-          <Link to="/" className="flex items-center gap-2 font-['Archivo_Narrow'] text-[var(--font-h2-size,2rem)] font-extrabold uppercase tracking-tighter hover:text-[var(--color-primary)] transition-colors">
+          <Link to="/" className="flex items-center gap-2 font-['Archivo_Black'] text-[var(--font-h2-size,2rem)] font-extrabold uppercase tracking-tighter hover:text-[var(--color-primary)] transition-colors">
             <img src="/logo.png" alt="Trickster Logo" className="w-8 h-8 object-contain" />
             Trickster*
           </Link>
@@ -21,7 +21,7 @@ export default function AuthLayout() {
         
         {/* Large Headline */}
         <div className="z-10 mt-auto mb-32">
-          <h1 className="font-['Archivo_Narrow'] text-[4rem] xl:text-[5rem] uppercase font-black leading-none max-w-sm tracking-tighter">
+          <h1 className="font-['Archivo_Black'] text-[4rem] xl:text-[5rem] uppercase font-black leading-none max-w-sm tracking-tighter">
             ENTER<br />THE<br />META.
           </h1>
         </div>
@@ -43,7 +43,7 @@ export default function AuthLayout() {
         
         {/* Mobile Logo (Visible only on small screens) */}
         <div className="md:hidden w-full max-w-md mb-8 flex justify-center z-10">
-          <Link to="/" className="flex items-center gap-2 font-['Archivo_Narrow'] text-[2.25rem] font-extrabold uppercase tracking-tighter">
+          <Link to="/" className="flex items-center gap-2 font-['Archivo_Black'] text-[2.25rem] font-extrabold uppercase tracking-tighter">
             <img src="/logo.png" alt="Trickster Logo" className="w-8 h-8 object-contain" />
             Trickster*
           </Link>

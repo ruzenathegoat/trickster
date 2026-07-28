@@ -6,7 +6,7 @@ export default function TechMethodologySection() {
       <div className="max-w-[var(--spacing-max-width)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] relative z-10">
         
         <div className="text-center mb-16 md:mb-24">
-          <h2 className="font-['Archivo_Narrow'] text-[3rem] md:text-[4rem] font-black uppercase tracking-tighter text-white leading-none">
+          <h2 className="font-['Archivo_Black'] text-[3rem] md:text-[4rem] font-black uppercase tracking-tighter text-white leading-none">
             BUILT FOR <span className="text-[var(--color-primary)]">ANALYSTS.</span>
           </h2>
           <p className="mt-4 font-['Inter'] text-[1.125rem] text-gray-400 max-w-2xl mx-auto">
@@ -43,7 +43,7 @@ export default function TechMethodologySection() {
           {/* Right: Explanation */}
           <div className="flex flex-col gap-8">
             <div>
-              <h3 className="font-['Archivo_Narrow'] text-[1.5rem] font-bold uppercase mb-2 text-white">
+              <h3 className="font-['Archivo_Black'] text-[1.5rem] font-bold uppercase mb-2 text-white">
                 Context is Everything
               </h3>
               <p className="font-['Inter'] text-[1rem] text-gray-400 leading-relaxed">
@@ -51,7 +51,7 @@ export default function TechMethodologySection() {
               </p>
             </div>
             <div>
-              <h3 className="font-['Archivo_Narrow'] text-[1.5rem] font-bold uppercase mb-2 text-white">
+              <h3 className="font-['Archivo_Black'] text-[1.5rem] font-bold uppercase mb-2 text-white">
                 Live Data Ingestion
               </h3>
               <p className="font-['Inter'] text-[1rem] text-gray-400 leading-relaxed">

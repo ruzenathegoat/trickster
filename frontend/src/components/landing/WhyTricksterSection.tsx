@@ -8,7 +8,7 @@ export default function WhyTricksterSection() {
           
           {/* Left: Huge Question */}
           <div className="flex-1 md:sticky top-32">
-            <h2 className="font-['Archivo_Narrow'] text-[3rem] md:text-[5rem] font-black uppercase leading-none tracking-tighter text-[var(--color-on-background)]">
+            <h2 className="font-['Archivo_Black'] text-[3rem] md:text-[5rem] font-black uppercase leading-none tracking-tighter text-[var(--color-on-background)]">
               DATA IS <br />
               <span className="text-[var(--color-primary)] stroke-black" style={{ WebkitTextStroke: '2px black' }}>SCATTERED.</span>
             </h2>
@@ -25,7 +25,7 @@ export default function WhyTricksterSection() {
               <div className="absolute -top-6 -left-6 w-12 h-12 bg-[var(--color-primary)] border-2 border-[var(--color-on-background)] rounded-full flex items-center justify-center font-['JetBrains_Mono'] font-bold text-xl">
                 1
               </div>
-              <h3 className="font-['Archivo_Narrow'] text-[2rem] font-bold uppercase mb-4">Unified Intel</h3>
+              <h3 className="font-['Archivo_Black'] text-[2rem] font-bold uppercase mb-4">Unified Intel</h3>
               <p className="font-['Inter'] text-[1rem] text-[var(--color-secondary)] leading-relaxed">
                 We ingest data from every major Valorant source. Match histories, economy stats, micro-interactions, and agent metrics—all normalized into a single, queryable database.
               </p>
@@ -36,7 +36,7 @@ export default function WhyTricksterSection() {
               <div className="absolute -top-6 -left-6 w-12 h-12 bg-[var(--color-primary)] border-2 border-[var(--color-on-background)] rounded-full flex items-center justify-center font-['JetBrains_Mono'] font-bold text-xl">
                 2
               </div>
-              <h3 className="font-['Archivo_Narrow'] text-[2rem] font-bold uppercase mb-4">SMART Scoring</h3>
+              <h3 className="font-['Archivo_Black'] text-[2rem] font-bold uppercase mb-4">SMART Scoring</h3>
               <p className="font-['Inter'] text-[1rem] text-[var(--color-secondary)] leading-relaxed">
                 Raw stats lie. Our proprietary SMART (Specific Meta-Adjusted Rating Toolkit) normalizes player performance against map biases, patch changes, and team economy.
               </p>
@@ -47,7 +47,7 @@ export default function WhyTricksterSection() {
               <div className="absolute -top-6 -left-6 w-12 h-12 bg-[var(--color-primary)] border-2 border-[var(--color-on-background)] rounded-full flex items-center justify-center font-['JetBrains_Mono'] font-bold text-xl">
                 3
               </div>
-              <h3 className="font-['Archivo_Narrow'] text-[2rem] font-bold uppercase mb-4">AI Decision Support</h3>
+              <h3 className="font-['Archivo_Black'] text-[2rem] font-bold uppercase mb-4">AI Decision Support</h3>
               <p className="font-['Inter'] text-[1rem] text-[var(--color-secondary)] leading-relaxed">
                 We don't just show charts. Trickster's engine simulates roster changes and predicts chemistry shifts based on historical role overlaps and pacing metrics.
               </p>

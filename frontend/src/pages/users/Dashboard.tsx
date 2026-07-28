@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowUpRight, TrendingUp, Activity, User, Crosshair } from 'lucide-react';
+import { ArrowUpRight, TrendUp, Heartbeat, User, Crosshair } from '@phosphor-icons/react';
 
 export default function Dashboard() {
   const [loading] = useState(false);
@@ -25,7 +25,7 @@ export default function Dashboard() {
         </div>
         <div className="hidden md:block">
           <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
-            <User size={40} className="text-gray-400" />
+            <User weight="regular" size={40} className="text-gray-400" />
           </div>
         </div>
       </div>
@@ -38,7 +38,7 @@ export default function Dashboard() {
               <h3 className="font-semibold text-[15px]">Meta Shift (Patch 9.08)</h3>
               <p className="text-[12px] text-gray-500">Highest pick rate increases</p>
             </div>
-            <TrendingUp size={18} className="text-gray-400" />
+            <TrendUp weight="regular" size={18} className="text-gray-400" />
           </div>
           <div className="h-48 flex items-end gap-4 px-2">
             {/* Fake chart bars */}
@@ -61,7 +61,7 @@ export default function Dashboard() {
           </div>
           <div className="mt-8 pt-4 border-t border-gray-100 text-center">
              <button className="text-[13px] font-medium text-gray-600 hover:text-black flex items-center gap-1 mx-auto">
-               View Meta Explorer <ArrowUpRight size={14} />
+               View Meta Explorer <ArrowUpRight weight="regular" size={14} />
              </button>
           </div>
         </div>
@@ -72,11 +72,11 @@ export default function Dashboard() {
               <h3 className="font-semibold text-[15px]">Followed Player Consistency</h3>
               <p className="text-[12px] text-gray-500">Last 10 matches performance</p>
             </div>
-            <Activity size={18} className="text-gray-400" />
+            <Heartbeat weight="regular" size={18} className="text-gray-400" />
           </div>
           <div className="h-48 flex items-center justify-center">
              <div className="text-center">
-                <Crosshair size={32} className="text-gray-300 mx-auto mb-2" />
+                <Crosshair weight="regular" size={32} className="text-gray-300 mx-auto mb-2" />
                 <p className="text-gray-500 text-sm">No player followed yet.</p>
                 <button className="mt-3 text-[13px] bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-md transition-colors font-medium">Search Players</button>
              </div>

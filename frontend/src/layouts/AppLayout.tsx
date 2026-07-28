@@ -1,19 +1,20 @@
 import { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
-  LayoutDashboard, 
+  SquaresFour, 
   Trophy, 
   Users, 
   Shield, 
-  Sparkles, 
-  Swords, 
-  TrendingUp, 
+  Sparkle, 
+  Sword, 
+  TrendUp, 
   UserCircle,
-  Search,
-  Menu,
-  ChevronLeft,
-  Bell
-} from 'lucide-react';
+  MagnifyingGlass,
+  List,
+  CaretLeft,
+  Bell,
+  Globe
+} from '@phosphor-icons/react';
 import clsx from 'clsx';
 
 export default function AppLayout() {
@@ -21,13 +22,13 @@ export default function AppLayout() {
   const location = useLocation();
 
   const navItems = [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/app/dashboard' },
+    { label: 'Dashboard', icon: SquaresFour, path: '/app/dashboard' },
     { label: 'Leaderboard', icon: Trophy, path: '/app/leaderboard' },
     { label: 'Players', icon: Users, path: '/app/players' },
     { label: 'Teams', icon: Shield, path: '/app/teams' },
-    { label: 'Recommend', icon: Sparkles, path: '/app/recommend' },
-    { label: 'Simulation', icon: Swords, path: '/app/simulation' },
-    { label: 'Meta', icon: TrendingUp, path: '/app/meta' },
+    { label: 'Recommend', icon: Sparkle, path: '/app/recommend' },
+    { label: 'Simulation', icon: Sword, path: '/app/simulation' },
+    { label: 'Meta', icon: TrendUp, path: '/app/meta' },
     { label: 'My Profiles', icon: UserCircle, path: '/app/profiles' },
   ];
 
@@ -36,14 +37,14 @@ export default function AppLayout() {
       {/* Sidebar */}
       <aside 
         className={clsx(
-          "bg-[var(--color-surface)] border-r border-gray-200 transition-all duration-300 ease-in-out flex flex-col z-10",
+          "bg-[var(--color-surface)] border-r border-gray-200 transition-all duration-300 ease-in-out flex flex-col z-20 sticky top-0 h-screen shrink-0",
           collapsed ? "w-[72px]" : "w-[260px]"
         )}
       >
         {/* Logo Area */}
-        <div className="h-[72px] flex items-center justify-between px-4 border-b border-gray-200">
+        <div className="h-[72px] flex items-center justify-between px-4 border-b border-gray-200 shrink-0">
           {!collapsed && (
-            <Link to="/app/dashboard" className="flex items-center gap-3 font-['Archivo_Narrow'] text-xl uppercase tracking-widest font-black truncate">
+            <Link to="/app/dashboard" className="flex items-center gap-3 font-['Archivo_Black'] text-xl uppercase tracking-widest font-black truncate">
               <div className="w-8 h-8 bg-black cut-corner flex items-center justify-center shrink-0">
                 <span className="text-[var(--color-primary)] font-black text-lg leading-none">T</span>
               </div>
@@ -54,7 +55,7 @@ export default function AppLayout() {
             onClick={() => setCollapsed(!collapsed)}
             className="p-1.5 hover:bg-gray-100 rounded-md transition-colors mx-auto active:scale-95"
           >
-            {collapsed ? <Menu size={20} /> : <ChevronLeft size={20} />}
+            {collapsed ? <List weight="regular" size={20} /> : <CaretLeft weight="regular" size={20} />}
           </button>
         </div>
 
@@ -77,7 +78,7 @@ export default function AppLayout() {
                 {isActive && (
                   <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[50%] bg-black rounded-r-md" />
                 )}
-                <item.icon size={18} className={clsx(isActive ? "text-black" : "text-gray-400 group-hover:text-gray-600")} />
+                <item.icon weight="regular" size={18} className={clsx(isActive ? "text-black" : "text-gray-400 group-hover:text-gray-600")} />
                 {!collapsed && <span className="text-[14px]">{item.label}</span>}
               </Link>
             );
@@ -85,13 +86,25 @@ export default function AppLayout() {
         </nav>
 
         {/* Bottom Account Area */}
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-gray-200 shrink-0">
+          <Link 
+            to="/"
+            className="flex items-center gap-3 hover:bg-gray-100 p-2 mb-2 rounded-md transition-colors text-gray-600"
+          >
+            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+              <Globe weight="regular" className="text-[18px]" />
+            </div>
+            {!collapsed && (
+              <p className="text-[13px] font-semibold">Back to Website</p>
+            )}
+          </Link>
+
           <Link 
             to="/app/account"
             className="flex items-center gap-3 hover:bg-gray-100 p-2 rounded-md transition-colors"
           >
             <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
-              <UserCircle size={20} className="text-gray-500" />
+              <UserCircle weight="regular" size={20} className="text-gray-500" />
             </div>
             {!collapsed && (
               <div className="overflow-hidden">
@@ -104,12 +117,12 @@ export default function AppLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Topbar */}
-        <header className="h-[72px] bg-[var(--color-surface)] border-b border-gray-200 flex items-center justify-between px-8 shrink-0 z-10">
+        <header className="h-[72px] sticky top-0 bg-[var(--color-surface)] border-b border-gray-200 flex items-center justify-between px-8 shrink-0 z-10">
           <div className="flex-1 max-w-xl">
             <div className="relative">
-              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <MagnifyingGlass weight="regular" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input 
                 type="text" 
                 placeholder="Search players or teams..." 
@@ -124,13 +137,13 @@ export default function AppLayout() {
               <span className="text-[12px] font-semibold font-['JetBrains_Mono']">Patch 9.08</span>
             </div>
             <button className="text-gray-500 hover:text-gray-900 transition-colors">
-              <Bell size={20} />
+              <Bell weight="regular" size={20} />
             </button>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-8">
+        <main className="flex-1 p-8">
           <Outlet />
         </main>
       </div>

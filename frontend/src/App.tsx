@@ -21,11 +21,13 @@ import MapRatings from './pages/admin/MapRatings';
 import StageMappings from './pages/admin/StageMappings';
 
 import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
   return (
-    <SmoothScroller>
-      <Routes>
+    <AuthProvider>
+      <SmoothScroller>
+        <Routes>
         {/* Public / Marketing Routes (Layer 1) */}
         <Route path="/" element={<Landing />} />
 
@@ -61,8 +63,9 @@ function App() {
           <Route path="stage-mappings" element={<StageMappings />} />
         </Route>
       </Routes>
-      <Toaster position="top-right" richColors theme="light" />
-    </SmoothScroller>
+        <Toaster position="top-right" richColors theme="light" />
+      </SmoothScroller>
+    </AuthProvider>
   );
 }
 

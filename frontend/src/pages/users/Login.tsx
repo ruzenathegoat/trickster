@@ -1,12 +1,45 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { toast } from 'sonner';
+import { Envelope, Lock, ArrowRight } from '@phosphor-icons/react';
 
 export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || '/app/dashboard';
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      await login({ email, password });
+      toast.success('Login Successful', {
+        description: 'Welcome back to Trickster.'
+      });
+      navigate(from, { replace: true });
+    } catch (error: any) {
+      toast.error('Login Failed', {
+        description: error.response?.data?.message || 'Invalid credentials or server error.'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="bg-[var(--color-surface)] w-full max-w-md border-2 border-[var(--color-on-background)] brutal-shadow p-8 relative z-10 cut-corner">
       
       {/* Header */}
       <div className="mb-8 text-center">
-        <h1 className="font-['Archivo_Narrow'] text-[1.5rem] font-bold text-[var(--color-on-background)] mb-2 uppercase">
+        <h1 className="font-['Archivo_Black'] text-[1.5rem] font-bold text-[var(--color-on-background)] mb-2 uppercase">
           Sign In to your account
         </h1>
         <p className="font-['Inter'] text-[1rem] text-[var(--color-secondary)]">
@@ -15,7 +48,7 @@ export default function Login() {
       </div>
       
       {/* Form */}
-      <form className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
         
         {/* Email Input */}
         <div className="space-y-2">
@@ -24,7 +57,7 @@ export default function Login() {
           </label>
           <div className="relative">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-[var(--color-secondary)] pointer-events-none">
-              <span className="material-symbols-outlined text-[1.25rem]">mail</span>
+              <Envelope weight="bold" className="text-[1.25rem]" />
             </span>
             <input 
               id="email" 
@@ -32,6 +65,8 @@ export default function Login() {
               type="email" 
               placeholder="scout@trickster.gg" 
               required 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-[var(--color-surface)] border-2 border-[var(--color-on-background)] py-3 pl-10 pr-4 font-['Inter'] text-[1rem] text-[var(--color-on-background)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition-shadow duration-200"
             />
           </div>
@@ -49,7 +84,7 @@ export default function Login() {
           </div>
           <div className="relative">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-[var(--color-secondary)] pointer-events-none">
-              <span className="material-symbols-outlined text-[1.25rem]">lock</span>
+              <Lock weight="bold" className="text-[1.25rem]" />
             </span>
             <input 
               id="password" 
@@ -57,6 +92,8 @@ export default function Login() {
               type="password" 
               placeholder="••••••••" 
               required 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full bg-[var(--color-surface)] border-2 border-[var(--color-on-background)] py-3 pl-10 pr-4 font-['Inter'] text-[1rem] text-[var(--color-on-background)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition-shadow duration-200"
             />
           </div>
@@ -65,10 +102,17 @@ export default function Login() {
         {/* Primary CTA */}
         <button 
           type="submit" 
-          className="w-full bg-[var(--color-primary)] text-[var(--color-on-background)] border-2 border-[var(--color-on-background)] py-3 px-6 font-['JetBrains_Mono'] text-[0.875rem] font-bold uppercase brutal-shadow-sm brutal-hover flex items-center justify-center gap-2 mt-4"
+          disabled={isSubmitting}
+          className="w-full bg-[var(--color-primary)] text-[var(--color-on-background)] border-2 border-[var(--color-on-background)] py-3 px-6 font-['JetBrains_Mono'] text-[0.875rem] font-bold uppercase brutal-shadow-sm brutal-hover flex items-center justify-center gap-2 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Sign In
-          <span className="material-symbols-outlined text-[1.25rem]">arrow_forward</span>
+          {isSubmitting ? (
+            <div className="w-5 h-5 border-2 border-[var(--color-on-background)] border-t-transparent rounded-full animate-spin"></div>
+          ) : (
+            <>
+              Sign In
+              <ArrowRight weight="bold" className="text-[1.25rem]" />
+            </>
+          )}
         </button>
       </form>
       

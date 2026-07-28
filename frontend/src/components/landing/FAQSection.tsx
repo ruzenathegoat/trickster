@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CaretDown } from '@phosphor-icons/react';
 
 export default function FAQSection() {
   const faqs = [
@@ -32,7 +33,7 @@ export default function FAQSection() {
           
           {/* Left: Heading */}
           <div className="flex-1 md:sticky top-32">
-            <h2 className="font-['Archivo_Narrow'] text-[3rem] md:text-[5rem] font-black uppercase leading-none tracking-tighter text-[var(--color-on-background)]">
+            <h2 className="font-['Archivo_Black'] text-[3rem] md:text-[5rem] font-black uppercase leading-none tracking-tighter text-[var(--color-on-background)]">
               NO <br />
               <span className="text-[var(--color-primary)] stroke-black" style={{ WebkitTextStroke: '2px black' }}>SECRETS.</span>
             </h2>
@@ -54,12 +55,10 @@ export default function FAQSection() {
                     onClick={() => setOpenIndex(isOpen ? null : index)}
                     className="w-full text-left p-6 flex justify-between items-center outline-none"
                   >
-                    <span className="font-['Archivo_Narrow'] text-[1.25rem] md:text-[1.5rem] font-bold uppercase pr-8">
+                    <span className="font-['Archivo_Black'] text-[1.25rem] md:text-[1.5rem] font-bold uppercase pr-8">
                       {faq.question}
                     </span>
-                    <span className={`material-symbols-outlined text-2xl transition-transform duration-200 ease-out ${isOpen ? 'rotate-180 text-[var(--color-primary)]' : ''}`}>
-                      expand_more
-                    </span>
+                    <CaretDown weight="bold" className={`text-2xl transition-transform duration-200 ease-out ${isOpen ? 'rotate-180 text-[var(--color-primary)]' : ''}`} />
                   </button>
                   
                   <div 

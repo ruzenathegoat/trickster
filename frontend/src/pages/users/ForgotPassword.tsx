@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Envelope, PaperPlaneTilt } from '@phosphor-icons/react';
 
 export default function ForgotPassword() {
   return (
@@ -6,7 +7,7 @@ export default function ForgotPassword() {
       
       {/* Header */}
       <div className="mb-8 text-center">
-        <h1 className="font-['Archivo_Narrow'] text-[1.5rem] font-bold text-[var(--color-on-background)] mb-2 uppercase">
+        <h1 className="font-['Archivo_Black'] text-[1.5rem] font-bold text-[var(--color-on-background)] mb-2 uppercase">
           Reset Password
         </h1>
         <p className="font-['Inter'] text-[1rem] text-[var(--color-secondary)]">
@@ -24,7 +25,7 @@ export default function ForgotPassword() {
           </label>
           <div className="relative">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-[var(--color-secondary)] pointer-events-none">
-              <span className="material-symbols-outlined text-[1.25rem]">mail</span>
+              <Envelope weight="bold" className="text-[1.25rem]" />
             </span>
             <input 
               id="email" 
@@ -43,7 +44,7 @@ export default function ForgotPassword() {
           className="w-full bg-[var(--color-primary)] text-[var(--color-on-background)] border-2 border-[var(--color-on-background)] py-3 px-6 font-['JetBrains_Mono'] text-[0.875rem] font-bold uppercase brutal-shadow-sm brutal-hover flex items-center justify-center gap-2 mt-4"
         >
           Send Reset Link
-          <span className="material-symbols-outlined text-[1.25rem]">mail</span>
+          <PaperPlaneTilt weight="bold" className="text-[1.25rem]" />
         </button>
       </form>
 

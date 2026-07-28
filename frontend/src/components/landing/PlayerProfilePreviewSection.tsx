@@ -1,3 +1,5 @@
+import { Check } from '@phosphor-icons/react';
+
 export default function PlayerProfilePreviewSection() {
   return (
     <section id="talent" className="w-full bg-[var(--color-surface)] py-24 md:py-32 relative z-10 border-b-2 border-[var(--color-on-background)] overflow-hidden">
@@ -16,7 +18,7 @@ export default function PlayerProfilePreviewSection() {
               <div className="h-48 bg-gray-200 relative border-b-4 border-[var(--color-on-background)] overflow-hidden flex items-center justify-center">
                 {/* Simulated photo / pattern */}
                 <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #111 0, #111 2px, transparent 2px, transparent 8px)' }} />
-                <h3 className="font-['Archivo_Narrow'] text-[6rem] font-black text-white mix-blend-difference z-10 leading-none">
+                <h3 className="font-['Archivo_Black'] text-[6rem] font-black text-white mix-blend-difference z-10 leading-none">
                   f0rsakeN
                 </h3>
                 
@@ -72,7 +74,7 @@ export default function PlayerProfilePreviewSection() {
 
           {/* Right: Copy */}
           <div className="flex-1 text-center md:text-left z-10">
-            <h2 className="font-['Archivo_Narrow'] text-[3rem] md:text-[4rem] font-black uppercase leading-none tracking-tighter mb-6 text-[var(--color-on-background)]">
+            <h2 className="font-['Archivo_Black'] text-[3rem] md:text-[4rem] font-black uppercase leading-none tracking-tighter mb-6 text-[var(--color-on-background)]">
               PROFILES THAT<br />
               <span className="text-[var(--color-primary)] stroke-black" style={{ WebkitTextStroke: '2px black' }}>READ LIKE A MAGAZINE.</span>
             </h2>
@@ -81,10 +83,10 @@ export default function PlayerProfilePreviewSection() {
             </p>
             <div className="mt-8 flex gap-4 justify-center md:justify-start">
               <div className="flex items-center gap-2 font-['JetBrains_Mono'] text-[0.875rem] font-bold text-[var(--color-on-background)]">
-                <span className="material-symbols-outlined text-[1.25rem] text-[var(--color-primary)]">done</span> Tabular Data
+                <Check weight="bold" className="text-[1.25rem] text-[var(--color-primary)]" /> Tabular Data
               </div>
               <div className="flex items-center gap-2 font-['JetBrains_Mono'] text-[0.875rem] font-bold text-[var(--color-on-background)]">
-                <span className="material-symbols-outlined text-[1.25rem] text-[var(--color-primary)]">done</span> Radar Charts
+                <Check weight="bold" className="text-[1.25rem] text-[var(--color-primary)]" /> Radar Charts
               </div>
             </div>
           </div>

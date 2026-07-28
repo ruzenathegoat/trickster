@@ -23,7 +23,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, TrendingUp, TrendingDown, Minus, RefreshCw } from 'lucide-react';
+import { Plus, TrendUp, TrendDown, Minus, ArrowsClockwise } from '@phosphor-icons/react';
 
 interface Patch {
   id: string;
@@ -156,10 +156,10 @@ export default function PatchRatings() {
           const dir = info.getValue();
           return (
             <div className="flex items-center gap-1.5 text-[13px] font-medium capitalize">
-              {dir === 'buffed' && <TrendingUp size={14} className="text-green-600" />}
-              {dir === 'nerfed' && <TrendingDown size={14} className="text-red-600" />}
-              {dir === 'unchanged' && <Minus size={14} className="text-gray-400" />}
-              {dir === 'reworked' && <RefreshCw size={14} className="text-blue-600" />}
+              {dir === 'buffed' && <TrendUp weight="regular" size={14} className="text-green-600" />}
+              {dir === 'nerfed' && <TrendDown weight="regular" size={14} className="text-red-600" />}
+              {dir === 'unchanged' && <Minus weight="regular" size={14} className="text-gray-400" />}
+              {dir === 'reworked' && <ArrowsClockwise weight="regular" size={14} className="text-blue-600" />}
               <span className={
                 dir === 'buffed' ? 'text-green-700' :
                 dir === 'nerfed' ? 'text-red-700' :
@@ -188,7 +188,7 @@ export default function PatchRatings() {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <button className="inline-flex items-center gap-1.5 rounded-md bg-gray-900 px-3.5 py-2 text-sm font-medium text-white hover:bg-gray-800 transition-colors duration-150 ease-out active:scale-[0.97]">
-              <Plus size={16} />
+              <Plus weight="regular" size={16} />
               Add Rating
             </button>
           </DialogTrigger>

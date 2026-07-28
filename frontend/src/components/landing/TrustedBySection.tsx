@@ -28,7 +28,7 @@ export default function TrustedBySection() {
                   key={index}
                   className="flex items-center justify-center px-6 py-3 bg-[var(--color-surface)] border-2 border-[var(--color-on-background)] brutal-shadow-sm brutal-hover transition-transform shrink-0"
                 >
-                  <span className="font-['Archivo_Narrow'] text-[1.25rem] font-black uppercase text-[var(--color-on-background)]">
+                  <span className="font-['Archivo_Black'] text-[1.25rem] font-black uppercase text-[var(--color-on-background)]">
                     {partner}
                   </span>
                 </div>

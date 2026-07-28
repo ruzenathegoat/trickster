@@ -9,8 +9,8 @@
   --color-warning: #f59e0b;
   --color-success: #10b981;
   --color-error: #ef4444;
-  --color-inverse-surface: #313129;
-  --color-inverse-on-surface: #f4f1e6;
+  --color-inverse-surface: #111111;
+  --color-inverse-on-surface: #ffffff;
   
   --color-on-background: #111111;
   --color-secondary: #555555;
@@ -18,11 +18,11 @@
   --color-surface-variant: #e5e2d8;
   --color-primary-container: #e5f876;
   
-  --font-display: "Archivo Narrow", sans-serif;
-  --font-h1-mobile: "Archivo Narrow", sans-serif;
-  --font-h1: "Archivo Narrow", sans-serif;
-  --font-h2: "Archivo Narrow", sans-serif;
-  --font-h3: "Archivo Narrow", sans-serif;
+  --font-display: "Archivo Black", sans-serif;
+  --font-h1-mobile: "Archivo Black", sans-serif;
+  --font-h1: "Archivo Black", sans-serif;
+  --font-h2: "Archivo Black", sans-serif;
+  --font-h3: "Archivo Black", sans-serif;
   --font-body: "Inter", sans-serif;
   --font-body-lg: "Inter", sans-serif;
   --font-label: "JetBrains Mono", monospace;
@@ -73,6 +73,9 @@
   }
   .cut-corner-lg {
     clip-path: polygon(0 0, calc(100% - 40px) 0, 100% 40px, 100% 100%, 0 100%);
+  }
+  .cut-corner-top-right {
+    clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 0 100%);
   }
 
   /* Brutal Shadows */

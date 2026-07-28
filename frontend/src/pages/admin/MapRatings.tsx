@@ -23,7 +23,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Edit3, HelpCircle, CheckCircle2 } from 'lucide-react';
+import { Plus, PencilSimple, Question, CheckCircle } from '@phosphor-icons/react';
 
 interface Patch {
   id: string;
@@ -177,7 +177,7 @@ export default function MapRatings() {
             <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-bold rounded-md ${
               isConfirmed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
             }`}>
-              {isConfirmed ? <CheckCircle2 size={12} /> : <HelpCircle size={12} />}
+              {isConfirmed ? <CheckCircle weight="regular" size={12} /> : <Question weight="regular" size={12} />}
               {isConfirmed ? 'Confirmed' : 'Speculative'}
             </div>
           );
@@ -199,7 +199,7 @@ export default function MapRatings() {
             onClick={() => handleEdit(info.row.original)}
             className="inline-flex items-center gap-1.5 text-xs font-semibold bg-gray-100 text-gray-700 px-2.5 py-1.5 rounded hover:bg-gray-200 transition-colors duration-150 ease-out active:scale-[0.97]"
           >
-            <Edit3 size={14} />
+            <PencilSimple weight="regular" size={14} />
             Supersede
           </button>
         )
@@ -219,7 +219,7 @@ export default function MapRatings() {
         <Dialog open={isDialogOpen} onOpenChange={handleDialogOpen}>
           <DialogTrigger asChild>
             <button className="inline-flex items-center gap-1.5 rounded-md bg-gray-900 px-3.5 py-2 text-sm font-medium text-white hover:bg-gray-800 transition-colors duration-150 ease-out active:scale-[0.97]">
-              <Plus size={16} />
+              <Plus weight="regular" size={16} />
               Add Rating
             </button>
           </DialogTrigger>

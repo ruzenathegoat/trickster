@@ -1,3 +1,5 @@
+import { Brain, Check, Warning, PlayCircle } from '@phosphor-icons/react';
+
 export default function RecommendationPreviewSection() {
   return (
     <section id="leaderboard" className="w-full bg-[var(--color-inverse-surface)] py-24 md:py-32 relative z-10 border-b-2 border-[var(--color-on-background)] overflow-hidden text-[var(--color-inverse-on-surface)]">
@@ -17,7 +19,7 @@ export default function RecommendationPreviewSection() {
                  AI Decision Support
                </span>
             </div>
-            <h2 className="font-['Archivo_Narrow'] text-[3rem] md:text-[4rem] font-black uppercase leading-none tracking-tighter mb-6 text-white">
+            <h2 className="font-['Archivo_Black'] text-[3rem] md:text-[4rem] font-black uppercase leading-none tracking-tighter mb-6 text-white">
               Smarter<br />
               <span className="text-[var(--color-primary)]">Recommendations.</span>
             </h2>
@@ -38,7 +40,7 @@ export default function RecommendationPreviewSection() {
                     <span className="bg-black text-white font-['JetBrains_Mono'] font-bold text-xs px-2 py-0.5">RANK #1</span>
                     <span className="font-['Inter'] text-xs font-bold text-[var(--color-secondary)] uppercase">Match: 94%</span>
                   </div>
-                  <h3 className="font-['Archivo_Narrow'] text-[2.5rem] font-black uppercase leading-none">
+                  <h3 className="font-['Archivo_Black'] text-[2.5rem] font-black uppercase leading-none">
                     Tyson "TenZ" Ngo
                   </h3>
                 </div>
@@ -50,13 +52,13 @@ export default function RecommendationPreviewSection() {
               {/* AI Why Checklist */}
               <div className="mb-8">
                 <h4 className="font-['JetBrains_Mono'] text-[0.875rem] font-bold uppercase mb-4 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[1.25rem] text-[var(--color-primary)]">psychology</span>
+                  <Brain weight="bold" className="text-[1.25rem] text-[var(--color-primary)]" />
                   Why this fit works
                 </h4>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3">
                     <div className="mt-0.5 w-4 h-4 bg-[var(--color-success)] border border-[var(--color-on-background)] rounded-full shrink-0 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[10px] text-white">check</span>
+                      <Check weight="bold" className="text-[10px] text-white" />
                     </div>
                     <span className="font-['Inter'] text-[0.875rem] font-medium leading-snug">
                       Exceptional First-Blood Success Rate (+14% above Tier 1 average).
@@ -64,7 +66,7 @@ export default function RecommendationPreviewSection() {
                   </li>
                   <li className="flex items-start gap-3">
                     <div className="mt-0.5 w-4 h-4 bg-[var(--color-success)] border border-[var(--color-on-background)] rounded-full shrink-0 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[10px] text-white">check</span>
+                      <Check weight="bold" className="text-[10px] text-white" />
                     </div>
                     <span className="font-['Inter'] text-[0.875rem] font-medium leading-snug">
                       Agent pool (Jett/Yoru) perfectly covers your current roster gaps.
@@ -72,7 +74,7 @@ export default function RecommendationPreviewSection() {
                   </li>
                   <li className="flex items-start gap-3">
                     <div className="mt-0.5 w-4 h-4 bg-[var(--color-warning)] border border-[var(--color-on-background)] rounded-full shrink-0 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[10px] text-black">exclamation</span>
+                      <Warning weight="bold" className="text-[10px] text-black" />
                     </div>
                     <span className="font-['Inter'] text-[0.875rem] font-medium leading-snug">
                       High buyout variance; contract ends in 4 months.
@@ -84,7 +86,7 @@ export default function RecommendationPreviewSection() {
               {/* Action */}
               <button className="w-full bg-[var(--color-primary)] text-black border-2 border-black py-3 font-['JetBrains_Mono'] font-bold text-[0.875rem] uppercase brutal-shadow-sm brutal-hover flex items-center justify-center gap-2">
                 Run Simulation
-                <span className="material-symbols-outlined text-[1.25rem]">play_circle</span>
+                <PlayCircle weight="bold" size={20} />
               </button>
 
             </div>

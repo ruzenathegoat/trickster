@@ -1,9 +1,11 @@
+import { SquaresFour, Users, Flask, TrendUp } from '@phosphor-icons/react';
+
 export default function DashboardPreviewSection() {
   return (
     <section className="w-full bg-[var(--color-background)] py-24 md:py-32 relative z-10 border-b-2 border-[var(--color-on-background)] overflow-hidden">
       
       <div className="max-w-[var(--spacing-max-width)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] text-center mb-16 relative z-10">
-        <h2 className="font-['Archivo_Narrow'] text-[3rem] md:text-[5rem] font-black uppercase tracking-tighter text-[var(--color-on-background)] leading-none mb-4">
+        <h2 className="font-['Archivo_Black'] text-[3rem] md:text-[5rem] font-black uppercase tracking-tighter text-[var(--color-on-background)] leading-none mb-4">
           CLEAN. DENSE. FAST.
         </h2>
         <p className="font-['Inter'] text-[1.125rem] text-[var(--color-secondary)] max-w-2xl mx-auto font-medium">
@@ -34,18 +36,18 @@ export default function DashboardPreviewSection() {
                 <div className="w-8 h-8 bg-black cut-corner flex items-center justify-center">
                   <span className="text-[var(--color-primary)] font-black text-lg leading-none">T</span>
                 </div>
-                <span className="font-['Archivo_Narrow'] font-black uppercase tracking-widest text-lg">Trickster</span>
+                <span className="font-['Archivo_Black'] font-black uppercase tracking-widest text-lg">Trickster</span>
               </div>
               
               <nav className="space-y-4">
                 <div className="font-['Inter'] text-sm font-semibold text-black flex items-center gap-3 bg-gray-100 p-2 rounded">
-                  <span className="material-symbols-outlined text-[1.2rem]">dashboard</span> Overview
+                  <SquaresFour weight="bold" size={20} /> Overview
                 </div>
                 <div className="font-['Inter'] text-sm font-medium text-gray-500 flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
-                  <span className="material-symbols-outlined text-[1.2rem]">group</span> Scouting
+                  <Users weight="bold" size={20} /> Scouting
                 </div>
                 <div className="font-['Inter'] text-sm font-medium text-gray-500 flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
-                  <span className="material-symbols-outlined text-[1.2rem]">science</span> Simulations
+                  <Flask weight="bold" size={20} /> Simulations
                 </div>
               </nav>
             </div>
@@ -67,7 +69,7 @@ export default function DashboardPreviewSection() {
                   <p className="font-['Inter'] text-xs font-semibold text-gray-500 mb-2 uppercase">Tracked Players</p>
                   <p className="font-['JetBrains_Mono'] text-3xl font-bold text-black">12,402</p>
                   <p className="font-['Inter'] text-xs text-green-600 mt-2 font-medium flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px]">trending_up</span> +342 this week
+                    <TrendUp weight="bold" size={14} /> +342 this week
                   </p>
                 </div>
 

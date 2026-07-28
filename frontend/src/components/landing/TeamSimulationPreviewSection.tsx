@@ -1,3 +1,5 @@
+import { DotsSixVertical, EyeClosed, Fire, Shield, Crosshair } from '@phosphor-icons/react';
+
 export default function TeamSimulationPreviewSection() {
   const roster = [
     { name: "Boaster", role: "Controller", acs: 185, delta: null },
@@ -20,7 +22,7 @@ export default function TeamSimulationPreviewSection() {
           
           {/* Left: Copy */}
           <div className="flex-1 text-center md:text-left z-10">
-            <h2 className="font-['Archivo_Narrow'] text-[3rem] md:text-[4rem] font-black uppercase leading-none tracking-tighter mb-6 text-[var(--color-on-background)]">
+            <h2 className="font-['Archivo_Black'] text-[3rem] md:text-[4rem] font-black uppercase leading-none tracking-tighter mb-6 text-[var(--color-on-background)]">
               SIMULATE <br />
               <span className="text-[var(--color-primary)] stroke-black" style={{ WebkitTextStroke: '2px black' }}>CHEMISTRY.</span>
             </h2>
@@ -28,7 +30,7 @@ export default function TeamSimulationPreviewSection() {
               Don't guess how a roster change will play out. Drag a scouted player into your team and let our AI calculate the predicted synergy, pacing overlaps, and statistical deltas.
             </p>
             <div className="inline-flex items-center gap-4 bg-[var(--color-surface)] border-2 border-[var(--color-on-background)] brutal-shadow-sm px-6 py-4 cut-corner">
-               <span className="material-symbols-outlined text-[2rem] text-[var(--color-primary)]">drag_indicator</span>
+               <DotsSixVertical weight="bold" className="text-[2rem] text-[var(--color-primary)]" />
                <span className="font-['JetBrains_Mono'] font-bold uppercase text-[0.875rem]">Drag & Drop Interface</span>
             </div>
           </div>
@@ -51,10 +53,10 @@ export default function TeamSimulationPreviewSection() {
                     <div className="flex items-center gap-4">
                        {/* Role Icon Placeholder */}
                        <div className="w-8 h-8 bg-gray-200 border border-black flex items-center justify-center">
-                          <span className="material-symbols-outlined text-sm">{player.role === 'Controller' ? 'visibility_off' : player.role === 'Duelist' ? 'local_fire_department' : player.role === 'Sentinel' ? 'shield' : 'radar'}</span>
+                          {player.role === 'Controller' ? <EyeClosed weight="bold" /> : player.role === 'Duelist' ? <Fire weight="bold" /> : player.role === 'Sentinel' ? <Shield weight="bold" /> : <Crosshair weight="bold" />}
                        </div>
                        <div>
-                         <p className="font-['Archivo_Narrow'] font-bold text-lg leading-none uppercase">{player.name}</p>
+                         <p className="font-['Archivo_Black'] font-bold text-lg leading-none uppercase">{player.name}</p>
                          <p className="font-['JetBrains_Mono'] text-[0.6rem] text-[var(--color-secondary)] uppercase">{player.role}</p>
                        </div>
                     </div>

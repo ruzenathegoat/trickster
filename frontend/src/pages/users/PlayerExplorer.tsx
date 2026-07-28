@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Filter, User } from 'lucide-react';
+import { MagnifyingGlass, Funnel, User } from '@phosphor-icons/react';
 import { Skeleton } from '@/components/ui/skeleton';
 import clsx from 'clsx';
 
@@ -46,7 +46,7 @@ export default function PlayerExplorer() {
       {/* Search and Filters */}
       <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="relative flex-1 max-w-md">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <MagnifyingGlass weight="regular" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input 
             type="text" 
             placeholder="Search by player name or team..." 
@@ -55,7 +55,7 @@ export default function PlayerExplorer() {
         </div>
         
         <div className="flex items-center gap-3">
-          <Filter size={16} className="text-gray-400" />
+          <Funnel weight="regular" size={16} className="text-gray-400" />
           <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0">
             {roles.map(r => (
               <button 
@@ -100,7 +100,7 @@ export default function PlayerExplorer() {
               <div className="flex items-center justify-between mb-auto">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center border border-gray-200 group-hover:bg-[var(--color-primary-subtle)] transition-colors">
-                    <User size={24} className="text-gray-400 group-hover:text-[var(--color-secondary)] transition-colors" />
+                    <User weight="regular" size={24} className="text-gray-400 group-hover:text-[var(--color-secondary)] transition-colors" />
                   </div>
                   <div>
                     <h3 className="font-bold text-[16px] leading-tight group-hover:text-[var(--color-primary-hover)] transition-colors">{player.name}</h3>

@@ -1,12 +1,55 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { toast } from 'sonner';
+import { User, Envelope, Lock, LockKey, ArrowRight } from '@phosphor-icons/react';
 
 export default function Register() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordConfirmation, setPasswordConfirmation] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (password !== passwordConfirmation) {
+      toast.error('Validation Error', { description: 'Passwords do not match.' });
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      await register({ 
+        name, 
+        email, 
+        password, 
+        password_confirmation: passwordConfirmation 
+      });
+      toast.success('Registration Successful', {
+        description: 'Your account has been created. Welcome to Trickster!'
+      });
+      navigate('/app/dashboard', { replace: true });
+    } catch (error: any) {
+      toast.error('Registration Failed', {
+        description: error.response?.data?.message || 'Could not create account.'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="bg-[var(--color-surface)] w-full max-w-md border-2 border-[var(--color-on-background)] brutal-shadow p-8 relative z-10 cut-corner">
       
       {/* Header */}
       <div className="mb-8 text-center">
-        <h1 className="font-['Archivo_Narrow'] text-[1.5rem] font-bold text-[var(--color-on-background)] mb-2 uppercase">
+        <h1 className="font-['Archivo_Black'] text-[1.5rem] font-bold text-[var(--color-on-background)] mb-2 uppercase">
           Create an account
         </h1>
         <p className="font-['Inter'] text-[1rem] text-[var(--color-secondary)]">
@@ -15,7 +58,7 @@ export default function Register() {
       </div>
       
       {/* Form */}
-      <form className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
         
         {/* Full Name Input */}
         <div className="space-y-2">
@@ -24,7 +67,7 @@ export default function Register() {
           </label>
           <div className="relative">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-[var(--color-secondary)] pointer-events-none">
-              <span className="material-symbols-outlined text-[1.25rem]">person</span>
+              <User weight="bold" className="text-[1.25rem]" />
             </span>
             <input 
               id="name" 
@@ -32,6 +75,8 @@ export default function Register() {
               type="text" 
               placeholder="TenZ" 
               required 
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               className="w-full bg-[var(--color-surface)] border-2 border-[var(--color-on-background)] py-3 pl-10 pr-4 font-['Inter'] text-[1rem] text-[var(--color-on-background)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition-shadow duration-200"
             />
           </div>
@@ -44,7 +89,7 @@ export default function Register() {
           </label>
           <div className="relative">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-[var(--color-secondary)] pointer-events-none">
-              <span className="material-symbols-outlined text-[1.25rem]">mail</span>
+              <Envelope weight="bold" className="text-[1.25rem]" />
             </span>
             <input 
               id="email" 
@@ -52,6 +97,8 @@ export default function Register() {
               type="email" 
               placeholder="scout@trickster.gg" 
               required 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-[var(--color-surface)] border-2 border-[var(--color-on-background)] py-3 pl-10 pr-4 font-['Inter'] text-[1rem] text-[var(--color-on-background)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition-shadow duration-200"
             />
           </div>
@@ -64,7 +111,7 @@ export default function Register() {
           </label>
           <div className="relative">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-[var(--color-secondary)] pointer-events-none">
-              <span className="material-symbols-outlined text-[1.25rem]">lock</span>
+              <Lock weight="bold" className="text-[1.25rem]" />
             </span>
             <input 
               id="password" 
@@ -72,6 +119,30 @@ export default function Register() {
               type="password" 
               placeholder="••••••••" 
               required 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-[var(--color-surface)] border-2 border-[var(--color-on-background)] py-3 pl-10 pr-4 font-['Inter'] text-[1rem] text-[var(--color-on-background)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition-shadow duration-200"
+            />
+          </div>
+        </div>
+
+        {/* Password Confirmation Input */}
+        <div className="space-y-2">
+          <label className="block font-['JetBrains_Mono'] text-[0.75rem] font-bold uppercase tracking-wider text-[var(--color-on-background)]" htmlFor="password_confirmation">
+            Confirm Password
+          </label>
+          <div className="relative">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-[var(--color-secondary)] pointer-events-none">
+              <LockKey weight="bold" className="text-[1.25rem]" />
+            </span>
+            <input 
+              id="password_confirmation" 
+              name="password_confirmation" 
+              type="password" 
+              placeholder="••••••••" 
+              required 
+              value={passwordConfirmation}
+              onChange={(e) => setPasswordConfirmation(e.target.value)}
               className="w-full bg-[var(--color-surface)] border-2 border-[var(--color-on-background)] py-3 pl-10 pr-4 font-['Inter'] text-[1rem] text-[var(--color-on-background)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition-shadow duration-200"
             />
           </div>
@@ -80,10 +151,17 @@ export default function Register() {
         {/* Primary CTA */}
         <button 
           type="submit" 
-          className="w-full bg-[var(--color-primary)] text-[var(--color-on-background)] border-2 border-[var(--color-on-background)] py-3 px-6 font-['JetBrains_Mono'] text-[0.875rem] font-bold uppercase brutal-shadow-sm brutal-hover flex items-center justify-center gap-2 mt-4"
+          disabled={isSubmitting}
+          className="w-full bg-[var(--color-primary)] text-[var(--color-on-background)] border-2 border-[var(--color-on-background)] py-3 px-6 font-['JetBrains_Mono'] text-[0.875rem] font-bold uppercase brutal-shadow-sm brutal-hover flex items-center justify-center gap-2 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Sign Up
-          <span className="material-symbols-outlined text-[1.25rem]">arrow_forward</span>
+          {isSubmitting ? (
+            <div className="w-5 h-5 border-2 border-[var(--color-on-background)] border-t-transparent rounded-full animate-spin"></div>
+          ) : (
+            <>
+              Sign Up
+              <ArrowRight weight="bold" className="text-[1.25rem]" />
+            </>
+          )}
         </button>
       </form>
       

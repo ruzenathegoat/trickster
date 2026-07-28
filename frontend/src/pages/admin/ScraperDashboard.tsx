@@ -16,7 +16,7 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Terminal, Play, AlertTriangle } from 'lucide-react';
+import { Terminal, Play, Warning } from '@phosphor-icons/react';
 
 interface ScrapeLog {
   id: string;
@@ -162,7 +162,7 @@ export default function ScraperDashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-black pb-6">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Terminal size={18} />
+            <Terminal weight="regular" size={18} />
             <h2 className="text-2xl font-['Archivo_Black'] uppercase tracking-tight text-black leading-none mt-1">
               Scraper Daemon
             </h2>
@@ -176,7 +176,7 @@ export default function ScraperDashboard() {
           disabled={loading}
           className="flex items-center gap-2 bg-black border-2 border-black text-white px-4 py-2 font-['JetBrains_Mono'] text-[12px] font-bold uppercase tracking-wider hover:bg-transparent hover:text-black transition-colors active:translate-y-0.5 disabled:opacity-50"
         >
-          <Play size={14} className={loading ? 'animate-pulse' : ''} />
+          <Play weight="regular" size={14} className={loading ? 'animate-pulse' : ''} />
           {loading ? 'EXECUTING...' : 'TRIGGER JOB'}
         </button>
       </div>
@@ -234,7 +234,7 @@ export default function ScraperDashboard() {
       {/* Alerts Table */}
       <div className="mb-10">
         <h3 className="font-['JetBrains_Mono'] text-[11px] font-bold uppercase tracking-widest text-white bg-red-600 inline-block px-2 py-1 mb-2 border border-black flex items-center gap-2 w-max">
-          <AlertTriangle size={12} />
+          <Warning weight="regular" size={12} />
           system_alerts.log
         </h3>
         <div className="bg-white border border-black">
