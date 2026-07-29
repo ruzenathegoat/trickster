@@ -24,6 +24,7 @@ class ValorantDataSeeder extends Seeder
             ['agent' => 'Yoru', 'primary_role' => 'Duelist'],
             ['agent' => 'Neon', 'primary_role' => 'Duelist'],
             ['agent' => 'Iso', 'primary_role' => 'Duelist'],
+            ['agent' => 'Waylay', 'primary_role' => 'Duelist'],
             // Initiators
             ['agent' => 'Sova', 'primary_role' => 'Initiator'],
             ['agent' => 'Breach', 'primary_role' => 'Initiator'],
@@ -31,6 +32,7 @@ class ValorantDataSeeder extends Seeder
             ['agent' => 'KAY/O', 'primary_role' => 'Initiator'],
             ['agent' => 'Fade', 'primary_role' => 'Initiator'],
             ['agent' => 'Gekko', 'primary_role' => 'Initiator'],
+         
             // Controllers
             ['agent' => 'Brimstone', 'primary_role' => 'Controller'],
             ['agent' => 'Viper', 'primary_role' => 'Controller'],
@@ -55,8 +57,8 @@ class ValorantDataSeeder extends Seeder
         DB::table('patches')->truncate();
         
         $patches = [
-            '11.10', '11.11', '11.12', '11.13', '11.14',
-            '12.00', '12.01', '12.02', '12.03', '12.04', '12.05', '12.06', '12.07', '12.08', '12.09', '12.10',
+            '11.10', '11.11',
+            '12.00', '12.01', '12.02', '12.03', '12.04', '12.05', '12.06', '12.07', '12.08', '12.09', '12.10', '12.11',
             '13.00', '13.01', '13.02'
         ];
         

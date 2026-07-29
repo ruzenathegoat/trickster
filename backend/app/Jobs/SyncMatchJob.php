@@ -39,7 +39,9 @@ class SyncMatchJob implements ShouldQueue
         ];
 
         try {
-            $response = Http::timeout(30)->withoutVerifying()->withHeaders($headers)->get($this->queueItem->url);
+            // Sleep for 2 seconds to avoid rate limiting on bulk rescrapes
+            sleep(2);
+            $response = Http::timeout(90)->withoutVerifying()->withHeaders($headers)->get($this->queueItem->url);
             
             if (!$response->successful()) {
                 throw new \Exception("HTTP Request failed with status " . $response->status());

@@ -109,8 +109,10 @@ class ParseMatchJob implements ShouldQueue
                                     $kast = trim(str_replace("%", "", $row->filter('.ovw-cell[data-col="kast"] .mod-both')->text("0")));
                                     $adr = trim($row->filter('.ovw-cell[data-col="adr"] .mod-both')->text("0"));
                                     $rating = trim($row->filter('.ovw-cell[data-col="rating2"] .mod-both')->text("0"));
+                                    $fk = trim($row->filter('.ovw-cell[data-col="fb"] .mod-both')->text("0"));
+                                    $fd = trim($row->filter('.ovw-cell[data-col="fd"] .mod-both')->text("0"));
                                 } catch (\Exception $e) {
-                                    $kills = 0; $deaths = 0; $assists = 0; $acs = 0; $kast = 0; $adr = 0; $rating = 0;
+                                    $kills = 0; $deaths = 0; $assists = 0; $acs = 0; $kast = 0; $adr = 0; $rating = 0; $fk = 0; $fd = 0;
                                 }
 
                                 if ($matchData) {
@@ -128,6 +130,8 @@ class ParseMatchJob implements ShouldQueue
                                             "kast" => is_numeric($kast) ? $kast : 0,
                                             "adr" => is_numeric($adr) ? $adr : 0,
                                             "rating" => is_numeric($rating) ? $rating : null,
+                                            "fk" => is_numeric($fk) ? $fk : 0,
+                                            "fd" => is_numeric($fd) ? $fd : 0,
                                         ]
                                     );
                                 }
@@ -145,10 +149,26 @@ class ParseMatchJob implements ShouldQueue
                     $gameId = $mapStats->attr('data-game-id');
                     if (!$gameId || $gameId === 'all') return;
                     
-                    $map = Map::firstOrCreate([
-                        'match_id' => $matchData->id, 
-                        'map_name' => 'Game ' . $gameId
-                    ]);
+                    // Extract the actual map name
+                    $mapNameRaw = '';
+                    if ($mapStats->filter('.map')->count() > 0) {
+                        $mapNameRaw = trim(preg_replace('/\s+/', ' ', $mapStats->filter('.map')->text()));
+                        $mapNameRaw = trim(str_replace('PICK', '', $mapNameRaw));
+                    }
+                    // e.g. " Ascent " -> "Ascent"
+                    $actualMapName = preg_replace('/[^a-zA-Z]/', '', $mapNameRaw);
+                    if (empty($actualMapName)) {
+                        $actualMapName = null;
+                    }
+                    
+                    $map = Map::firstOrCreate(
+                        ['match_id' => $matchData->id, 'map_name' => 'Game ' . $gameId],
+                        ['valorant_map_name' => $actualMapName]
+                    );
+                    
+                    if ($map->valorant_map_name !== $actualMapName && $actualMapName) {
+                        $map->update(['valorant_map_name' => $actualMapName]);
+                    }
                     
                     $mapStats->filter('.ovw-row')->each(function (Crawler $row) use ($map, $matchData) {
                         if ($row->filter('.ovw-th')->count() > 0) return;

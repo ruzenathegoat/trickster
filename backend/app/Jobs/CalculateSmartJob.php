@@ -49,7 +49,9 @@ class CalculateSmartJob implements ShouldQueue
             MIN(avg_kast) as min_kast, MAX(avg_kast) as max_kast,
             MIN(avg_kd) as min_kd, MAX(avg_kd) as max_kd,
             MIN(avg_adr) as min_adr, MAX(avg_adr) as max_adr,
-            MIN(consistency_index) as min_ci, MAX(consistency_index) as max_ci
+            MIN(avg_fd) as min_fd, MAX(avg_fd) as max_fd,
+            MIN(consistency_index) as min_ci, MAX(consistency_index) as max_ci,
+            MIN(meta_adaptability_index) as min_mai, MAX(meta_adaptability_index) as max_mai
         ')->first();
 
         // Helper function to map criteria name to db column
@@ -66,9 +68,14 @@ class CalculateSmartJob implements ShouldQueue
                     return ['raw' => (float)$player->avg_kd, 'min' => (float)$globalStats->min_kd, 'max' => (float)$globalStats->max_kd];
                 case 'Average Damage per Round (ADR)':
                     return ['raw' => (float)$player->avg_adr, 'min' => (float)$globalStats->min_adr, 'max' => (float)$globalStats->max_adr];
+                case 'First Deaths (FD)':
+                    return ['raw' => (float)$player->avg_fd, 'min' => (float)$globalStats->min_fd, 'max' => (float)$globalStats->max_fd];
                 case 'Consistency Index':
                     $raw = $player->consistency_index !== null ? (float)$player->consistency_index : 0;
                     return ['raw' => $raw, 'min' => (float)$globalStats->min_ci, 'max' => (float)$globalStats->max_ci];
+                case 'Meta Adaptability Index':
+                    $raw = $player->meta_adaptability_index !== null ? (float)$player->meta_adaptability_index : 0;
+                    return ['raw' => $raw, 'min' => (float)$globalStats->min_mai, 'max' => (float)$globalStats->max_mai];
                 default:
                     return null;
             }
@@ -160,5 +167,17 @@ class CalculateSmartJob implements ShouldQueue
                 ScrapePlayerProfileJob::dispatch($player)->onQueue("scrape-low");
             }
         }
+
+        // Step 5: Re-calculate ranks for all players in all profiles
+        DB::statement('
+            WITH RankedResults AS (
+                SELECT id, RANK() OVER (PARTITION BY profile_id, mode, patch_id ORDER BY final_score DESC) as new_rank
+                FROM player_smart_results
+            )
+            UPDATE player_smart_results
+            SET rank = RankedResults.new_rank
+            FROM RankedResults
+            WHERE player_smart_results.id = RankedResults.id;
+        ');
     }
 }

@@ -37,28 +37,33 @@ class CalculateAgentPickRates extends Command
             
             // Per map
             $mapStats = DB::table('player_match_agents')
-                ->whereIn('match_id', $matchIds)
-                ->select('map_id', 'agent_name', DB::raw('count(*) as picks'))
-                ->groupBy('map_id', 'agent_name')
+                ->join('maps', 'player_match_agents.map_id', '=', 'maps.id')
+                ->whereIn('player_match_agents.match_id', $matchIds)
+                ->whereNotNull('maps.valorant_map_name')
+                ->select('maps.valorant_map_name', 'player_match_agents.agent_name', DB::raw('count(*) as picks'))
+                ->groupBy('maps.valorant_map_name', 'player_match_agents.agent_name')
                 ->get();
                 
             $mapTotals = DB::table('player_match_agents')
-                ->whereIn('match_id', $matchIds)
-                ->select('map_id', DB::raw('count(distinct match_id) as total_matches'))
-                ->groupBy('map_id')
+                ->join('maps', 'player_match_agents.map_id', '=', 'maps.id')
+                ->whereIn('player_match_agents.match_id', $matchIds)
+                ->whereNotNull('maps.valorant_map_name')
+                ->select('maps.valorant_map_name', DB::raw('count(distinct player_match_agents.match_id) as total_matches'))
+                ->groupBy('maps.valorant_map_name')
                 ->get()
-                ->keyBy('map_id');
+                ->keyBy('valorant_map_name');
                 
             $snapshots = [];
             foreach ($mapStats as $stat) {
-                $totalMatchesForMap = $mapTotals->get($stat->map_id)->total_matches ?? 1;
+                $totalMatchesForMap = $mapTotals->get($stat->valorant_map_name)->total_matches ?? 1;
                 // Max 10 players per map -> 2 teams -> Pick rate per team = (picks / (total maps * 2)) * 100
                 $pickRate = ($stat->picks / ($totalMatchesForMap * 2)) * 100;
                 
                 $snapshots[] = [
                     'id' => Str::uuid()->toString(),
                     'event_id' => $event->id,
-                    'map_id' => $stat->map_id,
+                    'map_id' => null,
+                    'valorant_map_name' => $stat->valorant_map_name,
                     'agent_name' => strtolower($stat->agent_name),
                     'pick_rate' => round($pickRate, 2),
                     'total_picks' => $stat->picks,
@@ -68,7 +73,7 @@ class CalculateAgentPickRates extends Command
                 ];
             }
             
-            // Overall for event (map_id = null)
+            // Overall for event (map_id = null and valorant_map_name = null)
             $overallStats = DB::table('player_match_agents')
                 ->whereIn('match_id', $matchIds)
                 ->select('agent_name', DB::raw('count(*) as picks'))
@@ -86,6 +91,7 @@ class CalculateAgentPickRates extends Command
                     'id' => Str::uuid()->toString(),
                     'event_id' => $event->id,
                     'map_id' => null,
+                    'valorant_map_name' => null,
                     'agent_name' => strtolower($stat->agent_name),
                     'pick_rate' => round($pickRate, 2),
                     'total_picks' => $stat->picks,

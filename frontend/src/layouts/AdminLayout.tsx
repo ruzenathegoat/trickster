@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
-import { Terminal, ChartLineUp, MapTrifold, ListNumbers, SignOut } from '@phosphor-icons/react';
+import { Terminal, ChartLineUp, MapTrifold, ListNumbers, SignOut, Users } from '@phosphor-icons/react';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
@@ -10,6 +10,7 @@ export default function AdminLayout() {
 
   const navLinks = [
     { name: 'Scraper Logs', path: '/admin/scraper', icon: Terminal },
+    { name: 'Manage Users', path: '/admin/users', icon: Users },
     { name: 'Patch Ratings', path: '/admin/patch-ratings', icon: ChartLineUp },
     { name: 'Map Ratings', path: '/admin/map-ratings', icon: MapTrifold },
     { name: 'Stage Mappings', path: '/admin/stage-mappings', icon: ListNumbers },

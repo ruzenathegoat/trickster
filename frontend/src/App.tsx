@@ -19,6 +19,7 @@ import PlayerProfile from './pages/users/PlayerProfile';
 import PatchRatings from './pages/admin/PatchRatings';
 import MapRatings from './pages/admin/MapRatings';
 import StageMappings from './pages/admin/StageMappings';
+import Users from './pages/admin/Users';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
@@ -58,6 +59,7 @@ function App() {
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="scraper" element={<ScraperDashboard />} />
+          <Route path="users" element={<Users />} />
           <Route path="patch-ratings" element={<PatchRatings />} />
           <Route path="map-ratings" element={<MapRatings />} />
           <Route path="stage-mappings" element={<StageMappings />} />

@@ -21,6 +21,7 @@ class AgentRoleMapSeeder extends Seeder
             'Yoru' => 'Duelist',
             'Neon' => 'Duelist',
             'Iso' => 'Duelist',
+            'Waylay' => 'Duelist',
 
             // Initiators
             'Sova' => 'Initiator',
@@ -29,6 +30,7 @@ class AgentRoleMapSeeder extends Seeder
             'KAY/O' => 'Initiator',
             'Fade' => 'Initiator',
             'Gekko' => 'Initiator',
+            'Waylay' => 'Initiator',
 
             // Controllers
             'Omen' => 'Controller',
@@ -40,6 +42,7 @@ class AgentRoleMapSeeder extends Seeder
             'Vyse' => 'Sentinel', // Actually Vyse is a sentinel but let's just make sure. Wait, Vyse is a Sentinel.
 
             // Sentinels
+            'Veto' => 'Sentinel',
             'Killjoy' => 'Sentinel',
             'Cypher' => 'Sentinel',
             'Sage' => 'Sentinel',

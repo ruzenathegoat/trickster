@@ -22,14 +22,29 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function
     Route::get('/stage-mappings', [AdminCurationController::class, 'getStageMappings']);
     Route::get('/agent-patch-ratings', [AdminCurationController::class, 'getPatchRatings']);
     Route::get('/agent-map-ratings', [AdminCurationController::class, 'getMapRatings']);
+    Route::get('/agent-map-ratings/by-patch/{patchId}', [AdminCurationController::class, 'getMapRatingsByPatch']);
     Route::get('/patches', [AdminCurationController::class, 'getPatches']);
     Route::get('/agents', [AdminCurationController::class, 'getAgents']);
+    Route::get('/valorant-maps', [AdminCurationController::class, 'getValorantMaps']);
+    Route::get('/patch-map-pool/{patchId}', [AdminCurationController::class, 'getPatchMapPool']);
 
     // Curation POST/PUT endpoints
     Route::post('/stage-mappings', [AdminCurationController::class, 'storeStageMapping']);
+    Route::post('/valorant-maps', [AdminCurationController::class, 'addValorantMap']);
+    Route::patch('/valorant-maps/{id}/toggle', [AdminCurationController::class, 'toggleValorantMap']);
+    Route::post('/patch-map-pool', [AdminCurationController::class, 'savePatchMapPool']);
+    Route::post('/agent-patch-ratings/bulk', [AdminCurationController::class, 'storeBulkPatchRatings']);
     Route::post('/agent-patch-ratings', [AdminCurationController::class, 'storePatchRating']);
     Route::post('/agent-map-ratings', [AdminCurationController::class, 'storeMapRating']);
+    Route::post('/agent-map-ratings/bulk', [AdminCurationController::class, 'storeBulkMapRatings']);
+    Route::post('/agent-map-ratings/auto-calc', [AdminCurationController::class, 'autoCalculateMapRatings']);
     Route::put('/agent-map-ratings/{id}/supersede', [AdminCurationController::class, 'supersedeMapRating']);
+    
+    // Users
+    Route::apiResource('users', \App\Http\Controllers\Api\V1\AdminUserController::class);
+    
+    // Events
+    Route::get('/events', [AdminCurationController::class, 'getEvents']);
     
     // Scraper
     Route::post('/scraper/fetch-events', [\App\Http\Controllers\Api\V1\AdminScraperController::class, 'fetchEvents']);

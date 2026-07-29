@@ -16,14 +16,7 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Plus, TrendUp, TrendDown, Minus, ArrowsClockwise } from '@phosphor-icons/react';
+import { PencilSimple, X } from '@phosphor-icons/react';
 
 interface Patch {
   id: string;
@@ -37,138 +30,131 @@ interface Agent {
 }
 
 interface PatchRating {
-  id: string;
-  patch_id: string;
+  id?: string;
+  patch_id?: string;
   agent: string;
   role: string;
   tier: string;
   direction: string;
   notes: string;
-  patch: Patch;
+  patch?: Patch;
 }
 
-const columnHelper = createColumnHelper<PatchRating>();
+const columnHelper = createColumnHelper<Patch>();
 
 export default function PatchRatings() {
-  const [ratings, setRatings] = useState<PatchRating[]>([]);
   const [patches, setPatches] = useState<Patch[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
+  const [existingRatings, setExistingRatings] = useState<PatchRating[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialFetch, setInitialFetch] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  const [form, setForm] = useState({
-    patch_version: '',
-    agent: '',
-    role: '',
-    tier: 'A',
-    direction: 'unchanged',
-    notes: ''
-  });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPatch, setSelectedPatch] = useState<Patch | null>(null);
+  const [bulkRatings, setBulkRatings] = useState<PatchRating[]>([]);
+
+  // Lock / unlock body scroll when modal opens
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isModalOpen]);
 
   const fetchData = async () => {
     try {
-      const [ratingsRes, patchesRes, agentsRes] = await Promise.all([
-        axios.get('/api/v1/admin/agent-patch-ratings'),
+      const [patchesRes, agentsRes, ratingsRes] = await Promise.all([
         axios.get('/api/v1/admin/patches'),
-        axios.get('/api/v1/admin/agents')
+        axios.get('/api/v1/admin/agents'),
+        axios.get('/api/v1/admin/agent-patch-ratings')
       ]);
-      setRatings(ratingsRes.data);
       setPatches(patchesRes.data);
       setAgents(agentsRes.data);
+      setExistingRatings(ratingsRes.data);
       
-      if (agentsRes.data.length > 0 && !form.agent) {
-        setForm(f => ({ ...f, agent: agentsRes.data[0].agent, role: agentsRes.data[0].primary_role }));
-      }
       if (initialFetch) setInitialFetch(false);
     } catch (err) {
-      toast.error('Failed to fetch patch ratings data');
+      toast.error('Failed to fetch patch data');
       console.error(err);
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
-  const handleAgentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedAgent = agents.find(a => a.agent === e.target.value);
-    setForm({
-      ...form,
-      agent: e.target.value,
-      role: selectedAgent ? selectedAgent.primary_role : ''
+  const openBulkEditModal = (patch: Patch) => {
+    setSelectedPatch(patch);
+    
+    const patchRatings = existingRatings.filter(
+      r => r.patch?.version === patch.version || r.patch_id === patch.id
+    );
+    
+    const initialBulk = agents.map(agent => {
+      const existing = patchRatings.find(r => r.agent === agent.agent);
+      if (existing) {
+        return { agent: existing.agent, role: existing.role, tier: existing.tier, direction: existing.direction, notes: existing.notes || '' };
+      }
+      return { agent: agent.agent, role: agent.primary_role, tier: 'C', direction: 'unchanged', notes: '' };
     });
+    
+    setBulkRatings(initialBulk);
+    setIsModalOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleBulkChange = (index: number, field: keyof PatchRating, value: string) => {
+    const updated = [...bulkRatings];
+    updated[index] = { ...updated[index], [field]: value };
+    setBulkRatings(updated);
+  };
+
+  const handleBulkSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedPatch) return;
+    
     setLoading(true);
-    const toastId = toast.loading('Saving rating...');
+    const toastId = toast.loading('Saving bulk ratings...');
     try {
-      await axios.post('/api/v1/admin/agent-patch-ratings', form);
-      fetchData();
-      toast.success('Rating saved successfully!', { id: toastId });
-      setForm({ ...form, notes: '' });
-      setIsDialogOpen(false);
+      await axios.post('/api/v1/admin/agent-patch-ratings/bulk', {
+        patch_version: selectedPatch.version,
+        ratings: bulkRatings
+      });
+      await fetchData();
+      toast.success('Ratings saved successfully!', { id: toastId });
+      setIsModalOpen(false);
     } catch (err) {
-      toast.error('Failed to save rating', { id: toastId });
+      toast.error('Failed to save ratings', { id: toastId });
       console.error(err);
     }
     setLoading(false);
   };
 
   const tableColumns = useMemo(() => [
-      columnHelper.accessor('patch.version', {
-        header: 'Patch',
-        cell: info => <span className="font-['JetBrains_Mono'] text-sm font-medium">{info.getValue()}</span>
+      columnHelper.accessor('version', {
+        header: 'Patch Version',
+        cell: info => <span className="font-['JetBrains_Mono'] text-sm font-bold text-black">{info.getValue()}</span>
       }),
-      columnHelper.accessor('agent', {
-        header: 'Agent',
-        cell: info => <span className="font-medium text-gray-900">{info.getValue()}</span>
+      columnHelper.accessor('release_date', {
+        header: 'Release Date',
+        cell: info => <span className="text-sm text-gray-600">{new Date(info.getValue()).toLocaleDateString()}</span>
       }),
-      columnHelper.accessor('tier', {
-        header: 'Tier',
-        cell: info => {
-          const tier = info.getValue();
-          return (
-            <span className={`inline-flex px-2 py-0.5 text-xs font-bold rounded-md ${
-              tier === 'S' ? 'bg-[var(--color-primary)] text-[var(--color-text-on-primary)]' :
-              tier === 'A' ? 'bg-green-100 text-green-800' :
-              tier === 'B' ? 'bg-gray-100 text-gray-800' :
-              tier === 'C' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
-            }`}>
-              {tier}
-            </span>
-          );
-        }
-      }),
-      columnHelper.accessor('direction', {
-        header: 'Direction',
-        cell: info => {
-          const dir = info.getValue();
-          return (
-            <div className="flex items-center gap-1.5 text-[13px] font-medium capitalize">
-              {dir === 'buffed' && <TrendUp weight="regular" size={14} className="text-green-600" />}
-              {dir === 'nerfed' && <TrendDown weight="regular" size={14} className="text-red-600" />}
-              {dir === 'unchanged' && <Minus weight="regular" size={14} className="text-gray-400" />}
-              {dir === 'reworked' && <ArrowsClockwise weight="regular" size={14} className="text-blue-600" />}
-              <span className={
-                dir === 'buffed' ? 'text-green-700' :
-                dir === 'nerfed' ? 'text-red-700' :
-                dir === 'reworked' ? 'text-blue-700' : 'text-gray-600'
-              }>{dir}</span>
-            </div>
-          );
-        }
-      }),
-      columnHelper.accessor('notes', {
-        header: 'Notes',
-        cell: info => <span className="text-sm text-gray-600">{info.getValue()}</span>
-      }),
-    ], []);
+      columnHelper.display({
+        id: 'actions',
+        header: 'Actions',
+        cell: info => (
+          <button 
+            onClick={() => openBulkEditModal(info.row.original)}
+            className="flex items-center gap-1.5 bg-black text-white px-3 py-1.5 text-xs font-bold font-['JetBrains_Mono'] uppercase tracking-wider hover:bg-yellow-400 hover:text-black transition-colors"
+          >
+            <PencilSimple weight="bold" size={14} />
+            Edit Ratings
+          </button>
+        )
+      })
+    ], [agents, existingRatings]);
 
   const table = useReactTable({
-    data: ratings,
+    data: patches,
     columns: tableColumns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -178,113 +164,123 @@ export default function PatchRatings() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-xl font-bold tracking-tight text-gray-900">Patch Ratings</h2>
-          <p className="text-[13px] text-gray-500 mt-1">Manage agent tier list ratings across different game patches.</p>
+          <p className="text-[13px] text-gray-500 mt-1">Manage bulk agent tier list ratings for each game patch.</p>
         </div>
-        
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <button className="flex items-center justify-center gap-2 bg-black border-2 border-black text-white px-4 py-2 font-['JetBrains_Mono'] text-[12px] font-bold uppercase tracking-wider hover:bg-transparent hover:text-black transition-colors active:translate-y-0.5 shadow-[4px_4px_0px_0px_#111111] hover:shadow-none">
-              <Plus weight="regular" size={14} />
-              ADD RATING
-            </button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-xl rounded-none border-2 border-black bg-white p-0 shadow-[8px_8px_0px_0px_#111111]">
-            <div className="px-5 py-4 border-b-2 border-black bg-yellow-300">
-              <DialogHeader>
-                <DialogTitle className="text-[15px] font-['Archivo_Black'] uppercase tracking-wide text-black">ADD NEW RATING</DialogTitle>
-              </DialogHeader>
+      </div>
+
+      {/* Custom modal — no Radix, no scroll lock interference */}
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          onClick={() => setIsModalOpen(false)}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/80" />
+
+          {/* Panel */}
+          <div
+            className="relative w-full max-w-5xl mx-4 bg-white border-2 border-black shadow-[8px_8px_0px_0px_#111111] flex flex-col"
+            style={{ maxHeight: '90vh' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b-2 border-black bg-yellow-300 flex-shrink-0">
+              <span className="text-[15px] font-['Archivo_Black'] uppercase tracking-wide text-black">
+                BULK EDIT RATINGS — PATCH {selectedPatch?.version}
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="text-black hover:text-red-600 transition-colors"
+              >
+                <X size={20} weight="bold" />
+              </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[11px] font-['JetBrains_Mono'] font-bold text-black uppercase mb-1.5">Patch</label>
-                <select 
-                  value={form.patch_version} 
-                  onChange={e => setForm({...form, patch_version: e.target.value})}
-                  className="w-full px-3 py-2 text-sm rounded-none border-2 border-black bg-white focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_#111111] transition-shadow"
-                  required
+
+            {/* Scrollable body */}
+            <form onSubmit={handleBulkSubmit} className="flex flex-col flex-1 min-h-0">
+              <div className="overflow-y-scroll flex-1">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-gray-100 border-b-2 border-black">
+                    <tr>
+                      <th className="px-4 py-3 font-['JetBrains_Mono'] text-[11px] font-bold text-black uppercase">Agent</th>
+                      <th className="px-4 py-3 font-['JetBrains_Mono'] text-[11px] font-bold text-black uppercase w-32">Tier</th>
+                      <th className="px-4 py-3 font-['JetBrains_Mono'] text-[11px] font-bold text-black uppercase w-40">Direction</th>
+                      <th className="px-4 py-3 font-['JetBrains_Mono'] text-[11px] font-bold text-black uppercase">Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bulkRatings.map((rating, idx) => (
+                      <tr key={rating.agent} className="border-b border-gray-200 hover:bg-gray-50">
+                        <td className="px-4 py-3">
+                          <div className="font-bold text-sm text-gray-900">{rating.agent}</div>
+                          <div className="text-[11px] text-gray-500 uppercase">{rating.role}</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <select 
+                            value={rating.tier} 
+                            onChange={e => handleBulkChange(idx, 'tier', e.target.value)}
+                            className="w-full px-2 py-1.5 text-sm rounded-none border-2 border-black bg-white focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_#111111] transition-shadow"
+                          >
+                            <option value="S">S-Tier</option>
+                            <option value="A">A-Tier</option>
+                            <option value="B">B-Tier</option>
+                            <option value="C">C-Tier</option>
+                            <option value="D">D-Tier</option>
+                          </select>
+                        </td>
+                        <td className="px-4 py-3">
+                          <select 
+                            value={rating.direction} 
+                            onChange={e => handleBulkChange(idx, 'direction', e.target.value)}
+                            className="w-full px-2 py-1.5 text-sm rounded-none border-2 border-black bg-white focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_#111111] transition-shadow"
+                          >
+                            <option value="buffed">Buffed</option>
+                            <option value="nerfed">Nerfed</option>
+                            <option value="unchanged">Unchanged</option>
+                            <option value="reworked">Reworked</option>
+                          </select>
+                        </td>
+                        <td className="px-4 py-3">
+                          <input 
+                            type="text" 
+                            value={rating.notes} 
+                            onChange={e => handleBulkChange(idx, 'notes', e.target.value)}
+                            className="w-full px-2 py-1.5 text-sm rounded-none border-2 border-black bg-white focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_#111111] transition-shadow"
+                            placeholder="Optional notes..."
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Footer */}
+              <div className="px-5 py-4 border-t-2 border-black bg-gray-50 flex-shrink-0 flex justify-end gap-3">
+                <button 
+                  type="button" 
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 font-['JetBrains_Mono'] text-[12px] font-bold uppercase tracking-wider text-black hover:bg-gray-200 transition-colors"
                 >
-                  <option value="" disabled>Select Patch</option>
-                  {patches.map(p => (
-                    <option key={p.id} value={p.version}>{p.version}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[11px] font-['JetBrains_Mono'] font-bold text-black uppercase mb-1.5">Agent</label>
-                <select 
-                  value={form.agent} 
-                  onChange={handleAgentChange}
-                  className="w-full px-3 py-2 text-sm rounded-none border-2 border-black bg-white focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_#111111] transition-shadow"
-                  required
-                >
-                  {agents.map(a => (
-                    <option key={a.agent} value={a.agent}>{a.agent}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[11px] font-['JetBrains_Mono'] font-bold text-gray-500 uppercase mb-1.5">Role (Auto-filled)</label>
-                <input 
-                  type="text" 
-                  value={form.role} 
-                  readOnly
-                  className="w-full px-3 py-2 text-sm rounded-none border-2 border-black bg-gray-200 text-gray-600 cursor-not-allowed focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] font-['JetBrains_Mono'] font-bold text-black uppercase mb-1.5">Tier</label>
-                <select 
-                  value={form.tier} 
-                  onChange={e => setForm({...form, tier: e.target.value})}
-                  className="w-full px-3 py-2 text-sm rounded-none border-2 border-black bg-white focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_#111111] transition-shadow"
-                >
-                  <option value="S">S - S-Tier</option>
-                  <option value="A">A - A-Tier</option>
-                  <option value="B">B - B-Tier</option>
-                  <option value="C">C - C-Tier</option>
-                  <option value="D">D - D-Tier</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-[11px] font-['JetBrains_Mono'] font-bold text-black uppercase mb-1.5">Direction</label>
-                <select 
-                  value={form.direction} 
-                  onChange={e => setForm({...form, direction: e.target.value})}
-                  className="w-full px-3 py-2 text-sm rounded-none border-2 border-black bg-white focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_#111111] transition-shadow"
-                >
-                  <option value="buffed">Buffed</option>
-                  <option value="nerfed">Nerfed</option>
-                  <option value="unchanged">Unchanged</option>
-                  <option value="reworked">Reworked</option>
-                </select>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-[11px] font-['JetBrains_Mono'] font-bold text-black uppercase mb-1.5">Notes</label>
-                <input 
-                  type="text" 
-                  value={form.notes} 
-                  onChange={e => setForm({...form, notes: e.target.value})}
-                  className="w-full px-3 py-2 text-sm rounded-none border-2 border-black bg-white focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_#111111] transition-shadow"
-                  placeholder="e.g. Flash duration increased"
-                />
-              </div>
-              <div className="md:col-span-2 pt-2">
+                  Cancel
+                </button>
                 <button 
                   type="submit" 
                   disabled={loading}
-                  className="w-full bg-black border-2 border-black text-white px-4 py-2.5 font-['JetBrains_Mono'] text-[12px] font-bold uppercase tracking-wider hover:bg-transparent hover:text-black transition-colors active:translate-y-0.5 disabled:opacity-50 mt-2"
+                  className="bg-black border-2 border-black text-white px-6 py-2 font-['JetBrains_Mono'] text-[12px] font-bold uppercase tracking-wider hover:bg-transparent hover:text-black transition-colors active:translate-y-0.5 disabled:opacity-50"
                 >
-                  {loading ? 'SAVING...' : 'SAVE RATING'}
+                  {loading ? 'SAVING...' : 'SAVE ALL RATINGS'}
                 </button>
               </div>
             </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+          </div>
+        </div>
+      )}
 
       <div className="mb-10">
         <h3 className="font-['JetBrains_Mono'] text-[11px] font-bold uppercase tracking-widest text-black bg-cyan-300 inline-block px-2 py-1 mb-2 border border-black shadow-[2px_2px_0px_0px_#111111]">
-          agent_patch_ratings.db
+          patches.db
         </h3>
         <div className="bg-white border-2 border-black shadow-[4px_4px_0px_0px_#111111]">
           <Table>
@@ -303,11 +299,9 @@ export default function PatchRatings() {
             {initialFetch ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i} className="border-b-2 border-gray-100">
-                  <TableCell className="p-4"><Skeleton className="h-4 w-12 bg-gray-200 rounded-none" /></TableCell>
                   <TableCell className="p-4"><Skeleton className="h-4 w-20 bg-gray-200 rounded-none" /></TableCell>
-                  <TableCell className="p-4"><Skeleton className="h-5 w-8 bg-gray-200 rounded-none" /></TableCell>
-                  <TableCell className="p-4"><Skeleton className="h-4 w-16 bg-gray-200 rounded-none" /></TableCell>
-                  <TableCell className="p-4"><Skeleton className="h-4 w-40 bg-gray-200 rounded-none" /></TableCell>
+                  <TableCell className="p-4"><Skeleton className="h-4 w-32 bg-gray-200 rounded-none" /></TableCell>
+                  <TableCell className="p-4"><Skeleton className="h-6 w-24 bg-gray-200 rounded-none" /></TableCell>
                 </TableRow>
               ))
             ) : table.getRowModel().rows.length > 0 ? (
@@ -322,8 +316,8 @@ export default function PatchRatings() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-sm font-medium text-gray-500">
-                  No ratings found.
+                <TableCell colSpan={3} className="h-24 text-center text-sm font-medium text-gray-500">
+                  No patches found.
                 </TableCell>
               </TableRow>
             )}

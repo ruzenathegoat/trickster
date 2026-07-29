@@ -130,6 +130,8 @@ class CalculateMetricJob implements ShouldQueue
                 "total_kills" => $totalKills,
                 "total_deaths" => $totalDeaths,
                 "total_assists" => $totalAssists,
+                "avg_fk" => round($stats->avg("fk"), 2),
+                "avg_fd" => round($stats->avg("fd"), 2),
                 "consistency_index" => $consistencyIndex,
                 "current_role" => $currentRole ?? $player->current_role,
             ]);
