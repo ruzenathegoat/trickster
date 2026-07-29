@@ -7,6 +7,8 @@ import AuthLayout from './layouts/AuthLayout';
 import Dashboard from './pages/users/Dashboard';
 import Leaderboard from './pages/users/Leaderboard';
 import PlayerExplorer from './pages/users/PlayerExplorer';
+import TeamExplorer from './pages/users/TeamExplorer';
+import TeamProfile from './pages/users/TeamProfile';
 import Landing from './pages/users/Landing';
 import Login from './pages/users/Login';
 import Register from './pages/users/Register';
@@ -43,16 +45,17 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/app" element={<AppLayout />}>
             <Route path="dashboard" element={<Dashboard />} />
-          <Route path="leaderboard" element={<Leaderboard />} />
-          <Route path="players" element={<PlayerExplorer />} />
-          <Route path="players/:playerId" element={<PlayerProfile />} />
-          <Route path="teams" element={<div className="p-8">Team Explorer Coming Soon</div>} />
-          <Route path="recommend/*" element={<div className="p-8">Recommend Flow Coming Soon</div>} />
-          <Route path="simulation" element={<div className="p-8">Simulation Coming Soon</div>} />
-          <Route path="meta" element={<div className="p-8">Meta Explorer Coming Soon</div>} />
-          <Route path="profiles" element={<div className="p-8">My Profiles Coming Soon</div>} />
-          <Route path="account" element={<div className="p-8">Account Coming Soon</div>} />
-        </Route>
+            <Route path="leaderboard" element={<Leaderboard />} />
+            <Route path="players" element={<PlayerExplorer />} />
+            <Route path="players/:playerId" element={<PlayerProfile />} />
+            <Route path="teams" element={<TeamExplorer />} />
+            <Route path="teams/:teamId" element={<TeamProfile />} />
+            <Route path="recommend/*" element={<div className="p-8">Recommend Flow Coming Soon</div>} />
+            <Route path="simulation" element={<div className="p-8">Simulation Coming Soon</div>} />
+            <Route path="meta" element={<div className="p-8">Meta Explorer Coming Soon</div>} />
+            <Route path="profiles" element={<div className="p-8">My Profiles Coming Soon</div>} />
+            <Route path="account" element={<div className="p-8">Account Coming Soon</div>} />
+          </Route>
         </Route>
 
         {/* Admin Routes */}

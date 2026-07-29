@@ -64,4 +64,17 @@ Route::prefix('v1')->group(function () {
         Route::post('/profiles', [SmartEngineController::class, 'storeProfile']);
         Route::post('/calculate', [SmartEngineController::class, 'calculate']);
     });
+    
+    // User Dashboard
+    Route::get('/dashboard', [\App\Http\Controllers\Api\V1\DashboardController::class, 'index']);
+    
+    // Leaderboard & Players
+    Route::get('/leaderboard/top', [\App\Http\Controllers\Api\V1\LeaderboardController::class, 'index']);
+    Route::get('/leaderboard/players', [\App\Http\Controllers\Api\V1\LeaderboardController::class, 'players']);
+    Route::get('/players/{id}', [\App\Http\Controllers\Api\V1\LeaderboardController::class, 'show']);
+
+    // Teams
+    Route::get('/teams/top', [\App\Http\Controllers\Api\V1\TeamController::class, 'top']);
+    Route::get('/teams', [\App\Http\Controllers\Api\V1\TeamController::class, 'index']);
+    Route::get('/teams/{id}', [\App\Http\Controllers\Api\V1\TeamController::class, 'show']);
 });

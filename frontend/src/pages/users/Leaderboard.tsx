@@ -1,244 +1,294 @@
 import { useState, useEffect } from 'react';
-import { 
-  flexRender, 
-  getCoreRowModel, 
-  useReactTable, 
-  createColumnHelper,
-  getSortedRowModel,
-} from '@tanstack/react-table';
-import type { SortingState } from '@tanstack/react-table';
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import axios from '../../lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Funnel, MagnifyingGlass, User } from '@phosphor-icons/react';
-import clsx from 'clsx';
+import { Trophy, ArrowUpRight, Funnel, CaretLeft, CaretRight } from '@phosphor-icons/react';
 
 interface PlayerRank {
   id: string;
   rank: number;
-  name: string;
-  team: string;
+  ign: string;
+  team_name: string;
+  photo_url: string | null;
+  rating: number;
   role: string;
   acs: number;
-  kast: number;
-  adr: number;
-  consistency: 'S' | 'A' | 'B' | 'C' | 'D';
-  smartScore: number;
+  kd: number;
 }
 
-const columnHelper = createColumnHelper<PlayerRank>();
-
 export default function Leaderboard() {
-  const [data, setData] = useState<PlayerRank[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [loadingTop, setLoadingTop] = useState(true);
+  const [loadingTable, setLoadingTable] = useState(true);
+  const [topPlayers, setTopPlayers] = useState<PlayerRank[]>([]);
+  const [tablePlayers, setTablePlayers] = useState<PlayerRank[]>([]);
   
-  // Filters
-  const [activeRole, setActiveRole] = useState('All Roles');
-  const roles = ['All Roles', 'Duelist', 'Initiator', 'Controller', 'Sentinel'];
+  // Table filters & pagination
+  const [roleFilter, setRoleFilter] = useState('All');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const navigate = useNavigate();
+  const ROLES = ['All', 'Duelist', 'Initiator', 'Controller', 'Sentinel', 'Flex'];
 
   useEffect(() => {
-    // Mock data fetch
-    setTimeout(() => {
-      setData([
-        { id: '1', rank: 1, name: 'Derke', team: 'FNC', role: 'Duelist', acs: 268.4, kast: 74.2, adr: 165.8, consistency: 'S', smartScore: 94.5 },
-        { id: '2', rank: 2, name: 'Alfajer', team: 'FNC', role: 'Sentinel', acs: 254.1, kast: 78.5, adr: 158.2, consistency: 'S', smartScore: 92.1 },
-        { id: '3', rank: 3, name: 'Leo', team: 'FNC', role: 'Initiator', acs: 245.8, kast: 82.1, adr: 152.4, consistency: 'A', smartScore: 91.8 },
-        { id: '4', rank: 4, name: 'Demon1', team: 'NRG', role: 'Duelist', acs: 262.3, kast: 71.4, adr: 161.1, consistency: 'A', smartScore: 90.2 },
-        { id: '5', rank: 5, name: 'TenZ', team: 'SEN', role: 'Controller', acs: 238.9, kast: 76.8, adr: 148.5, consistency: 'B', smartScore: 88.7 },
-      ]);
-      setLoading(false);
-    }, 800);
+    const fetchTopPlayers = async () => {
+      try {
+        const response = await axios.get('/api/v1/leaderboard/top');
+        setTopPlayers(response.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingTop(false);
+      }
+    };
+    fetchTopPlayers();
   }, []);
 
-  const columns = [
-    columnHelper.accessor('rank', {
-      header: 'Rank',
-      cell: info => <span className="font-['JetBrains_Mono'] font-bold text-gray-400 tabular-nums">#{info.getValue()}</span>,
-      size: 60,
-    }),
-    columnHelper.accessor('name', {
-      header: 'Player',
-      cell: info => (
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
-            <User weight="regular" size={16} className="text-gray-400" />
-          </div>
-          <div>
-            <div className="font-bold text-[14px] leading-tight">{info.getValue()}</div>
-            <div className="text-[11px] text-gray-500">{info.row.original.team}</div>
-          </div>
-        </div>
-      ),
-    }),
-    columnHelper.accessor('role', {
-      header: 'Role',
-      cell: info => (
-        <span className="text-[12px] bg-gray-100 px-2 py-1 rounded-md text-gray-600">
-          {info.getValue()}
-        </span>
-      ),
-    }),
-    columnHelper.accessor('acs', {
-      header: 'ACS',
-      cell: info => <span className="font-['JetBrains_Mono'] text-[13px] tabular-nums">{info.getValue().toFixed(1)}</span>,
-    }),
-    columnHelper.accessor('kast', {
-      header: 'KAST %',
-      cell: info => <span className="font-['JetBrains_Mono'] text-[13px] tabular-nums">{info.getValue().toFixed(1)}%</span>,
-    }),
-    columnHelper.accessor('adr', {
-      header: 'ADR',
-      cell: info => <span className="font-['JetBrains_Mono'] text-[13px] tabular-nums">{info.getValue().toFixed(1)}</span>,
-    }),
-    columnHelper.accessor('consistency', {
-      header: 'Consistency',
-      cell: info => {
-        const val = info.getValue();
-        const colors: Record<string, string> = {
-          'S': 'bg-green-100 text-green-700 border-green-200',
-          'A': 'bg-blue-100 text-blue-700 border-blue-200',
-          'B': 'bg-yellow-100 text-yellow-700 border-yellow-200',
-          'C': 'bg-orange-100 text-orange-700 border-orange-200',
-          'D': 'bg-red-100 text-red-700 border-red-200',
-        };
-        return (
-          <span className={clsx("font-['JetBrains_Mono'] font-bold text-[12px] px-2 py-0.5 rounded border", colors[val])}>
-            {val}
-          </span>
-        );
-      },
-    }),
-    columnHelper.accessor('smartScore', {
-      header: 'Global SMART',
-      cell: info => (
-        <div className="flex items-center gap-2">
-          <div className="w-full bg-gray-100 rounded-full h-1.5 max-w-[60px]">
-            <div className="bg-[var(--color-primary)] h-1.5 rounded-full border-r border-black" style={{ width: `${info.getValue()}%` }} />
-          </div>
-          <span className="font-['JetBrains_Mono'] font-bold text-[14px] tabular-nums">{info.getValue().toFixed(1)}</span>
-        </div>
-      ),
-    }),
-  ];
+  useEffect(() => {
+    const fetchTablePlayers = async () => {
+      setLoadingTable(true);
+      try {
+        const response = await axios.get(`/api/v1/leaderboard/players?page=${page}&role=${roleFilter}`);
+        setTablePlayers(response.data.data);
+        setTotalPages(response.data.last_page);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingTable(false);
+      }
+    };
+    fetchTablePlayers();
+  }, [page, roleFilter]);
 
-  const table = useReactTable({
-    data,
-    columns,
-    state: { sorting },
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  });
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.15 }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { y: 40, opacity: 0 },
+    show: { y: 0, opacity: 1, transition: { type: 'spring' as const, stiffness: 300, damping: 24 } }
+  };
+
+  if (loadingTop) {
+    return (
+      <div className="space-y-8 max-w-6xl">
+        <Skeleton className="h-10 w-64" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map(i => <Skeleton key={i} className="h-96 w-full rounded-none" />)}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6 max-w-6xl">
-      <div>
-        <h1 className="text-2xl font-['Archivo_Black'] uppercase tracking-tight mb-1">Global Leaderboard</h1>
-        <p className="text-gray-500 text-[14px]">Rankings based on the Global Rating model. Not context-adjusted for specific teams.</p>
-      </div>
-
-      {/* Filter Bar */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Funnel weight="regular" size={16} className="text-gray-400" />
-          <span className="text-[13px] font-semibold text-gray-700 mr-2">Filters:</span>
-          
-          <div className="flex gap-2">
-            {roles.map(r => (
-              <button 
-                key={r}
-                onClick={() => setActiveRole(r)}
-                className={clsx(
-                  "px-3 py-1.5 rounded-md text-[12px] font-medium transition-colors border",
-                  activeRole === r 
-                    ? "bg-[var(--color-primary)] border-black text-black shadow-[2px_2px_0px_0px_#111111]" 
-                    : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
-                )}
-              >
-                {r}
-              </button>
-            ))}
+    <div className="space-y-16 max-w-6xl pb-12">
+      {/* Top 3 Section */}
+      <section>
+        <div className="flex items-end justify-between border-b-2 border-black pb-4">
+          <div>
+            <h1 className="text-4xl font-['Archivo_Black'] uppercase tracking-tight mb-2 flex items-center gap-3">
+              <Trophy weight="fill" className="text-[var(--color-primary)]" />
+              Top 3 Players
+            </h1>
+            <p className="text-gray-600 font-['JetBrains_Mono'] text-sm">Season 2026 \ Highest SMART Ratings</p>
           </div>
         </div>
 
-        <div className="relative w-64">
-          <MagnifyingGlass weight="regular" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder="Search player..." 
-            className="w-full pl-9 pr-3 py-1.5 text-[13px] border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400"
-          />
-        </div>
-      </div>
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 pt-6"
+        >
+          {topPlayers.map((player) => (
+            <motion.div
+              key={player.id}
+              variants={cardVariants}
+              onClick={() => navigate(`/app/players/${player.id}`)}
+              className="group relative bg-white border-2 border-black p-5 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:-translate-x-1"
+              style={{ boxShadow: '6px 6px 0px rgba(0,0,0,1)' }}
+              whileHover={{ boxShadow: '12px 12px 0px rgba(0,0,0,1)' }}
+            >
+              {/* Rank Badge */}
+              <div className={`absolute -top-4 -right-4 w-12 h-12 border-2 border-black rounded-full flex items-center justify-center font-['Archivo_Black'] text-xl z-10 ${player.rank === 1 ? 'bg-[var(--color-primary)] text-black' : 'bg-white text-black'}`}>
+                #{player.rank}
+              </div>
 
-      {/* Data Table */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-        <table className="w-full text-left text-[13px]">
-          <thead>
-            {table.getHeaderGroups().map(headerGroup => (
-              <tr key={headerGroup.id} className="bg-gray-50/50 border-b border-gray-200">
-                {headerGroup.headers.map(header => (
-                  <th 
-                    key={header.id} 
-                    className="px-4 py-3 font-medium text-gray-500 cursor-pointer hover:text-gray-800 transition-colors"
-                    onClick={header.column.getToggleSortingHandler()}
-                    style={{ width: header.getSize() !== 150 ? header.getSize() : 'auto' }}
-                  >
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {loading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i} className="border-b border-gray-100">
-                  <td className="px-4 py-3"><Skeleton className="h-4 w-8" /></td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <Skeleton className="w-8 h-8 rounded-full" />
-                      <div>
-                        <Skeleton className="h-4 w-24 mb-1" />
-                        <Skeleton className="h-3 w-12" />
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3"><Skeleton className="h-6 w-16 rounded-md" /></td>
-                  <td className="px-4 py-3"><Skeleton className="h-4 w-12" /></td>
-                  <td className="px-4 py-3"><Skeleton className="h-4 w-12" /></td>
-                  <td className="px-4 py-3"><Skeleton className="h-4 w-12" /></td>
-                  <td className="px-4 py-3"><Skeleton className="h-6 w-8 rounded" /></td>
-                  <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
-                </tr>
-              ))
-            ) : data.length === 0 ? (
-              <tr>
-                <td colSpan={columns.length} className="px-4 py-12 text-center text-gray-500">
-                  <div className="flex flex-col items-center">
-                    <User weight="regular" size={48} className="text-gray-300 mb-4" />
-                    <p className="font-semibold text-gray-700 mb-1">No players found</p>
-                    <p className="text-[13px]">Try adjusting your filters.</p>
+              {/* Photo Container */}
+              <div className="aspect-[4/5] w-full border-2 border-black bg-gray-100 overflow-hidden mb-4 relative">
+                {player.photo_url ? (
+                  <img 
+                    src={player.photo_url} 
+                    alt={player.ign}
+                    className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 group-hover:text-gray-600 transition-colors bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#f3f4f6_10px,#f3f4f6_20px)]">
+                    <span className="font-['JetBrains_Mono'] text-xs font-bold uppercase tracking-widest rotate-90">No Photo</span>
                   </div>
-                </td>
-              </tr>
-            ) : (
-              table.getRowModel().rows.map(row => (
-                <tr 
-                  key={row.id} 
-                  className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
-                  onClick={() => window.location.href = `/app/players/${row.original.id}`}
+                )}
+                
+                <div className="absolute bottom-0 left-0 w-full bg-black text-white px-3 py-2 flex justify-between items-center translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
+                  <span className="text-xs font-bold uppercase tracking-wider">View Profile</span>
+                  <ArrowUpRight size={16} weight="bold" />
+                </div>
+              </div>
+
+              {/* Info */}
+              <div className="space-y-1 text-center border-b-2 border-gray-100 pb-4 mb-4">
+                <h2 className="text-3xl font-['Archivo_Black'] uppercase tracking-tighter group-hover:text-[var(--color-primary)] transition-colors">{player.ign}</h2>
+                <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">{player.team_name}</p>
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-3 gap-2 text-center font-['JetBrains_Mono']">
+                <div>
+                  <p className="text-[10px] text-[var(--color-primary)] font-black mb-1 tracking-widest">SMART</p>
+                  <p className="text-lg font-bold">{player.rating}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-500 mb-1">ACS</p>
+                  <p className="text-lg font-bold">{player.acs}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-500 mb-1">K/D</p>
+                  <p className="text-lg font-bold">{player.kd}</p>
+                </div>
+              </div>
+              
+            </motion.div>
+          ))}
+        </motion.div>
+        
+        {topPlayers.length === 0 && !loadingTop && (
+          <div className="py-20 text-center border-2 border-dashed border-gray-300">
+            <p className="text-gray-500 font-['JetBrains_Mono']">Not enough player data available.</p>
+          </div>
+        )}
+      </section>
+
+      {/* Full Leaderboard Table Section */}
+      <section className="bg-white border-2 border-black p-6 md:p-8" style={{ boxShadow: '8px 8px 0px rgba(0,0,0,1)' }}>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4 border-b-2 border-black pb-4">
+          <h2 className="text-2xl font-['Archivo_Black'] uppercase tracking-tight">Full Leaderboard</h2>
+          
+          <div className="flex items-center gap-3">
+            <Funnel size={20} className="text-gray-400" />
+            <div className="flex flex-wrap gap-2">
+              {ROLES.map(role => (
+                <button
+                  key={role}
+                  onClick={() => { setRoleFilter(role); setPage(1); }}
+                  className={`px-3 py-1 border-2 border-black text-sm font-bold uppercase transition-all ${
+                    roleFilter === role 
+                      ? 'bg-black text-[var(--color-primary)] shadow-[2px_2px_0px_var(--color-primary)]' 
+                      : 'bg-white text-black hover:bg-gray-100 hover:shadow-[2px_2px_0px_black]'
+                  }`}
                 >
-                  {row.getVisibleCells().map(cell => (
-                    <td key={cell.id} className="px-4 py-3">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  {role}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm border-collapse">
+            <thead>
+              <tr className="border-b-2 border-black text-xs font-bold text-gray-500 uppercase tracking-wider font-['JetBrains_Mono']">
+                <th className="py-3 px-4">Rank</th>
+                <th className="py-3 px-4">Player</th>
+                <th className="py-3 px-4">Team</th>
+                <th className="py-3 px-4">Role</th>
+                <th className="py-3 px-4 text-right">SMART Rating</th>
+                <th className="py-3 px-4 text-right">ACS</th>
+                <th className="py-3 px-4 text-right">K/D</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {loadingTable ? (
+                [1, 2, 3, 4, 5].map(i => (
+                  <tr key={i}>
+                    <td className="py-4 px-4"><Skeleton className="h-5 w-8" /></td>
+                    <td className="py-4 px-4"><Skeleton className="h-5 w-24" /></td>
+                    <td className="py-4 px-4"><Skeleton className="h-5 w-32" /></td>
+                    <td className="py-4 px-4"><Skeleton className="h-5 w-20" /></td>
+                    <td className="py-4 px-4 text-right"><Skeleton className="h-5 w-12 ml-auto" /></td>
+                    <td className="py-4 px-4 text-right"><Skeleton className="h-5 w-12 ml-auto" /></td>
+                    <td className="py-4 px-4 text-right"><Skeleton className="h-5 w-12 ml-auto" /></td>
+                  </tr>
+                ))
+              ) : (
+                tablePlayers.map((player, index) => (
+                  <tr 
+                    key={player.id} 
+                    className="hover:bg-gray-50 transition-colors cursor-pointer group"
+                    onClick={() => navigate(`/app/players/${player.id}`)}
+                  >
+                    <td className="py-4 px-4 font-['JetBrains_Mono'] font-bold text-gray-500">
+                      #{((page - 1) * 10) + index + 1}
                     </td>
-                  ))}
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                    <td className="py-4 px-4 font-['Archivo_Black'] uppercase text-base group-hover:text-[var(--color-primary)] transition-colors">
+                      {player.ign}
+                    </td>
+                    <td className="py-4 px-4 font-bold text-gray-600 uppercase text-xs tracking-wider">
+                      {player.team_name}
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className="inline-block px-2 py-1 bg-gray-100 border border-gray-300 text-xs font-bold uppercase rounded">
+                        {player.role}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 text-right font-['JetBrains_Mono'] font-bold text-[var(--color-primary)] text-lg bg-gray-900">
+                      {player.rating}
+                    </td>
+                    <td className="py-4 px-4 text-right font-['JetBrains_Mono'] font-bold text-gray-600">
+                      {player.acs}
+                    </td>
+                    <td className="py-4 px-4 text-right font-['JetBrains_Mono'] font-bold text-gray-600">
+                      {player.kd}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+          
+          {!loadingTable && tablePlayers.length === 0 && (
+            <div className="py-12 text-center text-gray-500 font-['JetBrains_Mono']">
+              No players found matching the current filters.
+            </div>
+          )}
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="mt-6 pt-4 border-t-2 border-gray-200 flex justify-between items-center">
+          <span className="text-sm font-['JetBrains_Mono'] text-gray-500">
+            Page {page} of {totalPages}
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1 || loadingTable}
+              className="p-2 border-2 border-black hover:bg-gray-100 disabled:opacity-50 disabled:hover:bg-white transition-colors"
+            >
+              <CaretLeft size={20} weight="bold" />
+            </button>
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages || loadingTable}
+              className="p-2 border-2 border-black hover:bg-gray-100 disabled:opacity-50 disabled:hover:bg-white transition-colors"
+            >
+              <CaretRight size={20} weight="bold" />
+            </button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
