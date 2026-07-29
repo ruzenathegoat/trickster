@@ -37,8 +37,12 @@ class VlrScraperService
             $records = 0;
             
             foreach ($events as $event) {
-                $matches = $this->scrapeEventMatches($event['id'], $event['link']);
-                $records += count($matches);
+                try {
+                    $matches = $this->scrapeEventMatches($event['id'], $event['link']);
+                    $records += count($matches);
+                } catch (\Exception $e) {
+                    \Log::error("Failed to scrape matches for event {$event['id']}: " . $e->getMessage());
+                }
             }
 
             $log->update([
@@ -60,11 +64,14 @@ class VlrScraperService
 
     public function scrapeEvents(): array
     {
-        $response = Http::timeout(10)->withoutVerifying()->withHeaders($this->headers)->get($this->baseUrl . '/events');
-        $crawler = new Crawler($response->body());
-
+        $urls = ['/events', '/events/?page=2', '/events/?page=3', '/events/?page=4', '/events/?page=5'];
         $events = [];
-        $crawler->filter('.event-item')->each(function (Crawler $node) use (&$events) {
+
+        foreach ($urls as $url) {
+            $response = Http::timeout(30)->withoutVerifying()->withHeaders($this->headers)->get($this->baseUrl . $url);
+            $crawler = new Crawler($response->body());
+
+            $crawler->filter('.event-item')->each(function (Crawler $node) use (&$events) {
             try {
                 $link = $node->attr('href');
                 $id = explode('/', $link)[2] ?? null;
@@ -74,13 +81,10 @@ class VlrScraperService
 
                 if ($id && $name) {
                     $lowerName = strtolower($name);
-                    // Filter for VCT 2026 events as requested by user
-                    $isVct2026 = str_contains($lowerName, '2026') && (
-                        str_contains($lowerName, 'vct') || 
-                        str_contains($lowerName, 'valorant champions') || 
-                        str_contains($lowerName, 'masters') ||
-                        str_contains($lowerName, 'kickoff')
-                    );
+                    // Strict filter for VCT 2026 Tier 1 events only
+                    $isVct2026 = preg_match('/^vct 2026: (americas|pacific|emea|china) (kickoff|stage 1|stage 2)$/i', $name)
+                              || preg_match('/^valorant (masters|champions).*2026$/i', $name)
+                              || preg_match('/^vct (masters|champions).*2026$/i', $name);
                     
                     if ($isVct2026) {
                         Event::updateOrCreate(
@@ -104,6 +108,7 @@ class VlrScraperService
                 // skip malformed rows
             }
         });
+        }
 
         return $events;
     }
@@ -111,7 +116,7 @@ class VlrScraperService
     public function scrapeEventMatches(string $eventId, string $eventLink): array
     {
         $url = str_replace('/event/', '/event/matches/', $eventLink);
-        $response = Http::timeout(10)->withoutVerifying()->withHeaders($this->headers)->get($this->baseUrl . $url);
+        $response = Http::timeout(30)->withoutVerifying()->withHeaders($this->headers)->get($this->baseUrl . $url);
         
         $crawler = new Crawler($response->body());
         $matches = [];
@@ -140,7 +145,9 @@ class VlrScraperService
                             
                             if (str_contains($eventName, 'champions') || str_contains($eventName, 'masters')) {
                                 $queue = 'scrape-high';
-                            } elseif (str_contains($eventName, 'stage') || str_contains($eventName, 'split') || str_contains($eventName, 'kickoff')) {
+                            } elseif (str_contains($eventName, 'kickoff')) {
+                                $queue = 'scrape-low';
+                            } elseif (str_contains($eventName, 'stage') || str_contains($eventName, 'split')) {
                                 $queue = 'scrape-default';
                             }
 

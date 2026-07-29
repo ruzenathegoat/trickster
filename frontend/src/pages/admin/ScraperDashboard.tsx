@@ -119,7 +119,7 @@ export default function ScraperDashboard() {
       }),
       logColumnHelper.accessor('started_at', {
         header: 'TIMESTAMP',
-        cell: info => <span className="text-[12px] text-gray-600 font-['JetBrains_Mono']">{new Date(info.getValue()).toISOString()}</span>
+        cell: info => <span className="text-[12px] text-gray-600 font-['JetBrains_Mono']">{new Date(info.getValue()).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', dateStyle: 'medium', timeStyle: 'medium' })}</span>
       }),
     ], []);
 
@@ -144,7 +144,7 @@ export default function ScraperDashboard() {
       }),
       alertColumnHelper.accessor('created_at', {
         header: 'TIMESTAMP',
-        cell: info => <span className="text-[12px] text-gray-600 font-['JetBrains_Mono']">{new Date(info.getValue()).toISOString()}</span>
+        cell: info => <span className="text-[12px] text-gray-600 font-['JetBrains_Mono']">{new Date(info.getValue()).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', dateStyle: 'medium', timeStyle: 'medium' })}</span>
       }),
       alertColumnHelper.accessor('is_resolved', {
         header: 'RESOLVED',
