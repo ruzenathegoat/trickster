@@ -32,7 +32,7 @@ class CalculateSmartJob implements ShouldQueue
             // Re-fetch player to ensure we have latest data
             $player = Player::find($playerModel->id);
             if ($player && !$player->photo_url) {
-                ScrapePlayerProfileJob::dispatch($player);
+                ScrapePlayerProfileJob::dispatch($player)->onQueue("scrape-low");
             }
         }
     }

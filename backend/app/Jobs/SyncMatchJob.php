@@ -67,16 +67,52 @@ class SyncMatchJob implements ShouldQueue
                 $teamA = Team::firstOrCreate(["vlr_team_id" => $teams[0]["id"]], ["name" => $teams[0]["name"] ?: "Unknown Team A"]);
                 $teamB = Team::firstOrCreate(["vlr_team_id" => $teams[1]["id"]], ["name" => $teams[1]["name"] ?: "Unknown Team B"]);
 
+                // Extract Stage Label
+                $stageLabelNodes = $crawler->filter(".match-header-event-series");
+                $stageLabel = $stageLabelNodes->count() > 0 ? trim(preg_replace("/\s+/", " ", $stageLabelNodes->text(""))) : null;
+
+                // Extract Format
+                $noteNodes = $crawler->filter(".match-header-vs-note");
+                $formatStr = null;
+                if ($noteNodes->count() > 1) {
+                    $formatStr = trim($noteNodes->eq(1)->text(""));
+                } else if ($noteNodes->count() === 1) {
+                    $formatStr = trim($noteNodes->eq(0)->text(""));
+                }
+                
+                $format = null;
+                if ($formatStr && preg_match('/Bo(\d+)/i', $formatStr, $matches)) {
+                    $format = (int) $matches[1];
+                }
+
+                // Extract Date
+                $dateNode = $crawler->filter(".moment-tz-convert");
+                $matchDate = null;
+                if ($dateNode->count() > 0 && $dateNode->attr("data-utc-ts")) {
+                    $matchDate = Carbon::parse($dateNode->attr("data-utc-ts"));
+                }
+
+                // Extract Winner
+                $winnerTeamId = null;
+                $scoreSpans = $crawler->filter(".match-header-vs-score .sp-hide span");
+                if ($scoreSpans->count() >= 3) {
+                    if (str_contains($scoreSpans->eq(0)->attr("class") ?? "", "winner")) {
+                        $winnerTeamId = $teamA->id;
+                    } else if (str_contains($scoreSpans->eq(2)->attr("class") ?? "", "winner")) {
+                        $winnerTeamId = $teamB->id;
+                    }
+                }
+
                 MatchData::updateOrCreate(
                     ["vlr_match_id" => $this->queueItem->vlr_match_id],
                     [
                         "event_id" => $this->queueItem->event_id,
                         "team_a_id" => $teamA->id,
                         "team_b_id" => $teamB->id,
-                        "winner_team_id" => $teamA->id,
-                        "match_date" => Carbon::now(),
-                        "raw_stage_label" => "Playoffs",
-                        "format" => "Bo3"
+                        "winner_team_id" => $winnerTeamId,
+                        "match_date" => $matchDate,
+                        "raw_stage_label" => $stageLabel,
+                        "best_of" => $format
                     ]
                 );
 
@@ -85,7 +121,7 @@ class SyncMatchJob implements ShouldQueue
                 Storage::put($fileName, $html);
 
                 // Dispatch ParseMatchJob
-                ParseMatchJob::dispatch($this->queueItem, $fileName);
+                ParseMatchJob::dispatch($this->queueItem, $fileName)->onQueue("scrape-default");
             } else {
                 $this->queueItem->update(["status" => "failed", "error_message" => "Could not extract 2 teams"]);
             }

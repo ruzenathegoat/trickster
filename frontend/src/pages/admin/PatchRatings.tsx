@@ -197,14 +197,17 @@ export default function PatchRatings() {
             <form onSubmit={handleSubmit} className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-[11px] font-['JetBrains_Mono'] font-bold text-black uppercase mb-1.5">Patch</label>
-                <input 
-                  type="text"
+                <select 
                   value={form.patch_version} 
                   onChange={e => setForm({...form, patch_version: e.target.value})}
                   className="w-full px-3 py-2 text-sm rounded-none border-2 border-black bg-white focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_#111111] transition-shadow"
-                  placeholder="e.g. 8.11"
                   required
-                />
+                >
+                  <option value="" disabled>Select Patch</option>
+                  {patches.map(p => (
+                    <option key={p.id} value={p.version}>{p.version}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-[11px] font-['JetBrains_Mono'] font-bold text-black uppercase mb-1.5">Agent</label>

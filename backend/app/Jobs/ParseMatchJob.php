@@ -10,7 +10,10 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\DomCrawler\Crawler;
 use App\Models\MatchScrapeQueue;
+use App\Models\MatchData;
 use App\Models\Player;
+use App\Models\Map;
+use App\Models\PlayerMapStat;
 
 class ParseMatchJob implements ShouldQueue
 {
@@ -38,23 +41,94 @@ class ParseMatchJob implements ShouldQueue
             
             $players = [];
             
-            // Extract Players
-            $crawler->filter(".mod-player")->each(function (Crawler $node) use (&$players) {
-                $a = $node->filter("a");
-                if ($a->count() > 0) {
-                    $href = $a->attr("href");
-                    $parts = explode("/", $href);
-                    $id = $parts[2] ?? null;
-                    $name = trim($a->filter(".text-of")->text(""));
-                    
-                    if ($id && $name) {
-                        $player = Player::updateOrCreate(
-                            ["vlr_player_id" => $id],
-                            ["ign" => $name, "name" => $name]
-                        );
-                        $players[] = $player;
+            // Get MatchData to find team_a_id and team_b_id
+            $matchData = MatchData::where("vlr_match_id", $this->queueItem->vlr_match_id)->first();
+            $teamIds = [
+                $matchData ? $matchData->team_a_id : null,
+                $matchData ? $matchData->team_b_id : null
+            ];
+            
+            if ($matchData) {
+                $map = Map::firstOrCreate([
+                    "match_id" => $matchData->id,
+                    "map_name" => "All Maps"
+                ]);
+            } else {
+                $map = null;
+            }
+
+            // Extract Players from the "all" stats table
+            $crawler->filter(".vm-stats-game[data-game-id=\"all\"] .wf-card")->each(function (Crawler $teamTable, $i) use (&$players, $teamIds, $matchData, $map) {
+                $teamId = $teamIds[$i] ?? null;
+                
+                $teamTable->filter(".ovw-row")->each(function (Crawler $row) use (&$players, $teamId, $matchData, $map) {
+                    $playerCell = $row->filter(".mod-player");
+                    if($playerCell->count() > 0) {
+                        $a = $playerCell->filter("a");
+                        if ($a->count() > 0) {
+                            $href = $a->attr("href");
+                            $parts = explode("/", $href);
+                            $vlrId = $parts[2] ?? null;
+                            $name = trim($a->filter(".ovw-player-name")->text(""));
+                            
+                            $country = null;
+                            $flag = $playerCell->filter(".flag");
+                            if($flag->count() > 0) {
+                                $class = $flag->attr("class");
+                                if (preg_match("/mod-([a-z0-9]+)/", $class, $matches)) {
+                                    $country = $matches[1];
+                                }
+                            }
+
+                            if ($vlrId && $name) {
+                                // Save or Update Player
+                                $player = Player::updateOrCreate(
+                                    ["vlr_player_id" => $vlrId],
+                                    [
+                                        "ign" => $name, 
+                                        "name" => $name,
+                                        "team_id" => $teamId,
+                                        "country" => $country
+                                    ]
+                                );
+                                
+                                // Extract Stats safely
+                                try {
+                                    $kills = trim($row->filter(".ovw-kda-stat[data-col=\"kills\"] .mod-both")->text("0"));
+                                    $deaths = trim($row->filter(".ovw-kda-stat[data-col=\"deaths\"] .mod-both")->text("0"));
+                                    $assists = trim($row->filter(".ovw-kda-stat[data-col=\"assists\"] .mod-both")->text("0"));
+                                    $acs = trim($row->filter(".ovw-cell[data-col=\"acs\"] .mod-both")->text("0"));
+                                    $kast = trim(str_replace("%", "", $row->filter(".ovw-cell[data-col=\"kast\"] .mod-both")->text("0")));
+                                    $adr = trim($row->filter(".ovw-cell[data-col=\"adr\"] .mod-both")->text("0"));
+                                    $rating = trim($row->filter(".ovw-cell[data-col=\"rating2\"] .mod-both")->text("0"));
+                                } catch (\Exception $e) {
+                                    $kills = 0; $deaths = 0; $assists = 0; $acs = 0; $kast = 0; $adr = 0; $rating = 0;
+                                }
+
+                                if ($matchData) {
+                                    PlayerMapStat::updateOrCreate(
+                                        [
+                                            "match_id" => $matchData->id,
+                                            "player_id" => $player->id,
+                                            "map_id" => $map->id,
+                                        ],
+                                        [
+                                            "kills" => is_numeric($kills) ? $kills : 0,
+                                            "deaths" => is_numeric($deaths) ? $deaths : 0,
+                                            "assists" => is_numeric($assists) ? $assists : 0,
+                                            "acs" => is_numeric($acs) ? $acs : 0,
+                                            "kast" => is_numeric($kast) ? $kast : 0,
+                                            "adr" => is_numeric($adr) ? $adr : 0,
+                                            "rating" => is_numeric($rating) ? $rating : null,
+                                        ]
+                                    );
+                                }
+                                
+                                $players[] = $player;
+                            }
+                        }
                     }
-                }
+                });
             });
 
             // Delete temporary HTML
@@ -62,7 +136,7 @@ class ParseMatchJob implements ShouldQueue
             $this->queueItem->update(["status" => "completed"]);
 
             // Dispatch CalculateMetricJob
-            CalculateMetricJob::dispatch($this->queueItem->vlr_match_id, $players);
+            CalculateMetricJob::dispatch($this->queueItem->vlr_match_id, $players)->onQueue("scrape-default");
 
         } catch (\Exception $e) {
             $this->queueItem->update(["status" => "failed", "error_message" => "Parsing failed: " . $e->getMessage()]);

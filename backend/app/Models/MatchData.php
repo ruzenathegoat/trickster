@@ -12,7 +12,7 @@ class MatchData extends Model
     use HasUuids;
     protected $table = 'matches';
     public $timestamps = false;
-    protected $fillable = ['event_id', 'team_a_id', 'team_b_id', 'patch_id', 'stage_label_id', 'match_date', 'best_of', 'raw_stage_label', 'vlr_match_id'];
+    protected $fillable = ['event_id', 'team_a_id', 'team_b_id', 'winner_team_id', 'patch_id', 'stage_label_id', 'match_date', 'best_of', 'raw_stage_label', 'vlr_match_id'];
 
     public function event(): BelongsTo { return $this->belongsTo(Event::class); }
     public function teamA(): BelongsTo { return $this->belongsTo(Team::class, 'team_a_id'); }
