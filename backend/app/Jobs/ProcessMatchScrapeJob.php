@@ -47,7 +47,7 @@ class ProcessMatchScrapeJob implements ShouldQueue
         ];
 
         try {
-            $response = Http::timeout(15)->withoutVerifying()->withHeaders($headers)->get($this->queueItem->url);
+            $response = Http::timeout(30)->withoutVerifying()->withHeaders($headers)->get($this->queueItem->url);
             
             if (!$response->successful()) {
                 throw new \Exception("HTTP Request failed with status " . $response->status());
@@ -55,24 +55,61 @@ class ProcessMatchScrapeJob implements ShouldQueue
             
             $crawler = new Crawler($response->body());
             
-            // --- MVP MOCK ---
-            // In production, parse actual match data here. 
-            // For now, mock it to test the queue flow.
-            $teamA = Team::firstOrCreate(['vlr_team_id' => 't1'], ['name' => 'Team Alpha', 'region' => 'americas']);
-            $teamB = Team::firstOrCreate(['vlr_team_id' => 't2'], ['name' => 'Team Beta', 'region' => 'americas']);
-            
-            MatchData::updateOrCreate(
-                ['vlr_match_id' => $this->queueItem->vlr_match_id],
-                [
-                    'event_id' => $this->queueItem->event_id,
-                    'team_a_id' => $teamA->id,
-                    'team_b_id' => $teamB->id,
-                    'winner_team_id' => $teamA->id,
-                    'match_date' => Carbon::now(),
-                    'raw_stage_label' => 'Playoffs',
-                    'format' => 'Bo3'
-                ]
-            );
+            // Extract Teams
+            $teams = [];
+            $crawler->filter(".match-header-link")->each(function (Crawler $node) use (&$teams) {
+                $href = $node->attr("href");
+                if ($href) {
+                    $parts = explode("/", $href);
+                    $teamId = $parts[2] ?? null;
+                    $nameNodes = $node->filter(".match-header-link-name .wf-title-med");
+                    $name = $nameNodes->count() > 0 ? trim($nameNodes->text("")) : 'Unknown Team';
+                    if ($teamId) {
+                        $teams[] = ["id" => $teamId, "name" => $name];
+                    }
+                }
+            });
+
+            if (count($teams) >= 2) {
+                $teamA = Team::firstOrCreate(['vlr_team_id' => $teams[0]['id']], ['name' => $teams[0]['name'] ?: 'Unknown Team A']);
+                $teamB = Team::firstOrCreate(['vlr_team_id' => $teams[1]['id']], ['name' => $teams[1]['name'] ?: 'Unknown Team B']);
+
+                MatchData::updateOrCreate(
+                    ['vlr_match_id' => $this->queueItem->vlr_match_id],
+                    [
+                        'event_id' => $this->queueItem->event_id,
+                        'team_a_id' => $teamA->id,
+                        'team_b_id' => $teamB->id,
+                        'winner_team_id' => $teamA->id, // Simplified for now
+                        'match_date' => Carbon::now(),
+                        'raw_stage_label' => 'Playoffs',
+                        'format' => 'Bo3'
+                    ]
+                );
+
+                // Extract Players
+                $crawler->filter(".mod-player")->each(function (Crawler $node) {
+                    $a = $node->filter("a");
+                    if ($a->count() > 0) {
+                        $href = $a->attr("href");
+                        $parts = explode("/", $href);
+                        $id = $parts[2] ?? null;
+                        $name = trim($a->filter(".text-of")->text(""));
+                        
+                        if ($id && $name) {
+                            $player = \App\Models\Player::updateOrCreate(
+                                ['vlr_player_id' => $id],
+                                ['ign' => $name, 'name' => $name]
+                            );
+                            
+                            // If player photo is missing, dispatch job to scrape it
+                            if (!$player->photo_url) {
+                                \App\Jobs\ScrapePlayerProfileJob::dispatch($player);
+                            }
+                        }
+                    }
+                });
+            }
 
             $this->queueItem->update(['status' => 'completed']);
             

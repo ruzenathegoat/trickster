@@ -46,7 +46,7 @@ class ValorantDataSeeder extends Seeder
             ['agent' => 'Chamber', 'primary_role' => 'Sentinel'],
             ['agent' => 'Deadlock', 'primary_role' => 'Sentinel'],
             ['agent' => 'Vyse', 'primary_role' => 'Sentinel'],
-            ['agent' => 'Vyse', 'primary_role' => 'Sentinel'],
+            ['agent' => 'Veto', 'primary_role' => 'Sentinel'],
         ];
 
         DB::table('agent_role_map')->insert($agents);

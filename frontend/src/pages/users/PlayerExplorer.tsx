@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { MagnifyingGlass, Funnel, User } from '@phosphor-icons/react';
 import { Skeleton } from '@/components/ui/skeleton';
 import clsx from 'clsx';
+import axios from 'axios';
 
 interface ExplorerPlayer {
   id: string;
@@ -10,6 +11,7 @@ interface ExplorerPlayer {
   role: string;
   region: string;
   headlineStat: string; // e.g., "268 ACS"
+  photoUrl?: string;
 }
 
 export default function PlayerExplorer() {
@@ -17,24 +19,42 @@ export default function PlayerExplorer() {
   const [loading, setLoading] = useState(true);
   
   const [activeRole, setActiveRole] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
   const roles = ['All', 'Duelist', 'Initiator', 'Controller', 'Sentinel'];
 
   useEffect(() => {
-    // Mock fetch
-    setTimeout(() => {
-      setPlayers([
-        { id: '1', name: 'Derke', team: 'FNC', role: 'Duelist', region: 'EMEA', headlineStat: '268.4 ACS' },
-        { id: '2', name: 'Alfajer', team: 'FNC', role: 'Sentinel', region: 'EMEA', headlineStat: '1.24 KD' },
-        { id: '3', name: 'Leo', team: 'FNC', role: 'Initiator', region: 'EMEA', headlineStat: '82% KAST' },
-        { id: '4', name: 'Demon1', team: 'NRG', role: 'Duelist', region: 'Americas', headlineStat: '1.30 KD' },
-        { id: '5', name: 'TenZ', team: 'SEN', role: 'Controller', region: 'Americas', headlineStat: '238 ACS' },
-        { id: '6', name: 'Aspas', team: 'LEV', role: 'Duelist', region: 'Americas', headlineStat: '275 ACS' },
-        { id: '7', name: 'Chronicle', team: 'FNC', role: 'Flex', region: 'EMEA', headlineStat: '78% KAST' },
-        { id: '8', name: 'f0rsakeN', team: 'PRX', role: 'Flex', region: 'Pacific', headlineStat: '240 ACS' },
-      ]);
-      setLoading(false);
-    }, 600);
-  }, []);
+    setLoading(true);
+    let url = 'http://trickster.test/backend/public/api/v1/players?';
+    if (searchQuery) url += `q=${encodeURIComponent(searchQuery)}&`;
+    if (activeRole !== 'All') url += `role=${encodeURIComponent(activeRole.toLowerCase())}&`;
+
+    axios.get(url)
+      .then(res => {
+        const fetchedPlayers = res.data.data.map((p: any) => {
+          // find global smart result for headline stat if any, otherwise default
+          const globalResult = p.smartResults?.find((r: any) => r.mode === 'global');
+          const stat = globalResult ? `${globalResult.score} Score` : 'N/A';
+          
+          return {
+            id: p.id,
+            name: p.ign || 'Unknown',
+            team: p.team?.name || 'F/A',
+            role: p.current_role || 'Flex',
+            region: p.team?.region || 'Global',
+            headlineStat: stat,
+            photoUrl: p.photo_url
+          };
+        });
+        setPlayers(fetchedPlayers);
+      })
+      .catch(err => {
+        console.error('Failed to fetch players:', err);
+        setPlayers([]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [searchQuery, activeRole]);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -49,6 +69,8 @@ export default function PlayerExplorer() {
           <MagnifyingGlass weight="regular" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input 
             type="text" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by player name or team..." 
             className="w-full pl-9 pr-4 py-2 text-[14px] border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400"
           />
@@ -99,8 +121,12 @@ export default function PlayerExplorer() {
             >
               <div className="flex items-center justify-between mb-auto">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center border border-gray-200 group-hover:bg-[var(--color-primary-subtle)] transition-colors">
-                    <User weight="regular" size={24} className="text-gray-400 group-hover:text-[var(--color-secondary)] transition-colors" />
+                  <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center border border-gray-200 overflow-hidden group-hover:bg-[var(--color-primary-subtle)] transition-colors">
+                    {player.photoUrl ? (
+                      <img src={player.photoUrl} alt={player.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <User weight="regular" size={24} className="text-gray-400 group-hover:text-[var(--color-secondary)] transition-colors" />
+                    )}
                   </div>
                   <div>
                     <h3 className="font-bold text-[16px] leading-tight group-hover:text-[var(--color-primary-hover)] transition-colors">{player.name}</h3>

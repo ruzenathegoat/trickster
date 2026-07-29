@@ -11,7 +11,7 @@ class Player extends Model
 {
     use HasUuids;
     const UPDATED_AT = null;
-    protected $fillable = ['name', 'ign', 'country', 'team_id', 'current_role', 'vlr_player_id'];
+    protected $fillable = ['name', 'ign', 'country', 'team_id', 'current_role', 'vlr_player_id', 'photo_url'];
 
     public function team(): BelongsTo { return $this->belongsTo(Team::class); }
     public function mapStats(): HasMany { return $this->hasMany(PlayerMapStat::class); }
