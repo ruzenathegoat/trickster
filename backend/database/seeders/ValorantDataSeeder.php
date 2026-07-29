@@ -46,6 +46,7 @@ class ValorantDataSeeder extends Seeder
             ['agent' => 'Chamber', 'primary_role' => 'Sentinel'],
             ['agent' => 'Deadlock', 'primary_role' => 'Sentinel'],
             ['agent' => 'Vyse', 'primary_role' => 'Sentinel'],
+            ['agent' => 'Vyse', 'primary_role' => 'Sentinel'],
         ];
 
         DB::table('agent_role_map')->insert($agents);
@@ -53,18 +54,21 @@ class ValorantDataSeeder extends Seeder
         // 2. Seed Patches
         DB::table('patches')->truncate();
         
-        $baseDate = Carbon::parse('2024-01-09'); // approximate ep 8 act 1 start
         $patches = [
-            '8.00', '8.01', '8.02', '8.03', '8.04', '8.05', '8.07', '8.08', '8.09', '8.11',
-            '9.00', '9.01', '9.02', '9.03', '9.04', '9.05', '9.06', '9.07', '9.08'
+            '11.10', '11.11', '11.12', '11.13', '11.14',
+            '12.00', '12.01', '12.02', '12.03', '12.04', '12.05', '12.06', '12.07', '12.08', '12.09', '12.10',
+            '13.00', '13.01', '13.02'
         ];
+        
+        $latestDate = Carbon::now()->subDays(7);
+        $baseDate = $latestDate->copy()->subDays(14 * (count($patches) - 1));
 
         foreach ($patches as $version) {
             Patch::create([
                 'id' => Str::uuid()->toString(),
                 'version' => $version,
                 'release_date' => $baseDate->copy()->addDays(14 * array_search($version, $patches)),
-                'patch_notes_url' => 'https://playvalorant.com/en-us/news/tags/patch-notes/' . str_replace('.', '-', $version) . '/',
+                'patch_notes_url' => 'https://playvalorant.com/en-us/news/game-updates/valorant-patch-notes-' . str_replace('.', '-', $version) . '/',
             ]);
         }
     }
