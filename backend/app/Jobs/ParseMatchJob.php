@@ -31,7 +31,12 @@ class ParseMatchJob implements ShouldQueue
     public function handle(): void
     {
         if (!Storage::exists($this->fileName)) {
-            $this->queueItem->update(["status" => "failed", "error_message" => "HTML file missing for parsing"]);
+            // If data already parsed by a prior job, just mark completed
+            if (MatchData::where("vlr_match_id", $this->queueItem->vlr_match_id)->exists()) {
+                $this->queueItem->update(["status" => "completed"]);
+            } else {
+                $this->queueItem->update(["status" => "failed", "error_message" => "HTML file missing for parsing"]);
+            }
             return;
         }
 
@@ -58,11 +63,14 @@ class ParseMatchJob implements ShouldQueue
             }
 
             // Extract Players from the "all" stats table
-            $crawler->filter(".vm-stats-game[data-game-id=\"all\"] .wf-card")->each(function (Crawler $teamTable, $i) use (&$players, $teamIds, $matchData, $map) {
+            $crawler->filter('.vm-stats-game[data-game-id="all"] .ovw-scroll-wrap')->each(function (Crawler $teamTable, $i) use (&$players, $teamIds, $matchData, $map) {
                 $teamId = $teamIds[$i] ?? null;
                 
                 $teamTable->filter(".ovw-row")->each(function (Crawler $row) use (&$players, $teamId, $matchData, $map) {
-                    $playerCell = $row->filter(".mod-player");
+                    // Skip header rows
+                    if ($row->filter('.ovw-th')->count() > 0) return;
+                    
+                    $playerCell = $row->filter(".ovw-player");
                     if($playerCell->count() > 0) {
                         $a = $playerCell->filter("a");
                         if ($a->count() > 0) {
@@ -72,7 +80,7 @@ class ParseMatchJob implements ShouldQueue
                             $name = trim($a->filter(".ovw-player-name")->text(""));
                             
                             $country = null;
-                            $flag = $playerCell->filter(".flag");
+                            $flag = $row->filter(".flag");
                             if($flag->count() > 0) {
                                 $class = $flag->attr("class");
                                 if (preg_match("/mod-([a-z0-9]+)/", $class, $matches)) {
@@ -94,13 +102,13 @@ class ParseMatchJob implements ShouldQueue
                                 
                                 // Extract Stats safely
                                 try {
-                                    $kills = trim($row->filter(".ovw-kda-stat[data-col=\"kills\"] .mod-both")->text("0"));
-                                    $deaths = trim($row->filter(".ovw-kda-stat[data-col=\"deaths\"] .mod-both")->text("0"));
-                                    $assists = trim($row->filter(".ovw-kda-stat[data-col=\"assists\"] .mod-both")->text("0"));
-                                    $acs = trim($row->filter(".ovw-cell[data-col=\"acs\"] .mod-both")->text("0"));
-                                    $kast = trim(str_replace("%", "", $row->filter(".ovw-cell[data-col=\"kast\"] .mod-both")->text("0")));
-                                    $adr = trim($row->filter(".ovw-cell[data-col=\"adr\"] .mod-both")->text("0"));
-                                    $rating = trim($row->filter(".ovw-cell[data-col=\"rating2\"] .mod-both")->text("0"));
+                                    $kills = trim($row->filter('.ovw-kda-stat[data-col="kills"] .mod-both')->text("0"));
+                                    $deaths = trim($row->filter('.ovw-kda-stat[data-col="deaths"] .mod-both')->text("0"));
+                                    $assists = trim($row->filter('.ovw-kda-stat[data-col="assists"] .mod-both')->text("0"));
+                                    $acs = trim($row->filter('.ovw-cell[data-col="acs"] .mod-both')->text("0"));
+                                    $kast = trim(str_replace("%", "", $row->filter('.ovw-cell[data-col="kast"] .mod-both')->text("0")));
+                                    $adr = trim($row->filter('.ovw-cell[data-col="adr"] .mod-both')->text("0"));
+                                    $rating = trim($row->filter('.ovw-cell[data-col="rating2"] .mod-both')->text("0"));
                                 } catch (\Exception $e) {
                                     $kills = 0; $deaths = 0; $assists = 0; $acs = 0; $kast = 0; $adr = 0; $rating = 0;
                                 }
@@ -130,6 +138,53 @@ class ParseMatchJob implements ShouldQueue
                     }
                 });
             });
+
+            // Extract Agent picks from individual map tabs
+            if ($matchData) {
+                $crawler->filter('.vm-stats-game')->each(function (Crawler $mapStats) use ($matchData) {
+                    $gameId = $mapStats->attr('data-game-id');
+                    if (!$gameId || $gameId === 'all') return;
+                    
+                    $map = Map::firstOrCreate([
+                        'match_id' => $matchData->id, 
+                        'map_name' => 'Game ' . $gameId
+                    ]);
+                    
+                    $mapStats->filter('.ovw-row')->each(function (Crawler $row) use ($map, $matchData) {
+                        if ($row->filter('.ovw-th')->count() > 0) return;
+                        
+                        $a = $row->filter('.ovw-player a');
+                        if ($a->count() > 0) {
+                            $href = $a->attr('href');
+                            $parts = explode('/', $href);
+                            $vlrId = $parts[2] ?? null;
+                            
+                            $agentImg = $row->filter('.ovw-agents img');
+                            if ($vlrId && $agentImg->count() > 0) {
+                                $agentName = trim($agentImg->attr('title'));
+                                if ($agentName) {
+                                    $player = Player::where('vlr_player_id', $vlrId)->first();
+                                    if ($player) {
+                                        \Illuminate\Support\Facades\DB::table('player_match_agents')->updateOrInsert(
+                                            [
+                                                'player_id' => $player->id,
+                                                'match_id' => $matchData->id,
+                                                'map_id' => $map->id,
+                                                'agent_name' => strtolower($agentName)
+                                            ],
+                                            [
+                                                'id' => \Illuminate\Support\Str::uuid()->toString(),
+                                                'created_at' => now(),
+                                                'updated_at' => now(),
+                                            ]
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+            }
 
             // Delete temporary HTML
             Storage::delete($this->fileName);

@@ -71,6 +71,20 @@ class SyncMatchJob implements ShouldQueue
                 $stageLabelNodes = $crawler->filter(".match-header-event-series");
                 $stageLabel = $stageLabelNodes->count() > 0 ? trim(preg_replace("/\s+/", " ", $stageLabelNodes->text(""))) : null;
 
+                // Extract Winner
+                $winnerTeamId = null;
+                $spans = $crawler->filter(".match-header-vs-score .sp-hide span");
+                if ($spans->count() >= 3) {
+                    $teamAClass = $spans->eq(0)->attr("class");
+                    $teamBClass = $spans->eq(2)->attr("class");
+                    
+                    if (strpos($teamAClass, 'winner') !== false) {
+                        $winnerTeamId = $teamA->id;
+                    } elseif (strpos($teamBClass, 'winner') !== false) {
+                        $winnerTeamId = $teamB->id;
+                    }
+                }
+
                 // Extract Format
                 $noteNodes = $crawler->filter(".match-header-vs-note");
                 $formatStr = null;
@@ -92,8 +106,6 @@ class SyncMatchJob implements ShouldQueue
                     $matchDate = Carbon::parse($dateNode->attr("data-utc-ts"));
                 }
 
-                // Extract Winner
-                $winnerTeamId = null;
                 $scoreSpans = $crawler->filter(".match-header-vs-score .sp-hide span");
                 if ($scoreSpans->count() >= 3) {
                     if (str_contains($scoreSpans->eq(0)->attr("class") ?? "", "winner")) {
@@ -120,10 +132,10 @@ class SyncMatchJob implements ShouldQueue
                 $fileName = "scrapes/match_" . $this->queueItem->vlr_match_id . ".html";
                 Storage::put($fileName, $html);
 
-                // Dispatch ParseMatchJob
-                ParseMatchJob::dispatch($this->queueItem, $fileName)->onQueue("scrape-default");
+                // Dispatch ParseMatchJob on scrape-high so it runs before remaining SyncMatchJobs
+                ParseMatchJob::dispatch($this->queueItem, $fileName)->onQueue("scrape-high");
             } else {
-                $this->queueItem->update(["status" => "failed", "error_message" => "Could not extract 2 teams"]);
+                $this->queueItem->update(["status" => "completed", "error_message" => "Skipped: TBD Match (Teams not decided yet)"]);
             }
             
         } catch (\Exception $e) {
