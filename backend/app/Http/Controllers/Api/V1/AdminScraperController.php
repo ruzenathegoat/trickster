@@ -2,7 +2,6 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Services\VlrScraperService;
 use App\Models\ScrapeJobsLog;
 use App\Models\MatchScrapeQueue;
 use App\Models\ScrapeAlert;
@@ -10,13 +9,6 @@ use Illuminate\Http\Request;
 
 class AdminScraperController extends Controller
 {
-    protected VlrScraperService $scraper;
-
-    public function __construct(VlrScraperService $scraper)
-    {
-        $this->scraper = $scraper;
-    }
-
     public function fetchEvents()
     {
         // Dispatch the fetching to a background worker to avoid blocking the frontend
