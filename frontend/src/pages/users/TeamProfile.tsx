@@ -4,7 +4,7 @@ import axios from '../../lib/axios';
 import { motion } from 'framer-motion';
 import Highcharts from 'highcharts';
 import { HighchartsReact } from 'highcharts-react-official';
-import { ArrowLeft, Shield, Trophy, UsersThree, TrendUp, User } from '@phosphor-icons/react';
+import { ArrowLeft } from '@phosphor-icons/react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function TeamProfile() {
@@ -19,26 +19,22 @@ export default function TeamProfile() {
     if (!teamId) return;
     setLoading(true);
     axios.get(`/api/v1/teams/${teamId}`)
-      .then(res => {
-        setTeam(res.data);
-      })
+      .then(res => setTeam(res.data))
       .catch(err => {
         console.error('Failed to fetch team data:', err);
         setError(true);
       })
-      .finally(() => {
-        setLoading(false);
-      });
+      .finally(() => setLoading(false));
   }, [teamId]);
 
   if (loading) {
     return (
-      <div className="space-y-8 max-w-6xl mx-auto">
-        <Skeleton className="h-10 w-24" />
-        <Skeleton className="h-48 w-full border-2 border-black" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Skeleton className="h-96 w-full" />
-          <Skeleton className="h-96 w-full" />
+      <div className="space-y-8 max-w-7xl mx-auto">
+        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-[400px] w-full border-4 border-black" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Skeleton className="lg:col-span-2 h-96 border-4 border-black" />
+          <Skeleton className="h-96 border-4 border-black" />
         </div>
       </div>
     );
@@ -46,11 +42,11 @@ export default function TeamProfile() {
 
   if (error || !team) {
     return (
-      <div className="max-w-4xl mx-auto py-20 text-center border-2 border-dashed border-gray-300">
-        <h2 className="text-2xl font-['Archivo_Black'] mb-4">Team Not Found</h2>
+      <div className="max-w-4xl mx-auto py-20 text-center border-4 border-dashed border-black">
+        <h2 className="text-3xl font-display mb-6">Team Not Found</h2>
         <button
           onClick={() => navigate(-1)}
-          className="px-6 py-2 bg-black text-white font-['JetBrains_Mono'] font-bold hover:bg-gray-800 transition-colors"
+          className="px-6 py-3 bg-black text-white font-label text-sm font-bold uppercase tracking-widest hover:bg-[var(--color-primary)] hover:text-black transition-colors border-4 border-black"
         >
           Go Back
         </button>
@@ -60,7 +56,6 @@ export default function TeamProfile() {
 
   const { stats } = team;
 
-  // Chart configuration for Wins/Losses per Tournament
   const chartOptions = {
     chart: {
       type: 'column',
@@ -71,24 +66,25 @@ export default function TeamProfile() {
     xAxis: {
       categories: stats.tournaments.map((t: any) => t.name),
       lineColor: '#000',
+      lineWidth: 2,
       tickColor: '#000',
-      labels: {
-        style: { color: '#000', fontWeight: 'bold' }
-      }
+      labels: { style: { color: '#000', fontWeight: 'bold', fontSize: '10px' } }
     },
     yAxis: {
       min: 0,
-      title: { text: 'Matches', style: { color: '#000', fontWeight: 'bold' } },
+      title: { text: null },
       gridLineDashStyle: 'Dash',
-      gridLineColor: '#e5e7eb'
+      gridLineColor: '#e5e7eb',
+      lineColor: '#000',
+      lineWidth: 2,
     },
     legend: {
-      itemStyle: { fontWeight: 'bold', color: '#000' }
+      itemStyle: { fontWeight: 'bold', color: '#000', fontSize: '11px' }
     },
     tooltip: {
       shared: true,
       backgroundColor: '#000',
-      style: { color: '#fff' },
+      style: { color: '#fff', fontFamily: 'JetBrains Mono' },
       borderColor: '#000',
       borderRadius: 0,
     },
@@ -97,226 +93,213 @@ export default function TeamProfile() {
         stacking: 'normal',
         borderWidth: 2,
         borderColor: '#000',
+        pointPadding: 0.1,
+        groupPadding: 0.15,
       }
     },
     series: [
-      {
-        name: 'Wins',
-        data: stats.tournaments.map((t: any) => t.wins),
-        color: 'var(--color-primary)'
-      },
-      {
-        name: 'Losses',
-        data: stats.tournaments.map((t: any) => t.losses),
-        color: '#ef4444' // red-500
-      }
+      { name: 'Wins', data: stats.tournaments.map((t: any) => t.wins), color: 'var(--color-primary)' },
+      { name: 'Losses', data: stats.tournaments.map((t: any) => t.losses), color: '#111111' }
     ],
     credits: { enabled: false }
   };
 
   return (
-    <div className="space-y-12 max-w-6xl mx-auto pb-16">
-      {/* Back button */}
+    <div className="max-w-7xl mx-auto pb-16 space-y-12">
+      {/* Back */}
       <button
         onClick={() => navigate('/app/teams')}
-        className="flex items-center gap-2 text-sm font-['JetBrains_Mono'] font-bold hover:text-[var(--color-primary)] transition-colors"
+        className="flex items-center gap-2 font-label text-[12px] font-bold uppercase tracking-widest text-gray-500 hover:text-black transition-colors"
       >
         <ArrowLeft size={16} weight="bold" />
         Back to Teams
       </button>
 
-      {/* Header Section */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="bg-white border-2 border-black flex flex-col md:flex-row relative"
-        style={{ boxShadow: '8px 8px 0px rgba(0,0,0,1)' }}
+      {/* Hero Header — Full-bleed poster style */}
+      <motion.section
+        initial={{ clipPath: 'inset(0 100% 0 0)' }}
+        animate={{ clipPath: 'inset(0 0% 0 0)' }}
+        transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+        className="border-4 border-black shadow-[12px_12px_0px_rgba(0,0,0,1)] flex flex-col lg:flex-row overflow-hidden"
       >
-        {/* Logo area */}
-        <div className="md:w-1/3 bg-gray-50 border-b-2 md:border-b-0 md:border-r-2 border-black p-8 flex items-center justify-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#f9fafb_10px,#f9fafb_20px)] opacity-50" />
+        {/* Logo Section */}
+        <div className="lg:w-[35%] bg-black flex items-center justify-center p-10 lg:p-12 relative border-b-4 lg:border-b-0 lg:border-r-4 border-black min-h-[280px]">
           {team.logo_url ? (
-            <img src={team.logo_url} alt={team.name} className="w-40 h-40 object-contain relative z-10 drop-shadow-xl" />
+            <img src={team.logo_url} alt={team.name} className="w-40 h-40 object-contain relative z-10 drop-shadow-2xl" />
           ) : (
-            <Shield size={96} weight="fill" className="text-gray-300 relative z-10" />
+            <span className="font-display text-8xl text-white/10">{team.name.charAt(0)}</span>
           )}
         </div>
 
-        {/* Info area */}
-        <div className="md:w-2/3 p-8 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-4 mb-2">
-              <h1 className="text-4xl md:text-6xl font-['Archivo_Black'] uppercase tracking-tight">{team.name}</h1>
-              {team.win_rate && team.win_rate >= 60 && (
-                <div className="hidden md:flex items-center gap-2 bg-[var(--color-primary)] border-2 border-black px-3 py-1.5 shadow-[2px_2px_0px_rgba(0,0,0,1)]">
-                  <Trophy size={16} weight="fill" />
-                  <span className="text-xs font-bold uppercase tracking-wider">Title Contender</span>
-                </div>
-              )}
-            </div>
-            <p className="text-lg text-gray-500 font-bold uppercase tracking-wider">{team.region}</p>
+        {/* Identity + Stats */}
+        <div className="lg:w-[65%] bg-[var(--color-primary)] flex flex-col justify-between">
+          {/* Name + Region */}
+          <div className="p-8 lg:p-10">
+            <h1 className="text-5xl lg:text-7xl font-display uppercase tracking-tighter leading-none text-black mb-2">
+              {team.name}
+            </h1>
+            <p className="font-label text-sm text-black/50 uppercase tracking-widest">{team.region}</p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8 border-t-2 border-black pt-6">
-            <div>
-              <p className="text-gray-500 font-['JetBrains_Mono'] text-xs mb-1">Win Rate</p>
-              <p className="text-3xl font-['Archivo_Black'] text-[var(--color-primary)]">
-                {team.win_rate ? `${team.win_rate}%` : 'N/A'}
-              </p>
+          {/* Stat row — joined cells */}
+          <div className="flex border-t-4 border-black">
+            <div className="flex-1 p-5 lg:p-6 border-r-4 border-black">
+              <span className="font-label text-[10px] text-black/50 uppercase tracking-widest block mb-1">Win Rate</span>
+              <span className="font-display text-3xl lg:text-4xl text-black">{team.win_rate ? `${team.win_rate}%` : 'N/A'}</span>
             </div>
-            <div>
-              <p className="text-gray-500 font-['JetBrains_Mono'] text-xs mb-1">Total Matches</p>
-              <p className="text-3xl font-['Archivo_Black']">{stats.total_matches}</p>
+            <div className="flex-1 p-5 lg:p-6 border-r-4 border-black">
+              <span className="font-label text-[10px] text-black/50 uppercase tracking-widest block mb-1">Matches</span>
+              <span className="font-numeric text-3xl lg:text-4xl font-bold text-black tabular-nums">{stats.total_matches}</span>
             </div>
-            <div>
-              <p className="text-gray-500 font-['JetBrains_Mono'] text-xs mb-1 text-green-600">Wins</p>
-              <p className="text-3xl font-['Archivo_Black']">{stats.total_wins}</p>
+            <div className="flex-1 p-5 lg:p-6 border-r-4 border-black">
+              <span className="font-label text-[10px] text-black/50 uppercase tracking-widest block mb-1">Wins</span>
+              <span className="font-numeric text-3xl lg:text-4xl font-bold text-black tabular-nums">{stats.total_wins}</span>
             </div>
-            <div>
-              <p className="text-gray-500 font-['JetBrains_Mono'] text-xs mb-1 text-red-500">Losses</p>
-              <p className="text-3xl font-['Archivo_Black']">{stats.total_losses}</p>
+            <div className="flex-1 p-5 lg:p-6">
+              <span className="font-label text-[10px] text-black/50 uppercase tracking-widest block mb-1">Losses</span>
+              <span className="font-numeric text-3xl lg:text-4xl font-bold text-black tabular-nums">{stats.total_losses}</span>
             </div>
           </div>
         </div>
-      </motion.div>
+      </motion.section>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Content Grid — Asymmetric: Chart left (2/3), Roster right (1/3) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* Left Column: Charts */}
-        <div className="lg:col-span-2 space-y-8">
+        {/* Left: Tournament Chart + Map Pool */}
+        <div className="lg:col-span-2 space-y-6">
+          
+          {/* Tournament Performance */}
           <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white border-2 border-black p-6"
-            style={{ boxShadow: '6px 6px 0px rgba(0,0,0,1)' }}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
+            className="border-4 border-black bg-white"
           >
-            <div className="flex items-center gap-3 border-b-2 border-black pb-4 mb-6">
-              <TrendUp size={24} weight="bold" />
-              <h2 className="text-2xl font-['Archivo_Black'] uppercase tracking-tight">Tournament Performance</h2>
+            <div className="border-b-4 border-black px-6 py-4">
+              <h2 className="text-2xl font-display uppercase tracking-tight">Tournament Performance</h2>
             </div>
-
-            {stats.tournaments.length > 0 ? (
-              <div className="h-80">
-                <HighchartsReact highcharts={Highcharts} options={chartOptions} />
-              </div>
-            ) : (
-              <div className="h-40 flex items-center justify-center text-gray-500 font-['JetBrains_Mono'] border-2 border-dashed border-gray-300">
-                No tournament data available.
-              </div>
-            )}
+            <div className="p-6">
+              {stats.tournaments.length > 0 ? (
+                <div className="h-80">
+                  <HighchartsReact highcharts={Highcharts} options={chartOptions} />
+                </div>
+              ) : (
+                <div className="h-40 flex items-center justify-center font-label text-sm text-gray-400 uppercase tracking-widest border-4 border-dashed border-gray-300">
+                  No tournament data available.
+                </div>
+              )}
+            </div>
           </motion.div>
 
-          {/* Map Pool Card */}
+          {/* Map Pool — Horizontal table rows, not identical cards */}
           {team.most_picked_maps && team.most_picked_maps.length > 0 && (
             <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.15 }}
-              className="bg-white border-2 border-black p-6"
-              style={{ boxShadow: '6px 6px 0px rgba(0,0,0,1)' }}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.15, ease: [0.23, 1, 0.32, 1] }}
+              className="border-4 border-black bg-white"
             >
-              <div className="flex justify-between items-center mb-6 border-b-2 border-black pb-4">
-                <div className="flex items-center gap-3">
-                  <Trophy size={24} weight="bold" />
-                  <h2 className="text-2xl font-['Archivo_Black'] uppercase tracking-tight">Map Pool (2026)</h2>
-                </div>
+              <div className="border-b-4 border-black px-6 py-4 flex justify-between items-center">
+                <h2 className="text-2xl font-display uppercase tracking-tight">Map Pool (2026)</h2>
                 {team.most_picked_maps.length > 4 && (
                   <button 
                     onClick={() => setShowAllMaps(!showAllMaps)}
-                    className="text-xs font-bold uppercase tracking-wider bg-black text-white px-3 py-1 hover:bg-[var(--color-primary)] hover:text-black transition-colors border-2 border-black"
+                    className="font-label text-[11px] font-bold uppercase tracking-widest bg-black text-white px-4 py-2 hover:bg-[var(--color-primary)] hover:text-black transition-colors"
                   >
                     {showAllMaps ? 'Show Less' : 'View All'}
                   </button>
                 )}
               </div>
-              <motion.div layout className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
-                {team.most_picked_maps.slice(0, showAllMaps ? undefined : 4).map((map: any) => (
-                  <motion.div layout key={map.name} className="flex flex-col items-center bg-gray-50 border-2 border-black p-3 hover:-translate-y-1 hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-all relative overflow-hidden group">
-                    <div className="w-full h-24 mb-3 relative bg-[var(--color-primary-subtle)] border-2 border-black overflow-hidden flex items-center justify-center">
-                      {map.icon_url ? (
-                        <img src={map.icon_url} alt={map.name} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
-                      ) : (
-                        <span className="font-['Archivo_Black'] text-xs text-gray-400">NO MAP IMAGE</span>
-                      )}
 
-                      {/* Overlay Win Rate */}
-                      <div className="absolute top-1 right-1 bg-black text-white px-2 py-0.5 border-2 border-black">
-                        <span className="font-['JetBrains_Mono'] font-bold text-[10px] uppercase">WR {map.win_rate}%</span>
+              <div className="divide-y-2 divide-gray-200">
+                {team.most_picked_maps.slice(0, showAllMaps ? undefined : 4).map((map: any, idx: number) => (
+                  <div key={map.name} className="flex items-center gap-4 p-4 hover:bg-[var(--color-primary)] transition-colors group">
+                    {/* Map thumbnail */}
+                    <div className="w-20 h-14 border-2 border-black bg-black shrink-0 overflow-hidden relative">
+                      {map.icon_url ? (
+                        <img src={map.icon_url} alt={map.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
+                      ) : (
+                        <span className="flex items-center justify-center w-full h-full font-display text-xs text-white/30">{map.name.charAt(0)}</span>
+                      )}
+                    </div>
+                    {/* Map name */}
+                    <div className="flex-1 min-w-0">
+                      <span className="font-display text-lg uppercase tracking-tight truncate block">{map.name}</span>
+                      <span className="font-label text-[10px] text-gray-400 group-hover:text-black/50 uppercase tracking-widest">{map.count} picks</span>
+                    </div>
+                    {/* Win rate bar */}
+                    <div className="w-32 hidden md:block">
+                      <div className="h-2 bg-gray-200 overflow-hidden">
+                        <motion.div
+                          className="h-full bg-black group-hover:bg-black"
+                          initial={{ width: 0 }}
+                          animate={{ width: map.percentage }}
+                          transition={{ duration: 0.6, delay: idx * 0.05, ease: [0.23, 1, 0.32, 1] }}
+                        />
                       </div>
                     </div>
-                    <span className="font-['Archivo_Black'] text-sm uppercase text-center w-full truncate mb-1" title={map.name}>{map.name}</span>
-                    <div className="flex flex-col items-center gap-0.5 w-full">
-                      <div className="w-full h-1.5 bg-gray-200 mt-1 mb-1">
-                        <div className="h-full bg-[var(--color-primary)]" style={{ width: map.percentage }} />
-                      </div>
-                      <div className="flex justify-between w-full">
-                        <span className="font-['JetBrains_Mono'] font-bold text-gray-800 text-[10px] leading-none">{map.percentage}</span>
-                        <span className="text-[10px] font-bold text-gray-500 uppercase leading-none">{map.count} picks</span>
-                      </div>
+                    {/* Stats */}
+                    <div className="flex items-center gap-4 shrink-0">
+                      <span className="font-numeric font-bold text-sm tabular-nums">{map.percentage}</span>
+                      <span className="font-numeric font-bold text-sm tabular-nums bg-black text-[var(--color-primary)] px-2 py-1 border-2 border-black">WR {map.win_rate}%</span>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
-              </motion.div>
+              </div>
             </motion.div>
           )}
         </div>
 
-        {/* Right Column: Roster */}
-        <div className="space-y-8">
+        {/* Right: Roster */}
+        <div>
           <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white border-2 border-black p-6"
-            style={{ boxShadow: '6px 6px 0px rgba(0,0,0,1)' }}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
+            className="border-4 border-black bg-white sticky top-24"
           >
-            <div className="flex items-center justify-between border-b-2 border-black pb-4 mb-6">
-              <div className="flex items-center gap-3">
-                <UsersThree size={24} weight="bold" />
-                <h2 className="text-xl font-['Archivo_Black'] uppercase tracking-tight">Active Roster</h2>
-              </div>
-              <span className="font-['JetBrains_Mono'] font-bold text-sm bg-gray-100 px-2 py-1 border border-black">
+            <div className="border-b-4 border-black px-6 py-4 flex justify-between items-center bg-black text-white">
+              <h2 className="text-xl font-display uppercase tracking-tight text-[var(--color-primary)]">Active Roster</h2>
+              <span className="font-numeric font-bold text-sm tabular-nums bg-[var(--color-primary)] text-black px-2 py-1">
                 {team.players?.length || 0}
               </span>
             </div>
 
-            <div className="space-y-3">
+            <div className="divide-y-2 divide-gray-200">
               {team.players && team.players.length > 0 ? (
                 team.players.map((player: any) => (
                   <div
                     key={player.id}
                     onClick={() => navigate(`/app/players/${player.id}`)}
-                    className="flex items-center justify-between p-3 border-2 border-black hover:bg-[var(--color-primary)] hover:text-black transition-colors cursor-pointer group"
+                    className="flex items-center justify-between p-4 hover:bg-[var(--color-primary)] transition-colors cursor-pointer group"
                   >
-                    <div className="flex items-center gap-3">
-                      {player.photo_url ? (
-                        <img src={player.photo_url} alt={player.ign} className="w-10 h-10 object-cover border border-black bg-gray-100" />
-                      ) : (
-                        <div className="w-10 h-10 border border-black bg-gray-100 flex items-center justify-center">
-                          <User size={20} className="text-gray-400 group-hover:text-black/50 transition-colors" />
-                        </div>
-                      )}
-                      <div>
-                        <p className="font-['Archivo_Black'] uppercase text-lg group-hover:text-black">{player.ign}</p>
-                        <p className="font-['JetBrains_Mono'] text-xs text-gray-500 group-hover:text-black/70">{player.name}</p>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 border-2 border-black bg-gray-100 shrink-0 overflow-hidden flex items-center justify-center">
+                        {player.photo_url ? (
+                          <img src={player.photo_url} alt={player.ign} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="font-display text-sm text-gray-300">{player.ign?.charAt(0)}</span>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-display uppercase text-base truncate">{player.ign}</p>
+                        <p className="font-label text-[10px] text-gray-400 group-hover:text-black/50 uppercase tracking-widest truncate">{player.name}</p>
                       </div>
                     </div>
                     {player.current_role && (
-                      <span className="text-[10px] font-bold uppercase tracking-wider border border-black px-2 py-1 bg-white">
+                      <span className="font-label text-[10px] font-bold uppercase tracking-widest border-2 border-black px-2 py-1 bg-white shrink-0 ml-2">
                         {player.current_role}
                       </span>
                     )}
                   </div>
                 ))
               ) : (
-                <p className="text-sm font-['JetBrains_Mono'] text-gray-500 text-center py-4">No active players found.</p>
+                <p className="font-label text-sm text-gray-400 text-center py-8 uppercase tracking-widest">No active players found.</p>
               )}
             </div>
           </motion.div>
         </div>
-
       </div>
     </div>
   );
