@@ -126,7 +126,6 @@ class CalculateSmartJob implements ShouldQueue
                         'patch_id' => null, // career mode
                     ],
                     [
-                        'id' => Str::uuid()->toString(),
                         'raw_value' => $raw,
                         'global_normalized_utility' => $utility,
                         'sample_size' => $player->total_matches,
@@ -154,7 +153,6 @@ class CalculateSmartJob implements ShouldQueue
                         'patch_id' => null,
                     ],
                     [
-                        'id' => Str::uuid()->toString(),
                         'final_score' => $finalScore,
                         'calculated_at' => now(),
                         'rank' => null // Rank can be calculated separately in a cron if needed

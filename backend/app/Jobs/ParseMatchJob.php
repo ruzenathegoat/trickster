@@ -193,7 +193,6 @@ class ParseMatchJob implements ShouldQueue
                                                 'agent_name' => strtolower($agentName)
                                             ],
                                             [
-                                                'id' => \Illuminate\Support\Str::uuid()->toString(),
                                                 'created_at' => now(),
                                                 'updated_at' => now(),
                                             ]
