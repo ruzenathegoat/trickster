@@ -13,8 +13,8 @@ class TeamController extends Controller
     public function index(Request $request)
     {
         $query = Team::withCount([
-                'matchesAsTeamA',
-                'matchesAsTeamB',
+                'matchesAsTeamA as resolved_a' => function($q) { $q->whereNotNull('winner_team_id'); },
+                'matchesAsTeamB as resolved_b' => function($q) { $q->whereNotNull('winner_team_id'); },
             ])
             ->addSelect(['*',
                 DB::raw('(SELECT COUNT(*) FROM matches WHERE winner_team_id = teams.id) as wins'),
@@ -33,7 +33,7 @@ class TeamController extends Controller
         $paginator = $query->paginate(15);
 
         $paginator->getCollection()->transform(function ($team) {
-            $totalMatches = $team->matches_as_team_a_count + $team->matches_as_team_b_count;
+            $totalMatches = $team->resolved_a + $team->resolved_b;
             return [
                 'id' => $team->id,
                 'name' => $team->name,
@@ -53,8 +53,8 @@ class TeamController extends Controller
     public function top()
     {
         $teams = Team::withCount([
-                'matchesAsTeamA',
-                'matchesAsTeamB',
+                'matchesAsTeamA as resolved_a' => function($q) { $q->whereNotNull('winner_team_id'); },
+                'matchesAsTeamB as resolved_b' => function($q) { $q->whereNotNull('winner_team_id'); },
                 'players',
             ])
             ->addSelect(['*',
@@ -66,7 +66,7 @@ class TeamController extends Controller
             ->get();
 
         $data = $teams->map(function ($team, $index) {
-            $totalMatches = $team->matches_as_team_a_count + $team->matches_as_team_b_count;
+            $totalMatches = $team->resolved_a + $team->resolved_b;
             return [
                 'id' => $team->id,
                 'rank' => $index + 1,
