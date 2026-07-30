@@ -429,6 +429,16 @@ return new class extends Migration
         foreach ($maps as $map) {
             DB::table('valorant_maps')->insert(['name' => $map, 'created_at' => now(), 'updated_at' => now()]);
         }
+
+        // ── Enable Row Level Security (RLS) for all tables ──
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            $tables = DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public'");
+            foreach ($tables as $t) {
+                if ($t->tablename !== 'migrations') {
+                    DB::statement("ALTER TABLE \"{$t->tablename}\" ENABLE ROW LEVEL SECURITY;");
+                }
+            }
+        }
     }
 
     public function down(): void

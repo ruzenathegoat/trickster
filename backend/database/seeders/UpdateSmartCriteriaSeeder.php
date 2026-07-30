@@ -18,31 +18,26 @@ class UpdateSmartCriteriaSeeder extends Seeder
 
         $criteria = [
             [
-                'id' => Str::uuid()->toString(),
                 'name' => 'Average Combat Score (ACS)',
                 'type' => 'benefit',
                 'description' => 'Higher ACS is better'
             ],
             [
-                'id' => Str::uuid()->toString(),
                 'name' => 'KAST %',
                 'type' => 'benefit',
                 'description' => 'Higher KAST is better'
             ],
             [
-                'id' => Str::uuid()->toString(),
                 'name' => 'Kill/Death Ratio (KD)',
                 'type' => 'benefit',
                 'description' => 'Higher KD is better'
             ],
             [
-                'id' => Str::uuid()->toString(),
                 'name' => 'Average Damage per Round (ADR)',
                 'type' => 'benefit',
                 'description' => 'Higher ADR is better'
             ],
             [
-                'id' => Str::uuid()->toString(),
                 'name' => 'Consistency Index',
                 'type' => 'benefit',
                 'description' => 'Higher consistency index is better'
@@ -84,7 +79,6 @@ class UpdateSmartCriteriaSeeder extends Seeder
         $rank = 1;
         foreach ($criteriaRecords as $c) {
             $weightValues[] = [
-                'id' => Str::uuid()->toString(),
                 'profile_id' => $profileId,
                 'criteria_id' => $c->id,
                 'rank_position' => $rank++,
