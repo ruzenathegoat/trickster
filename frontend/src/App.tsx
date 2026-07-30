@@ -9,6 +9,8 @@ import Leaderboard from './pages/users/Leaderboard';
 import PlayerExplorer from './pages/users/PlayerExplorer';
 import TeamExplorer from './pages/users/TeamExplorer';
 import TeamProfile from './pages/users/TeamProfile';
+import MetaExplorer from './pages/users/MetaExplorer';
+import RecommendFlow from './pages/users/RecommendFlow';
 import Landing from './pages/users/Landing';
 import Login from './pages/users/Login';
 import Register from './pages/users/Register';
@@ -50,9 +52,9 @@ function App() {
             <Route path="players/:playerId" element={<PlayerProfile />} />
             <Route path="teams" element={<TeamExplorer />} />
             <Route path="teams/:teamId" element={<TeamProfile />} />
-            <Route path="recommend/*" element={<div className="p-8">Recommend Flow Coming Soon</div>} />
+            <Route path="recommend/*" element={<RecommendFlow />} />
             <Route path="simulation" element={<div className="p-8">Simulation Coming Soon</div>} />
-            <Route path="meta" element={<div className="p-8">Meta Explorer Coming Soon</div>} />
+            <Route path="meta" element={<MetaExplorer />} />
             <Route path="profiles" element={<div className="p-8">My Profiles Coming Soon</div>} />
             <Route path="account" element={<div className="p-8">Account Coming Soon</div>} />
           </Route>

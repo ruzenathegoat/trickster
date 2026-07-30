@@ -5,17 +5,20 @@ import { motion } from 'framer-motion';
 import Highcharts from 'highcharts';
 import { HighchartsReact } from 'highcharts-react-official';
 import 'highcharts/highcharts-more';
-import { ArrowLeft, TrendUp, Crosshair, ShieldStar } from '@phosphor-icons/react';
+import { ArrowLeft, TrendUp, Crosshair, ShieldStar, X } from '@phosphor-icons/react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface PlayerDetails {
   id: string;
   ign: string;
   name: string;
+  country: string | null;
   team_name: string;
   team_logo: string | null;
   photo_url: string | null;
   role: string;
+  smart_score: number | null;
+  smart_rank: number | null;
   raw_stats: {
     matches: number;
     win_rate: string;
@@ -33,6 +36,12 @@ interface PlayerDetails {
     'Adaptability': number;
     'Flexibility': number;
   };
+  most_picked_agents: {
+    name: string;
+    count: number;
+    percentage: string;
+    icon_url: string;
+  }[];
 }
 
 export default function PlayerProfile() {
@@ -40,6 +49,7 @@ export default function PlayerProfile() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [player, setPlayer] = useState<PlayerDetails | null>(null);
+  const [showAllAgents, setShowAllAgents] = useState(false);
 
   useEffect(() => {
     const fetchPlayer = async () => {
@@ -199,8 +209,18 @@ export default function PlayerProfile() {
               
               <div className="space-y-4">
                 <div className="flex justify-between items-end border-b-2 border-gray-100 pb-2">
+                  <span className="text-xs font-bold text-gray-500">COUNTRY</span>
+                  <span className="font-['Archivo_Black'] text-lg uppercase">{player.country || 'Unknown'}</span>
+                </div>
+                <div className="flex justify-between items-end border-b-2 border-gray-100 pb-2">
                   <span className="text-xs font-bold text-gray-500">TEAM</span>
-                  <span className="font-['Archivo_Black'] text-lg">{player.team_name}</span>
+                  <span className="font-['Archivo_Black'] text-lg uppercase">{player.team_name}</span>
+                </div>
+                <div className="flex justify-between items-end border-b-2 border-gray-100 pb-2">
+                  <span className="text-xs font-bold text-gray-500">SMART RANK</span>
+                  <span className="font-['Archivo_Black'] text-[var(--color-primary)] text-2xl leading-none">
+                    {player.smart_rank ? `#${player.smart_rank}` : 'N/A'}
+                  </span>
                 </div>
                 <div className="flex justify-between items-end border-b-2 border-gray-100 pb-2">
                   <span className="text-xs font-bold text-gray-500">WIN RATE</span>
@@ -241,6 +261,49 @@ export default function PlayerProfile() {
             <StatCard label="K/D" value={player.raw_stats.kd} icon={<TrendUp size={24} />} delay={0.4} />
             <StatCard label="ADR" value={player.raw_stats.adr} delay={0.5} />
           </div>
+
+          {/* Agent Pool Card */}
+          {player.most_picked_agents && player.most_picked_agents.length > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="bg-white border-2 border-black p-6"
+              style={{ boxShadow: '8px 8px 0px rgba(0,0,0,1)' }}
+            >
+              <div className="flex justify-between items-center mb-4 border-b-2 border-black pb-2">
+                <h2 className="text-xl font-['Archivo_Black'] uppercase">
+                  Agent Pool (2026)
+                </h2>
+                {player.most_picked_agents.length > 3 && (
+                  <button 
+                    onClick={() => setShowAllAgents(!showAllAgents)}
+                    className="text-xs font-bold uppercase tracking-wider bg-black text-white px-3 py-1 hover:bg-[var(--color-primary)] hover:text-black transition-colors border-2 border-black"
+                  >
+                    {showAllAgents ? 'Show Less' : 'View All'}
+                  </button>
+                )}
+              </div>
+              <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-2">
+                {player.most_picked_agents.slice(0, showAllAgents ? undefined : 3).map((agent) => (
+                  <motion.div layout key={agent.name} className="flex flex-col items-center bg-gray-50 border-2 border-black p-3 hover:-translate-y-1 hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-all">
+                    <div className="w-16 h-16 mb-3 relative bg-[var(--color-primary-subtle)] rounded-full border-2 border-black overflow-hidden flex items-center justify-center">
+                      {agent.icon_url ? (
+                        <img src={agent.icon_url} alt={agent.name} className="w-full h-full object-cover scale-110" />
+                      ) : (
+                        <span className="font-['Archivo_Black'] text-xs text-gray-400">?</span>
+                      )}
+                    </div>
+                    <span className="font-['Archivo_Black'] text-sm uppercase text-center w-full truncate mb-1" title={agent.name}>{agent.name}</span>
+                    <div className="flex flex-col items-center gap-0.5">
+                      <span className="font-['JetBrains_Mono'] font-bold text-[var(--color-primary)] text-sm leading-none">{agent.percentage}</span>
+                      <span className="text-[10px] font-bold text-gray-500 uppercase leading-none">{agent.count} picks</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </motion.div>
+          )}
         </motion.div>
       </div>
     </div>

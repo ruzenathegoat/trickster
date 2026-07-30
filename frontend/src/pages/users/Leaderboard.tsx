@@ -234,7 +234,16 @@ export default function Leaderboard() {
                       #{((page - 1) * 10) + index + 1}
                     </td>
                     <td className="py-4 px-4 font-['Archivo_Black'] uppercase text-base group-hover:text-[var(--color-primary)] transition-colors">
-                      {player.ign}
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gray-200 border-2 border-black rounded-full overflow-hidden shrink-0 flex items-center justify-center">
+                          {player.photo_url ? (
+                            <img src={player.photo_url} alt={player.ign} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-gray-400 font-bold text-xs">?</span>
+                          )}
+                        </div>
+                        {player.ign}
+                      </div>
                     </td>
                     <td className="py-4 px-4 font-bold text-gray-600 uppercase text-xs tracking-wider">
                       {player.team_name}

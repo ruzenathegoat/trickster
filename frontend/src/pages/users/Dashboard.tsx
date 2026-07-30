@@ -25,6 +25,7 @@ interface HeroKpi {
   score: string | number;
   profile_name: string;
   role: string;
+  photo_url?: string | null;
 }
 
 interface DashboardData {
@@ -59,98 +60,113 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="space-y-6 max-w-6xl">
+      <div className="space-y-8 max-w-6xl">
         <div>
-          <Skeleton className="h-8 w-48 mb-2" />
-          <Skeleton className="h-4 w-96" />
+          <Skeleton className="h-10 w-64 mb-2 bg-gray-200 border-2 border-black" />
+          <Skeleton className="h-5 w-96 bg-gray-100" />
         </div>
-        <Skeleton className="h-32 w-full rounded-lg" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Skeleton className="h-64 w-full rounded-lg" />
-          <Skeleton className="h-64 w-full rounded-lg" />
+        <Skeleton className="h-40 w-full bg-gray-100 border-2 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)]" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <Skeleton className="h-72 w-full bg-gray-100 border-2 border-black shadow-[4px_4px_0px_rgba(0,0,0,1)]" />
+          <Skeleton className="h-72 w-full bg-gray-100 border-2 border-black shadow-[4px_4px_0px_rgba(0,0,0,1)]" />
         </div>
-        <Skeleton className="h-48 w-full rounded-lg" />
+        <Skeleton className="h-64 w-full bg-gray-100 border-2 border-black shadow-[6px_6px_0px_rgba(0,0,0,1)]" />
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 text-gray-500">
-        <WarningCircle size={48} className="mb-4 text-red-500" />
-        <p className="font-['JetBrains_Mono']">{error || "No data available."}</p>
+      <div className="flex flex-col items-center justify-center p-16 bg-white border-2 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+        <WarningCircle weight="bold" size={48} className="mb-4 text-red-500" />
+        <p className="font-['JetBrains_Mono'] font-bold">{error || "No data available."}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="space-y-8 max-w-6xl">
       <div>
-        <h1 className="text-2xl font-['Archivo_Black'] uppercase tracking-tight mb-1">Dashboard</h1>
-        <p className="text-gray-500 text-[14px]">Overview of current meta shifts and your top recommendations.</p>
+        <h1 className="text-3xl font-['Archivo_Black'] uppercase tracking-tight mb-2 text-black">Dashboard</h1>
+        <p className="text-gray-600 font-['JetBrains_Mono'] font-bold text-[14px]">Overview of current meta shifts and your top recommendations.</p>
       </div>
 
       {/* Level 1: Hero KPI */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6 flex items-center justify-between shadow-sm">
-        <div>
-          <p className="text-[12px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
+      <div className="bg-[var(--color-primary)] border-2 border-black rounded-md p-6 md:p-8 flex items-center justify-between shadow-[8px_8px_0px_rgba(0,0,0,1)] relative overflow-hidden transition-transform duration-200 hover:-translate-y-1 hover:shadow-[10px_10px_0px_rgba(0,0,0,1)]">
+        <div className="relative z-10 w-full">
+          <p className="text-[12px] md:text-[14px] font-bold text-black uppercase tracking-widest mb-3 font-['JetBrains_Mono']">
             Your Top Match {data.hero_kpi ? `(${data.hero_kpi.role})` : ''}
           </p>
           {data.hero_kpi ? (
             <>
-              <div className="flex items-end gap-4">
-                <h2 className="text-4xl font-['Archivo_Black'] uppercase tracking-tight truncate max-w-xs">{data.hero_kpi.name}</h2>
-                <div className="bg-[var(--color-primary)] px-3 py-1 rounded-full border border-black mb-1 shrink-0">
-                  <span className="font-['JetBrains_Mono'] font-bold text-sm tabular-nums">
-                    {Number(data.hero_kpi.score).toFixed(1)} SMART
+              <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6 mb-3">
+                <h2 className="text-4xl md:text-5xl font-['Archivo_Black'] uppercase tracking-tight text-black truncate max-w-2xl">
+                  {data.hero_kpi.name}
+                </h2>
+                <div className="bg-black text-[var(--color-primary)] px-4 py-1.5 rounded-sm border-2 border-black shrink-0 inline-flex items-center justify-center">
+                  <span className="font-['JetBrains_Mono'] font-black text-lg md:text-xl tabular-nums">
+                    {Number(data.hero_kpi.score).toFixed(1)} <span className="text-sm">SMART</span>
                   </span>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-2 font-medium">Based on your "{data.hero_kpi.profile_name}" weight profile.</p>
+              <p className="text-sm md:text-base text-black/80 font-bold font-['JetBrains_Mono']">
+                Based on your "{data.hero_kpi.profile_name}" profile.
+              </p>
             </>
           ) : (
             <div className="py-2">
-              <p className="text-gray-500 font-['JetBrains_Mono'] text-sm">Run a SMART calculation to see your top match here.</p>
+              <p className="text-black font-['JetBrains_Mono'] font-bold">Run a SMART calculation to see your top match here.</p>
             </div>
           )}
         </div>
-        <div className="hidden md:block">
-          <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
-            <User weight="regular" size={40} className="text-gray-400" />
-          </div>
+        
+        {/* Right side image/icon */}
+        <div className="hidden md:block absolute right-0 bottom-0 top-0 w-1/3 pointer-events-none">
+          {data.hero_kpi?.photo_url ? (
+            <img 
+              src={data.hero_kpi.photo_url} 
+              alt={data.hero_kpi.name} 
+              className="absolute right-8 bottom-0 h-[120%] object-contain object-bottom drop-shadow-[4px_4px_0px_rgba(0,0,0,1)] grayscale contrast-125 mix-blend-multiply opacity-90"
+            />
+          ) : (
+            <User weight="fill" size={280} className="absolute -right-8 -bottom-16 opacity-10" />
+          )}
         </div>
       </div>
 
       {/* Level 2: Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
-          <div className="flex justify-between items-start mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="bg-white border-2 border-black rounded-md p-6 shadow-[4px_4px_0px_rgba(0,0,0,1)] flex flex-col transition-transform duration-200 hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,1)] group">
+          <div className="flex justify-between items-start mb-8">
             <div>
-              <h3 className="font-semibold text-[15px]">Meta Shift (Patch {data.meta_shift.patch})</h3>
-              <p className="text-[12px] text-gray-500">Highest rated agents in current patch</p>
+              <h3 className="font-['Archivo_Black'] uppercase text-xl">
+                Meta Shift
+                <span className="bg-black text-white px-2 py-0.5 text-xs ml-3 font-['JetBrains_Mono'] align-middle rounded-sm">v{data.meta_shift.patch}</span>
+              </h3>
+              <p className="text-[13px] font-['JetBrains_Mono'] font-bold mt-2 text-gray-500">Highest rated agents in current patch</p>
             </div>
-            <TrendUp weight="regular" size={18} className="text-gray-400" />
+            <TrendUp weight="bold" size={28} className="text-black group-hover:scale-110 transition-transform duration-200" />
           </div>
           
           {data.meta_shift.top_agents.length > 0 ? (
-            <div className="h-48 flex items-end gap-4 px-2">
+            <div className="h-48 flex items-end gap-3 px-1 mt-auto">
               {data.meta_shift.top_agents.map((agent, index) => (
                 <div 
                   key={index} 
-                  className={`w-1/4 rounded-t-sm relative group transition-colors flex-1 ${
-                    index === 1 // Just highlighting one of them like the dummy data did for visual flair
-                    ? 'bg-[var(--color-primary)] border-t border-x border-black' 
-                    : 'bg-gray-100 hover:bg-gray-200'
+                  className={`relative flex-1 border-2 border-black group/bar transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] origin-bottom ${
+                    index === 1 
+                    ? 'bg-[var(--color-primary)] shadow-[2px_2px_0px_rgba(0,0,0,1)] -translate-y-1' 
+                    : 'bg-white hover:bg-gray-50 hover:-translate-y-1 hover:shadow-[2px_2px_0px_rgba(0,0,0,1)]'
                   }`}
                   style={{ height: agent.height }}
                 >
-                  <div className={`absolute -top-6 left-1/2 -translate-x-1/2 text-[11px] font-['JetBrains_Mono'] transition-opacity ${
-                    index === 1 ? 'font-bold opacity-100' : 'opacity-0 group-hover:opacity-100'
+                  <div className={`absolute -top-7 left-1/2 -translate-x-1/2 text-[12px] font-['JetBrains_Mono'] transition-opacity duration-150 ${
+                    index === 1 ? 'font-black opacity-100' : 'font-bold opacity-0 group-hover/bar:opacity-100 text-gray-500'
                   }`}>
                     {agent.shift}
                   </div>
-                  <div className={`absolute -bottom-6 left-1/2 -translate-x-1/2 text-[12px] font-medium ${
-                    index === 1 ? 'text-black font-bold' : 'text-gray-600'
+                  <div className={`absolute -bottom-7 left-1/2 -translate-x-1/2 text-[13px] font-['Archivo_Black'] uppercase tracking-wide ${
+                    index === 1 ? 'text-black' : 'text-gray-400 group-hover/bar:text-gray-800'
                   }`}>
                     {agent.name}
                   </div>
@@ -158,74 +174,92 @@ export default function Dashboard() {
               ))}
             </div>
           ) : (
-             <div className="h-48 flex items-center justify-center">
-                <p className="text-gray-500 text-sm">No patch data available.</p>
+             <div className="h-48 flex items-center justify-center border-2 border-dashed border-gray-300 bg-gray-50">
+                <p className="text-gray-500 text-sm font-['JetBrains_Mono'] font-bold">No patch data available.</p>
              </div>
           )}
           
-          <div className="mt-8 pt-4 border-t border-gray-100 text-center">
-             <button className="text-[13px] font-medium text-gray-600 hover:text-black flex items-center gap-1 mx-auto">
-               View Meta Explorer <ArrowUpRight weight="regular" size={14} />
-             </button>
-          </div>
+          <button className="mt-10 w-full border-2 border-black bg-white hover:bg-[var(--color-primary)] active:bg-[var(--color-primary)] active:scale-[0.98] p-3 font-bold font-['Archivo_Black'] text-[14px] uppercase tracking-wide flex justify-center items-center gap-2 transition-all duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+            Explore Meta <ArrowUpRight weight="bold" size={18} />
+          </button>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
+        <div className="bg-white border-2 border-black rounded-md p-6 shadow-[4px_4px_0px_rgba(0,0,0,1)] flex flex-col transition-transform duration-200 hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,1)]">
           <div className="flex justify-between items-start mb-6">
             <div>
-              <h3 className="font-semibold text-[15px]">Followed Player Consistency</h3>
-              <p className="text-[12px] text-gray-500">Last 10 matches performance</p>
+              <h3 className="font-['Archivo_Black'] uppercase text-xl">Consistency</h3>
+              <p className="text-[13px] font-['JetBrains_Mono'] font-bold mt-2 text-gray-500">Followed player's last 10 matches</p>
             </div>
-            <Heartbeat weight="regular" size={18} className="text-gray-400" />
+            <Heartbeat weight="bold" size={28} className="text-black" />
           </div>
-          <div className="h-48 flex items-center justify-center">
-             <div className="text-center">
-                <Crosshair weight="regular" size={32} className="text-gray-300 mx-auto mb-2" />
-                <p className="text-gray-500 text-sm">No player followed yet.</p>
-                <button className="mt-3 text-[13px] bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-md transition-colors font-medium">Search Players</button>
+          <div className="flex-1 flex items-center justify-center border-2 border-dashed border-gray-300 bg-gray-50 mt-2">
+             <div className="text-center p-6">
+                <Crosshair weight="bold" size={48} className="text-gray-300 mx-auto mb-4" />
+                <p className="font-['JetBrains_Mono'] font-bold text-sm text-gray-500 mb-5">No player followed yet.</p>
+                <button className="bg-black text-white px-5 py-2.5 border-2 border-black hover:bg-[var(--color-primary)] hover:text-black hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-all duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] font-['Archivo_Black'] uppercase text-sm tracking-wide">
+                  Find Players
+                </button>
              </div>
           </div>
         </div>
       </div>
 
       {/* Level 3: Table (Compact Recent matches) */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-           <h3 className="font-semibold text-[15px]">Recent Match Results</h3>
-           <span className="text-[11px] text-gray-500 bg-gray-100 px-2 py-1 rounded-full font-['JetBrains_Mono']">Live</span>
+      <div className="bg-white border-2 border-black rounded-md shadow-[6px_6px_0px_rgba(0,0,0,1)] overflow-hidden transition-transform duration-200 hover:-translate-y-1 hover:shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+        <div className="p-4 md:p-5 border-b-2 border-black bg-[var(--color-primary)] flex justify-between items-center">
+           <h3 className="font-['Archivo_Black'] uppercase text-lg">Recent Match Results</h3>
+           <span className="text-[12px] font-bold bg-black text-white px-2.5 py-1 rounded-sm font-['JetBrains_Mono'] uppercase tracking-widest flex items-center gap-2">
+             <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+             Live
+           </span>
         </div>
         
         {data.recent_matches.length > 0 ? (
-          <table className="w-full text-left text-[13px]">
-            <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-200">
-                <th className="px-4 py-2 font-medium text-gray-500 w-[120px]">Date</th>
-                <th className="px-4 py-2 font-medium text-gray-500">Event</th>
-                <th className="px-4 py-2 font-medium text-gray-500">Matchup Result</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.recent_matches.map((match, i) => (
-                <tr key={i} className="border-b border-gray-100 hover:bg-gray-50 transition-colors group cursor-pointer">
-                  <td className="px-4 py-3 text-gray-600 font-['JetBrains_Mono'] text-[12px] tabular-nums">
-                    {match.date ? new Date(match.date).toISOString().split('T')[0] : 'N/A'}
-                  </td>
-                  <td className="px-4 py-3">{match.event}</td>
-                  <td className="px-4 py-3 font-medium flex items-center gap-2">
-                    <span className={match.winner_id === match.team_a_id ? "font-bold text-black" : "text-gray-500"}>
-                      {match.team_a} {match.winner_id === match.team_a_id && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded ml-1 font-bold">WIN</span>}
-                    </span>
-                    <span className="text-gray-300 font-normal mx-1">vs</span>
-                    <span className={match.winner_id === match.team_b_id ? "font-bold text-black" : "text-gray-500"}>
-                      {match.team_b} {match.winner_id === match.team_b_id && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded ml-1 font-bold">WIN</span>}
-                    </span>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-[14px]">
+              <thead>
+                <tr className="bg-white border-b-2 border-black">
+                  <th className="px-6 py-4 font-['Archivo_Black'] text-gray-800 w-[140px] uppercase text-sm tracking-wide">Date</th>
+                  <th className="px-6 py-4 font-['Archivo_Black'] text-gray-800 uppercase text-sm tracking-wide">Event</th>
+                  <th className="px-6 py-4 font-['Archivo_Black'] text-gray-800 uppercase text-sm tracking-wide">Result</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {data.recent_matches.map((match, i) => (
+                  <tr 
+                    key={i} 
+                    className="border-b border-gray-200 last:border-b-0 hover:bg-gray-50 group cursor-pointer transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-gray-100"
+                  >
+                    <td className="px-6 py-5 font-['JetBrains_Mono'] font-bold text-[13px] tabular-nums text-gray-600 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] group-active:scale-[0.98] origin-left">
+                      {match.date ? new Date(match.date).toISOString().split('T')[0] : 'N/A'}
+                    </td>
+                    <td className="px-6 py-5 font-bold font-['Inter'] transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] group-active:scale-[0.98] origin-left">
+                      {match.event}
+                    </td>
+                    <td className="px-6 py-5 font-['JetBrains_Mono'] transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] group-active:scale-[0.98] origin-left">
+                      <div className="flex items-center gap-3">
+                        <span className={match.winner_id === match.team_a_id ? "font-black text-black" : "text-gray-400 font-bold"}>
+                          {match.team_a}
+                          {match.winner_id === match.team_a_id && (
+                            <span className="inline-block bg-[var(--color-primary)] text-black border-2 border-black px-1.5 py-0.5 ml-2 font-black text-[10px] uppercase shadow-[2px_2px_0px_rgba(0,0,0,1)] -translate-y-0.5">WIN</span>
+                          )}
+                        </span>
+                        <span className="text-gray-300 font-black mx-1 italic">VS</span>
+                        <span className={match.winner_id === match.team_b_id ? "font-black text-black" : "text-gray-400 font-bold"}>
+                          {match.team_b}
+                          {match.winner_id === match.team_b_id && (
+                            <span className="inline-block bg-[var(--color-primary)] text-black border-2 border-black px-1.5 py-0.5 ml-2 font-black text-[10px] uppercase shadow-[2px_2px_0px_rgba(0,0,0,1)] -translate-y-0.5">WIN</span>
+                          )}
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : (
-          <div className="p-8 text-center text-gray-500 text-sm">
+          <div className="p-12 text-center text-gray-500 text-sm font-['JetBrains_Mono'] font-bold bg-gray-50">
             No recent matches available in the database.
           </div>
         )}

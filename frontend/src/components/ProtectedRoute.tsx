@@ -27,5 +27,12 @@ export default function ProtectedRoute() {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  if (user.role === 'admin') {
+    toast.error('Access Denied', {
+      description: 'Admin accounts cannot access the user dashboard.',
+    });
+    return <Navigate to="/admin" replace />;
+  }
+
   return <Outlet />;
 }

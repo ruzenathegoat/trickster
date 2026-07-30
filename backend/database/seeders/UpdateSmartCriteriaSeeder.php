@@ -21,43 +21,49 @@ class UpdateSmartCriteriaSeeder extends Seeder
                 'name' => 'Consistency Index',
                 'type' => 'benefit',
                 'description' => 'Higher consistency index is better',
-                'weight' => 0.25, // custom property for seeding
+                'weight' => 0.20, // custom property for seeding
+            ],
+            [
+                'name' => 'Competition Quality Index',
+                'type' => 'benefit',
+                'description' => 'Higher CQI indicates matches played in higher difficulty regions (International > Americas > Pacific > EMEA > China)',
+                'weight' => 0.15,
             ],
             [
                 'name' => 'Kill/Death Ratio (KD)',
                 'type' => 'benefit',
                 'description' => 'Higher KD is better',
-                'weight' => 0.14,
+                'weight' => 0.13,
             ],
             [
                 'name' => 'KAST %',
                 'type' => 'benefit',
                 'description' => 'Higher KAST is better',
-                'weight' => 0.14,
+                'weight' => 0.12,
             ],
             [
                 'name' => 'First Death Rate',
                 'type' => 'cost',
                 'description' => 'Lower first death rate is better',
-                'weight' => 0.13,
+                'weight' => 0.11,
             ],
             [
                 'name' => 'Average Combat Score (ACS)',
                 'type' => 'benefit',
                 'description' => 'Higher ACS is better',
-                'weight' => 0.12,
+                'weight' => 0.10,
             ],
             [
                 'name' => 'Average Damage per Round (ADR)',
                 'type' => 'benefit',
                 'description' => 'Higher ADR is better',
-                'weight' => 0.12,
+                'weight' => 0.10,
             ],
             [
                 'name' => 'Meta Adaptability Index',
                 'type' => 'benefit',
                 'description' => 'Higher adaptability to map metas is better',
-                'weight' => 0.10,
+                'weight' => 0.09,
             ]
         ];
 

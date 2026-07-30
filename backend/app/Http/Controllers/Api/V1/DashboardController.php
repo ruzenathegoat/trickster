@@ -28,6 +28,7 @@ class DashboardController extends Controller
                 'name' => $topPlayerResult->player->ign ?? 'Unknown',
                 'score' => $topPlayerResult->final_score,
                 'profile_name' => $topPlayerResult->profile->name ?? 'Default Profile',
+                'photo_url' => $topPlayerResult->player->photo_url ?? null,
                 // For role, we could infer it or provide a default if we don't have it explicitly mapped in SMART results
                 'role' => $topPlayerResult->mode !== 'overall' ? ucfirst($topPlayerResult->mode) : 'Overall'
             ];

@@ -66,6 +66,30 @@ class CalculateMetricJob implements ShouldQueue
                 }
             }
 
+            // Calculate Competition Quality Index (CQI)
+            $cqi = null;
+            if ($totalMatches > 0) {
+                $matchRegions = \Illuminate\Support\Facades\DB::table('matches')
+                    ->join('events', 'matches.event_id', '=', 'events.id')
+                    ->whereIn('matches.id', $matchIds)
+                    ->pluck('events.region');
+
+                $totalCqiScore = 0;
+                foreach ($matchRegions as $region) {
+                    $score = match ($region) {
+                        'International' => 5,
+                        'Americas' => 4,
+                        'Pacific' => 3,
+                        'EMEA' => 2,
+                        'China' => 1,
+                        default => 1,
+                    };
+                    $totalCqiScore += $score;
+                }
+                
+                $cqi = round($totalCqiScore / $totalMatches, 2);
+            }
+
             // Calculate Current Role
             $agentPicks = \Illuminate\Support\Facades\DB::table('player_match_agents')
                 ->join('matches', 'player_match_agents.match_id', '=', 'matches.id')
@@ -133,6 +157,7 @@ class CalculateMetricJob implements ShouldQueue
                 "avg_fk" => round($stats->avg("fk"), 2),
                 "avg_fd" => round($stats->avg("fd"), 2),
                 "consistency_index" => $consistencyIndex,
+                "competition_quality_index" => $cqi,
                 "current_role" => $currentRole ?? $player->current_role,
             ]);
         }

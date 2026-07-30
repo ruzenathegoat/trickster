@@ -83,4 +83,10 @@ Route::prefix('v1')->group(function () {
 
     // Valorant Maps (Photos & Meta)
     Route::get('/valorant-maps', [\App\Http\Controllers\Api\V1\ValorantMapController::class, 'index']);
+
+    // Active Patch (System)
+    Route::get('/active-patch', function () {
+        $patch = \App\Models\Patch::orderBy('release_date', 'desc')->first();
+        return response()->json(['version' => $patch ? $patch->version : 'N/A']);
+    });
 });

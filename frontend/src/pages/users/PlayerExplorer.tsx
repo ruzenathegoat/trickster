@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MagnifyingGlass, Funnel, CaretLeft, CaretRight } from '@phosphor-icons/react';
+import { MagnifyingGlass, Funnel, CaretLeft, CaretRight, ArrowUp, ArrowDown } from '@phosphor-icons/react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
 import axios from '../../lib/axios';
@@ -12,6 +12,7 @@ interface ExplorerPlayer {
   role: string;
   region: string;
   headlineStat: string;
+  photo_url: string | null;
 }
 
 export default function PlayerExplorer() {
@@ -22,26 +23,41 @@ export default function PlayerExplorer() {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [sortBy, setSortBy] = useState('smart');
+  const [sortDir, setSortDir] = useState('desc');
   
   const roles = ['All', 'Duelist', 'Initiator', 'Controller', 'Sentinel', 'Flex'];
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Reset to page 1 when search or role changes
+    // Reset to page 1 when search, role, or sort changes
     setPage(1);
-  }, [searchQuery, activeRole]);
+  }, [searchQuery, activeRole, sortBy, sortDir]);
 
   useEffect(() => {
     setLoading(true);
     let url = `/api/v1/players?page=${page}`;
     if (searchQuery) url += `&q=${encodeURIComponent(searchQuery)}`;
     if (activeRole !== 'All') url += `&role=${encodeURIComponent(activeRole)}`;
+    url += `&sort_by=${sortBy}&sort_dir=${sortDir}`;
 
     axios.get(url)
       .then(res => {
         const fetchedPlayers = res.data.data.map((p: any) => {
-          const globalResult = p.smart_results?.find((r: any) => r.mode === 'career');
-          const stat = globalResult ? `${globalResult.final_score}` : 'N/A';
+          let statValue = 'N/A';
+          if (sortBy === 'acs') statValue = p.avg_acs ?? 'N/A';
+          else if (sortBy === 'kd') statValue = p.avg_kd ?? 'N/A';
+          else if (sortBy === 'adr') statValue = p.avg_adr ?? 'N/A';
+          else if (sortBy === 'fkfd') {
+             if (p.avg_fk != null && p.avg_fd != null) {
+                const diff = (parseFloat(p.avg_fk) - parseFloat(p.avg_fd));
+                statValue = diff > 0 ? `+${diff.toFixed(2)}` : diff.toFixed(2);
+             }
+          }
+          else {
+            const globalResult = p.smart_results?.find((r: any) => r.mode === 'career');
+            statValue = globalResult ? `${globalResult.final_score}` : 'N/A';
+          }
           
           return {
             id: p.id,
@@ -50,7 +66,8 @@ export default function PlayerExplorer() {
             team: p.team?.name || 'Free Agent',
             role: p.current_role || 'Flex',
             region: p.team?.region || 'Global',
-            headlineStat: stat
+            headlineStat: statValue,
+            photo_url: p.photo_url || null
           };
         });
         setPlayers(fetchedPlayers);
@@ -64,7 +81,7 @@ export default function PlayerExplorer() {
       .finally(() => {
         setLoading(false);
       });
-  }, [searchQuery, activeRole, page]);
+  }, [searchQuery, activeRole, page, sortBy, sortDir]);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -107,6 +124,43 @@ export default function PlayerExplorer() {
           </div>
         </div>
       </div>
+      
+      {/* Sorting Toggles */}
+      <div className="flex gap-2 items-center text-sm font-['JetBrains_Mono']">
+        <span className="font-bold text-gray-500 uppercase">Sort By:</span>
+        {['smart', 'acs', 'kd', 'adr', 'fkfd'].map(stat => {
+          const isActive = sortBy === stat;
+          const displayNames: Record<string, string> = { smart: 'SMART', acs: 'ACS', kd: 'K/D', adr: 'ADR', fkfd: 'FK/FD' };
+          
+          return (
+            <button
+              key={stat}
+              onClick={() => {
+                if (isActive) {
+                  if (sortDir === 'desc') setSortDir('asc');
+                  else {
+                    setSortBy('smart'); // Reset default
+                    setSortDir('desc');
+                  }
+                } else {
+                  setSortBy(stat);
+                  setSortDir('desc');
+                }
+              }}
+              className={`flex items-center gap-1 px-3 py-1 border-2 border-black transition-all ${
+                isActive 
+                  ? 'bg-black text-white shadow-[2px_2px_0px_var(--color-primary)]' 
+                  : 'bg-white text-black hover:bg-gray-100 hover:shadow-[2px_2px_0px_black]'
+              }`}
+            >
+              {displayNames[stat]}
+              {isActive && (
+                sortDir === 'desc' ? <ArrowDown size={14} weight="bold" /> : <ArrowUp size={14} weight="bold" />
+              )}
+            </button>
+          );
+        })}
+      </div>
 
       {/* Table Section */}
       <div className="bg-white border-2 border-black p-6 md:p-8" style={{ boxShadow: '8px 8px 0px rgba(0,0,0,1)' }}>
@@ -119,7 +173,9 @@ export default function PlayerExplorer() {
                 <th className="py-3 px-4">Team</th>
                 <th className="py-3 px-4">Role</th>
                 <th className="py-3 px-4">Region</th>
-                <th className="py-3 px-4 text-right">SMART Score</th>
+                <th className="py-3 px-4 text-right">
+                  {sortBy === 'smart' ? 'SMART Score' : sortBy.toUpperCase()}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -142,7 +198,16 @@ export default function PlayerExplorer() {
                     onClick={() => navigate(`/app/players/${player.id}`)}
                   >
                     <td className="py-4 px-4 font-['Archivo_Black'] uppercase text-base group-hover:text-[var(--color-primary)] transition-colors">
-                      {player.ign}
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gray-200 border-2 border-black rounded-full overflow-hidden shrink-0 flex items-center justify-center">
+                          {player.photo_url ? (
+                            <img src={player.photo_url} alt={player.ign} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-gray-400 font-bold text-xs">?</span>
+                          )}
+                        </div>
+                        {player.ign}
+                      </div>
                     </td>
                     <td className="py-4 px-4 font-['JetBrains_Mono'] text-gray-500 text-xs">
                       {player.name}

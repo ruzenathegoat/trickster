@@ -9,7 +9,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -20,7 +20,17 @@ export default function Login() {
     setIsSubmitting(true);
     
     try {
-      await login({ email, password });
+      const user = await login({ email, password });
+      
+      if (user.role === 'admin') {
+        await logout();
+        toast.error('Access Denied', {
+          description: 'Admin accounts cannot access the user dashboard. Please use the Admin Gateway.',
+        });
+        navigate('/admin/login', { replace: true });
+        return;
+      }
+      
       toast.success('Login Successful', {
         description: 'Welcome back to Trickster.'
       });

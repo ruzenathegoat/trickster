@@ -51,7 +51,8 @@ class CalculateSmartJob implements ShouldQueue
             MIN(avg_adr) as min_adr, MAX(avg_adr) as max_adr,
             MIN(avg_fd) as min_fd, MAX(avg_fd) as max_fd,
             MIN(consistency_index) as min_ci, MAX(consistency_index) as max_ci,
-            MIN(meta_adaptability_index) as min_mai, MAX(meta_adaptability_index) as max_mai
+            MIN(meta_adaptability_index) as min_mai, MAX(meta_adaptability_index) as max_mai,
+            MIN(competition_quality_index) as min_cqi, MAX(competition_quality_index) as max_cqi
         ')->first();
 
         // Helper function to map criteria name to db column
@@ -76,6 +77,9 @@ class CalculateSmartJob implements ShouldQueue
                 case 'Meta Adaptability Index':
                     $raw = $player->meta_adaptability_index !== null ? (float)$player->meta_adaptability_index : 0;
                     return ['raw' => $raw, 'min' => (float)$globalStats->min_mai, 'max' => (float)$globalStats->max_mai];
+                case 'Competition Quality Index':
+                    $raw = $player->competition_quality_index !== null ? (float)$player->competition_quality_index : 0;
+                    return ['raw' => $raw, 'min' => (float)$globalStats->min_cqi, 'max' => (float)$globalStats->max_cqi];
                 default:
                     return null;
             }

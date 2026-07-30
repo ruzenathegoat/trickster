@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import axios from '../lib/axios';
 import { 
   SquaresFour, 
   Trophy, 
@@ -23,6 +24,13 @@ export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const { user, logout } = useAuth();
+  const [activePatch, setActivePatch] = useState<string>('...');
+
+  useEffect(() => {
+    axios.get('/api/v1/active-patch')
+      .then(res => setActivePatch(res.data.version))
+      .catch(() => setActivePatch('N/A'));
+  }, []);
 
   const navItems = [
     { label: 'Dashboard', icon: SquaresFour, path: '/app/dashboard' },
@@ -48,8 +56,8 @@ export default function AppLayout() {
         <div className="h-[72px] flex items-center justify-between px-4 border-b border-gray-200 shrink-0">
           {!collapsed && (
             <Link to="/app/dashboard" className="flex items-center gap-3 font-['Archivo_Black'] text-xl uppercase tracking-widest font-black truncate">
-              <div className="w-8 h-8 bg-black cut-corner flex items-center justify-center shrink-0">
-                <span className="text-[var(--color-primary)] font-black text-lg leading-none">T</span>
+              <div className="w-8 h-8 flex items-center justify-center shrink-0">
+                <img src="/logo.png" alt="Trickster" className="w-full h-full object-contain" />
               </div>
               Trickster
             </Link>
@@ -63,7 +71,7 @@ export default function AppLayout() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        <nav data-lenis-prevent="true" className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
           {navItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path);
             return (
@@ -149,7 +157,7 @@ export default function AppLayout() {
           <div className="flex items-center gap-6 ml-4">
             <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full border border-gray-200">
               <div className="w-2 h-2 rounded-full bg-green-500" />
-              <span className="text-[12px] font-semibold font-['JetBrains_Mono']">Patch 9.08</span>
+              <span className="text-[12px] font-semibold font-['JetBrains_Mono']">Patch {activePatch}</span>
             </div>
             <button className="text-gray-500 hover:text-gray-900 transition-colors">
               <Bell weight="regular" size={20} />
