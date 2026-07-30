@@ -60,7 +60,6 @@ class CalculateAgentPickRates extends Command
                 $pickRate = ($stat->picks / ($totalMatchesForMap * 2)) * 100;
                 
                 $snapshots[] = [
-                    'id' => Str::uuid()->toString(),
                     'event_id' => $event->id,
                     'map_id' => null,
                     'valorant_map_name' => $stat->valorant_map_name,
@@ -88,7 +87,6 @@ class CalculateAgentPickRates extends Command
             foreach ($overallStats as $stat) {
                 $pickRate = ($stat->picks / ($totalMapsPlayed * 2)) * 100;
                 $snapshots[] = [
-                    'id' => Str::uuid()->toString(),
                     'event_id' => $event->id,
                     'map_id' => null,
                     'valorant_map_name' => null,
