@@ -399,6 +399,11 @@ The interactive pinnacle of the app.
 - Never make the Admin panel playful or decorated. Keep it dense and fast.
 - Never mix icon libraries. Phosphor Icons are the sole permitted icon set.
 - Never place a `seal-badge`, `sticker-badge`, decoration strip, or `page-shell` outside Layer 1.
+- Never use emojis anywhere in the interface.
+- Never place an icon before every heading. Avoid decorative icons. Use icons only when they improve comprehension.
+- Avoid unnecessary badges and labels. Use labels only when they carry meaningful information.
+- Avoid placeholder content. Use realistic domain-specific copy.
+- Do not use generic 3D illustrations, blob graphics, or floating abstract shapes.
 
 # ✅ RULES TO ALWAYS FOLLOW
 - Stick strictly to the 90% Cream, 8% Black, 2% Yellow color philosophy.
@@ -407,6 +412,13 @@ The interactive pinnacle of the app.
 - Use Skeleton loaders for data (never spinners), especially during scraper cycles.
 - Integrate GSAP & Lenis for silky smooth 60fps scrolling and entry animations.
 - Use Framer Motion/Motion.dev for micro-interactions (hover, swap, morph, seal rotation).
+- Avoid colorful gradients. Use solid colors with intentional accents.
+- Do not solve every section using identical cards. Mix layouts: editorial, split sections, full-bleed imagery, asymmetric compositions, horizontal modules.
+- Each section should have its own visual rhythm. Avoid repeating identical content structures.
+- Use expressive typography. Create hierarchy through scale, weight, tracking, and spacing instead of only font size.
+- Not every component should animate. Use motion only to communicate hierarchy, state, or interaction.
+- Create clear button hierarchy. Only one primary action should dominate each viewport.
+- Limit accent colors. Use one primary accent and one secondary accent consistently.
 
 # 📝 CHANGELOG (v1.1.0 → v1.2.0)
 - Added `surface-inverse` / `text-on-inverse` color tokens.
