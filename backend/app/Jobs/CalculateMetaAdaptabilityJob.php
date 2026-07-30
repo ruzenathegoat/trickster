@@ -19,9 +19,6 @@ class CalculateMetaAdaptabilityJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $timeout = 900;
-    public $tries = 3;
-
     protected $players;
 
     public function __construct(array $players = [])
