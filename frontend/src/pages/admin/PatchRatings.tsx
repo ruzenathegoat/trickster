@@ -201,7 +201,7 @@ export default function PatchRatings() {
 
             {/* Scrollable body */}
             <form onSubmit={handleBulkSubmit} className="flex flex-col flex-1 min-h-0">
-              <div className="overflow-y-scroll flex-1">
+              <div className="overflow-y-scroll flex-1" data-lenis-prevent>
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-gray-100 border-b-2 border-black">
                     <tr>

@@ -279,7 +279,7 @@ export default function MapRatings() {
             </div>
 
             <form onSubmit={handleSave} className="flex flex-col flex-1 min-h-0">
-              <div className="overflow-y-scroll flex-1">
+              <div className="overflow-y-scroll flex-1" data-lenis-prevent>
 
                 {/* ── Level 1: Map Pool Selector ── */}
                 {!activeMap && (
@@ -290,7 +290,7 @@ export default function MapRatings() {
                       </p>
                       <div className="flex flex-col items-end gap-2 w-full sm:w-auto">
                         <div className="flex gap-2 w-full sm:w-auto">
-                          <div className="border-2 border-black bg-white flex flex-col h-24 overflow-y-auto w-64 p-1">
+                          <div className="border-2 border-black bg-white flex flex-col h-24 overflow-y-auto w-64 p-1" data-lenis-prevent>
                             {events.map(e => (
                               <label key={e.id} className="flex items-center gap-2 px-1 hover:bg-gray-100 cursor-pointer">
                                 <input
