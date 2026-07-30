@@ -3,14 +3,14 @@ import { motion, useAnimationFrame, useMotionValue, useTransform } from 'framer-
 
 export default function TrustedBySection() {
   const partners = [
-    { name: "SENTINELS", domain: "sentinels.gg" },
-    { name: "PAPER REX", domain: "pprx.team" },
-    { name: "LOUD", domain: "loud.gg" },
-    { name: "FNATIC", domain: "fnatic.com" },
-    { name: "NAVI", domain: "navi.gg" },
-    { name: "GEN.G", domain: "geng.gg" },
-    { name: "DRX", domain: "drx.gg" },
-    { name: "T1", domain: "t1.gg" }
+    { name: "SENTINELS", logo: "https://owcdn.net/img/62875027c8e06.png" },
+    { name: "PAPER REX", logo: "https://owcdn.net/img/62bbeba74d5cb.png" },
+    { name: "LOUD", logo: "https://owcdn.net/img/62bbec8dc1b9f.png" },
+    { name: "FNATIC", logo: "https://owcdn.net/img/605d8f619bf6a.png" },
+    { name: "NAVI", logo: "https://owcdn.net/img/62a4109ddbd7f.png" },
+    { name: "GEN.G", logo: "https://owcdn.net/img/64102ce2ad8c1.png" },
+    { name: "DRX", logo: "https://owcdn.net/img/61d2d3bcbc69f.png" },
+    { name: "T1", logo: "https://owcdn.net/img/62fe0b8f6b084.png" }
   ];
 
   // We duplicate the array to allow for seamless infinite scrolling
@@ -54,7 +54,7 @@ export default function TrustedBySection() {
                 >
                   <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center p-1 border-2 border-black overflow-hidden shrink-0">
                     <img 
-                      src={`https://logo.clearbit.com/${partner.domain}`} 
+                      src={partner.logo} 
                       alt={`${partner.name} logo`}
                       className="w-full h-full object-contain filter grayscale group-hover/card:grayscale-0 transition-all duration-300"
                       onError={(e) => {
