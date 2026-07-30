@@ -27,6 +27,7 @@ interface Patch {
 interface Agent {
   agent: string;
   primary_role: string;
+  icon_url?: string;
 }
 
 interface PatchRating {
@@ -38,6 +39,7 @@ interface PatchRating {
   direction: string;
   notes: string;
   patch?: Patch;
+  icon_url?: string;
 }
 
 const columnHelper = createColumnHelper<Patch>();
@@ -93,9 +95,9 @@ export default function PatchRatings() {
     const initialBulk = agents.map(agent => {
       const existing = patchRatings.find(r => r.agent === agent.agent);
       if (existing) {
-        return { agent: existing.agent, role: existing.role, tier: existing.tier, direction: existing.direction, notes: existing.notes || '' };
+        return { agent: existing.agent, role: existing.role, tier: existing.tier, direction: existing.direction, notes: existing.notes || '', icon_url: agent.icon_url };
       }
-      return { agent: agent.agent, role: agent.primary_role, tier: 'C', direction: 'unchanged', notes: '' };
+      return { agent: agent.agent, role: agent.primary_role, tier: 'C', direction: 'unchanged', notes: '', icon_url: agent.icon_url };
     });
     
     setBulkRatings(initialBulk);
@@ -213,8 +215,17 @@ export default function PatchRatings() {
                     {bulkRatings.map((rating, idx) => (
                       <tr key={rating.agent} className="border-b border-gray-200 hover:bg-gray-50">
                         <td className="px-4 py-3">
-                          <div className="font-bold text-sm text-gray-900">{rating.agent}</div>
-                          <div className="text-[11px] text-gray-500 uppercase">{rating.role}</div>
+                          <div className="flex items-center gap-3">
+                            {rating.icon_url ? (
+                              <img src={rating.icon_url} alt={rating.agent} className="w-8 h-8 rounded-full border border-gray-300" />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-gray-200 border border-gray-300" />
+                            )}
+                            <div>
+                              <div className="font-bold text-sm text-gray-900">{rating.agent}</div>
+                              <div className="text-[11px] text-gray-500 uppercase">{rating.role}</div>
+                            </div>
+                          </div>
                         </td>
                         <td className="px-4 py-3">
                           <select 
