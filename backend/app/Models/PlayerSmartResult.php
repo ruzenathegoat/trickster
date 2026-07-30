@@ -3,12 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PlayerSmartResult extends Model
 {
-    use HasUuids;
     const UPDATED_AT = null;
     const CREATED_AT = 'calculated_at';
     protected $fillable = ['player_id', 'profile_id', 'patch_id', 'mode', 'final_score', 'rank'];

@@ -77,4 +77,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/teams/top', [\App\Http\Controllers\Api\V1\TeamController::class, 'top']);
     Route::get('/teams', [\App\Http\Controllers\Api\V1\TeamController::class, 'index']);
     Route::get('/teams/{id}', [\App\Http\Controllers\Api\V1\TeamController::class, 'show']);
+    
+    // Valorant Agents (Photos & Meta)
+    Route::get('/valorant-agents', [\App\Http\Controllers\Api\V1\ValorantAgentController::class, 'index']);
 });

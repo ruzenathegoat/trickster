@@ -3,14 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AgentPickRateSnapshot extends Model
 {
-    use HasUuids;
-    public $timestamps = false;
-    protected $fillable = ['patch_id', 'agent', 'map', 'region', 'pick_rate', 'win_rate', 'snapshot_date', 'source'];
+    protected $fillable = ['event_id', 'map_id', 'valorant_map_name', 'agent_name', 'pick_rate', 'total_picks', 'total_matches'];
 
-    public function patch(): BelongsTo { return $this->belongsTo(Patch::class); }
+    public function event(): BelongsTo { return $this->belongsTo(Event::class); }
+    public function map(): BelongsTo { return $this->belongsTo(Map::class); }
 }

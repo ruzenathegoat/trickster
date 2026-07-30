@@ -3,12 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SmartWeightValue extends Model
 {
-    use HasUuids;
     public $timestamps = false;
     protected $fillable = ['profile_id', 'criteria_id', 'rank_position', 'computed_weight'];
 
