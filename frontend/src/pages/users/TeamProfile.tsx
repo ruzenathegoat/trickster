@@ -258,7 +258,7 @@ export default function TeamProfile() {
                     </div>
                   </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </motion.div>
           )}
         </div>
