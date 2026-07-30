@@ -275,21 +275,21 @@ export default function PlayerProfile() {
               Performance Metrics
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-6 lg:gap-8">
-              <div className="flex flex-col border-l-4 border-black pl-4 overflow-hidden">
-                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1 truncate">Rating</span>
-                <span className="text-4xl lg:text-4xl xl:text-5xl font-display text-black tabular-nums tracking-tighter truncate">{player.raw_stats.rating}</span>
+              <div className="flex flex-col border-l-4 border-black pl-4">
+                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">Rating</span>
+                <span className="text-3xl lg:text-4xl font-display text-black tabular-nums tracking-tighter">{player.raw_stats.rating}</span>
               </div>
-              <div className="flex flex-col border-l-4 border-black pl-4 overflow-hidden">
-                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1 truncate">ACS</span>
-                <span className="text-4xl lg:text-4xl xl:text-5xl font-display text-black tabular-nums tracking-tighter truncate">{player.raw_stats.acs}</span>
+              <div className="flex flex-col border-l-4 border-black pl-4">
+                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">ACS</span>
+                <span className="text-3xl lg:text-4xl font-display text-black tabular-nums tracking-tighter">{player.raw_stats.acs}</span>
               </div>
-              <div className="flex flex-col border-l-4 border-black pl-4 overflow-hidden">
-                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1 truncate">K/D Ratio</span>
-                <span className="text-4xl lg:text-4xl xl:text-5xl font-display text-black tabular-nums tracking-tighter truncate">{player.raw_stats.kd}</span>
+              <div className="flex flex-col border-l-4 border-black pl-4">
+                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">K/D Ratio</span>
+                <span className="text-3xl lg:text-4xl font-display text-black tabular-nums tracking-tighter">{player.raw_stats.kd}</span>
               </div>
-              <div className="flex flex-col border-l-4 border-black pl-4 overflow-hidden">
-                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1 truncate">ADR</span>
-                <span className="text-4xl lg:text-4xl xl:text-5xl font-display text-black tabular-nums tracking-tighter truncate">{player.raw_stats.adr}</span>
+              <div className="flex flex-col border-l-4 border-black pl-4">
+                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">ADR</span>
+                <span className="text-3xl lg:text-4xl font-display text-black tabular-nums tracking-tighter">{player.raw_stats.adr}</span>
               </div>
             </div>
           </motion.div>
