@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import Highcharts from 'highcharts';
 import { HighchartsReact } from 'highcharts-react-official';
 import 'highcharts/highcharts-more';
-import { ArrowLeft, TrendUp, Crosshair, ShieldStar, X } from '@phosphor-icons/react';
+import { ArrowLeft } from '@phosphor-icons/react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface PlayerDetails {
@@ -67,18 +67,26 @@ export default function PlayerProfile() {
 
   if (loading) {
     return (
-      <div className="space-y-6 max-w-6xl animate-pulse">
-        <div className="h-8 w-24 bg-gray-200" />
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-4 h-[600px] bg-gray-200 border-2 border-black" />
-          <div className="lg:col-span-8 h-[600px] bg-gray-200 border-2 border-black" />
+      <div className="space-y-8 max-w-7xl pb-24">
+        <Skeleton className="h-6 w-48 bg-gray-200" />
+        <div className="flex flex-col lg:flex-row gap-12">
+          <Skeleton className="w-full lg:w-[400px] h-[800px] border-4 border-black bg-gray-100 shrink-0" />
+          <div className="flex-1 space-y-12">
+            <Skeleton className="h-96 w-full border-4 border-black bg-gray-50" />
+            <Skeleton className="h-48 w-full border-t-4 border-black bg-gray-50" />
+            <Skeleton className="h-48 w-full border-t-4 border-black bg-gray-50" />
+          </div>
         </div>
       </div>
     );
   }
 
   if (!player) {
-    return <div className="p-12 text-center border-2 border-dashed border-gray-300">Player not found.</div>;
+    return (
+      <div className="py-32 flex justify-center border-4 border-black bg-white">
+        <p className="font-['JetBrains_Mono'] font-bold text-xl uppercase tracking-widest text-black">Player not found.</p>
+      </div>
+    );
   }
 
   const radarOptions: Highcharts.Options = {
@@ -90,15 +98,15 @@ export default function PlayerProfile() {
         fontFamily: "'JetBrains Mono', monospace"
       },
       animation: {
-        duration: 1500,
-        easing: 'easeOutBounce'
+        duration: 1000,
+        easing: 'easeOutExpo'
       }
     },
     title: {
       text: undefined
     },
     pane: {
-      size: '80%'
+      size: '85%'
     },
     xAxis: {
       categories: Object.keys(player.radar_stats),
@@ -107,8 +115,9 @@ export default function PlayerProfile() {
       labels: {
         style: {
           fontSize: '12px',
-          fontWeight: 'bold',
-          color: '#000'
+          fontWeight: '900',
+          color: '#000',
+          textTransform: 'uppercase'
         }
       }
     },
@@ -124,12 +133,14 @@ export default function PlayerProfile() {
     },
     tooltip: {
       shared: true,
-      pointFormat: '<span style="color:{series.color}"><b>{point.y:,.0f}</b> (Normalized Score)<br/>',
-      backgroundColor: '#000',
+      pointFormat: '<span style="color:#000"><b>{point.y:,.0f}</b><br/>',
+      backgroundColor: '#fff',
+      borderColor: '#000',
+      borderWidth: 2,
       style: {
-        color: '#fff'
+        color: '#000',
+        fontWeight: 'bold'
       },
-      borderWidth: 0,
       borderRadius: 0,
       shadow: false
     },
@@ -141,14 +152,16 @@ export default function PlayerProfile() {
       name: 'Stats',
       data: Object.values(player.radar_stats),
       pointPlacement: 'on',
-      color: 'var(--color-primary)', // Using CSS variable from layout
-      fillOpacity: 0.6,
-      lineWidth: 3,
+      color: 'var(--color-primary)', 
+      fillOpacity: 1,
+      lineWidth: 4,
+      lineColor: '#000',
       marker: {
         enabled: true,
-        fillColor: '#000',
-        lineWidth: 2,
-        lineColor: '#fff'
+        fillColor: 'var(--color-primary)',
+        lineWidth: 3,
+        lineColor: '#000',
+        radius: 5
       }
     }],
     credits: {
@@ -157,78 +170,92 @@ export default function PlayerProfile() {
     plotOptions: {
         series: {
             animation: {
-                duration: 2000
+                duration: 1200
             }
         }
     }
   };
 
   return (
-    <div className="max-w-7xl pb-16">
+    <div className="max-w-7xl pb-24">
       <button 
         onClick={() => navigate(-1)}
-        className="flex items-center gap-2 mb-8 font-['JetBrains_Mono'] text-sm font-bold text-gray-500 hover:text-black transition-colors"
+        className="flex items-center gap-3 mb-12 font-['JetBrains_Mono'] text-[13px] font-black uppercase tracking-widest text-black/50 hover:text-black transition-colors"
       >
-        <ArrowLeft size={16} weight="bold" />
-        BACK TO LEADERBOARD
+        <ArrowLeft size={20} weight="bold" />
+        Back to Leaderboard
       </button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Identity Card */}
+      <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
+        
+        {/* Left Column: Identity Poster */}
         <motion.div 
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ type: 'spring', damping: 20 }}
-          className="lg:col-span-4"
+          initial={{ clipPath: 'inset(100% 0 0 0)' }}
+          animate={{ clipPath: 'inset(0% 0 0 0)' }}
+          transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+          className="w-full lg:w-[420px] shrink-0"
         >
-          <div className="bg-white border-2 border-black overflow-hidden relative group" style={{ boxShadow: '8px 8px 0px rgba(0,0,0,1)' }}>
-            <div className="aspect-[3/4] w-full relative bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#f3f4f6_10px,#f3f4f6_20px)] overflow-hidden">
+          <div className="bg-[var(--color-primary)] border-4 border-black overflow-hidden relative shadow-[12px_12px_0px_rgba(0,0,0,1)] flex flex-col min-h-[700px]">
+            {/* Massive Role Badge absolute */}
+            <div className="absolute top-6 -right-6 bg-black text-[var(--color-primary)] font-black px-6 py-2 border-4 border-[var(--color-primary)] text-lg uppercase tracking-widest rotate-6 z-20">
+              {player.role}
+            </div>
+
+            {/* Photo section */}
+            <div className="relative flex-1 bg-white border-b-4 border-black overflow-hidden min-h-[400px]">
               {player.photo_url ? (
-                <img src={player.photo_url} alt={player.ign} className="w-full h-full object-cover filter transition-transform duration-700 hover:scale-105" />
+                <img 
+                  src={player.photo_url} 
+                  alt={player.ign} 
+                  className="absolute inset-0 w-full h-full object-cover object-top filter grayscale contrast-125 hover:grayscale-0 transition-all duration-700 hover:scale-105" 
+                />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="font-['Archivo_Black'] text-3xl text-gray-300 -rotate-90">NO PHOTO</span>
+                <div className="w-full h-full flex items-center justify-center bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#f3f4f6_10px,#f3f4f6_20px)]">
+                  <span className="font-['Archivo_Black'] text-4xl text-gray-300 -rotate-90">NO PHOTO</span>
                 </div>
               )}
-              {player.team_logo && (
-                <div className="absolute top-4 right-4 w-16 h-16 bg-white border-2 border-black p-2 rounded-full shadow-[4px_4px_0px_rgba(0,0,0,1)] z-10">
-                  <img src={player.team_logo} alt="Team" className="w-full h-full object-contain" />
-                </div>
-              )}
-              {/* Role badge */}
-              <div className="absolute bottom-4 left-4 bg-[var(--color-primary)] text-black font-bold px-3 py-1 border-2 border-black text-sm uppercase shadow-[2px_2px_0px_rgba(0,0,0,1)]">
-                {player.role}
-              </div>
             </div>
             
-            <div className="p-6 border-t-2 border-black">
-              <h1 className="text-4xl font-['Archivo_Black'] uppercase tracking-tighter leading-none mb-1">
+            {/* Text block */}
+            <div className="p-8 md:p-10 z-10 bg-[var(--color-primary)] relative">
+              <div className="flex items-center gap-4 mb-4">
+                {player.team_logo ? (
+                  <div className="w-10 h-10 bg-white border-2 border-black rounded-full p-1.5 flex items-center justify-center shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                    <img src={player.team_logo} alt="Team" className="w-full h-full object-contain" />
+                  </div>
+                ) : (
+                  <div className="w-3 h-3 bg-black rounded-full" />
+                )}
+                <span className="font-['JetBrains_Mono'] text-sm font-bold uppercase tracking-widest text-black">
+                  {player.team_name}
+                </span>
+              </div>
+
+              <h1 className="text-6xl lg:text-7xl font-['Archivo_Black'] uppercase tracking-tighter leading-none mb-2 text-black break-words">
                 {player.ign}
               </h1>
-              <p className="text-gray-500 font-['JetBrains_Mono'] text-sm mb-6">{player.name}</p>
+              <p className="text-black/60 font-['JetBrains_Mono'] text-[15px] font-bold uppercase tracking-widest mb-10">
+                {player.name}
+              </p>
               
-              <div className="space-y-4">
-                <div className="flex justify-between items-end border-b-2 border-gray-100 pb-2">
-                  <span className="text-xs font-bold text-gray-500">COUNTRY</span>
-                  <span className="font-['Archivo_Black'] text-lg uppercase">{player.country || 'Unknown'}</span>
+              <div className="space-y-6">
+                <div className="flex justify-between items-end border-b-2 border-black/20 pb-2">
+                  <span className="text-[11px] font-black text-black/50 uppercase tracking-widest">Country</span>
+                  <span className="font-['JetBrains_Mono'] font-bold text-[15px] text-black uppercase">{player.country || 'Unknown'}</span>
                 </div>
-                <div className="flex justify-between items-end border-b-2 border-gray-100 pb-2">
-                  <span className="text-xs font-bold text-gray-500">TEAM</span>
-                  <span className="font-['Archivo_Black'] text-lg uppercase">{player.team_name}</span>
+                <div className="flex justify-between items-end border-b-2 border-black/20 pb-2">
+                  <span className="text-[11px] font-black text-black/50 uppercase tracking-widest">Matches (2026)</span>
+                  <span className="font-['JetBrains_Mono'] font-black text-[15px] text-black tabular-nums">{player.raw_stats.matches}</span>
                 </div>
-                <div className="flex justify-between items-end border-b-2 border-gray-100 pb-2">
-                  <span className="text-xs font-bold text-gray-500">SMART RANK</span>
-                  <span className="font-['Archivo_Black'] text-[var(--color-primary)] text-2xl leading-none">
+                <div className="flex justify-between items-end border-b-2 border-black/20 pb-2">
+                  <span className="text-[11px] font-black text-black/50 uppercase tracking-widest">Win Rate</span>
+                  <span className="font-['JetBrains_Mono'] font-black text-[15px] text-black tabular-nums">{player.raw_stats.win_rate}</span>
+                </div>
+                <div className="flex justify-between items-end pt-2">
+                  <span className="text-[11px] font-black text-black uppercase tracking-widest">SMART Rank</span>
+                  <span className="font-['Archivo_Black'] text-black text-4xl leading-none">
                     {player.smart_rank ? `#${player.smart_rank}` : 'N/A'}
                   </span>
-                </div>
-                <div className="flex justify-between items-end border-b-2 border-gray-100 pb-2">
-                  <span className="text-xs font-bold text-gray-500">WIN RATE</span>
-                  <span className="font-['JetBrains_Mono'] font-bold">{player.raw_stats.win_rate}</span>
-                </div>
-                <div className="flex justify-between items-end">
-                  <span className="text-xs font-bold text-gray-500">MATCHES (2026)</span>
-                  <span className="font-['JetBrains_Mono'] font-bold">{player.raw_stats.matches}</span>
                 </div>
               </div>
             </div>
@@ -236,95 +263,113 @@ export default function PlayerProfile() {
         </motion.div>
 
         {/* Right Column: Stats & Radar */}
-        <motion.div 
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ type: 'spring', damping: 20, delay: 0.1 }}
-          className="lg:col-span-8 flex flex-col gap-8"
-        >
-          {/* Radar Chart Container */}
-          <div className="bg-white border-2 border-black p-6 h-[400px] flex flex-col relative" style={{ boxShadow: '8px 8px 0px rgba(0,0,0,1)' }}>
-            <h2 className="text-xl font-['Archivo_Black'] uppercase mb-2 border-b-2 border-black pb-2 inline-block self-start">
-              Performance Profile (2026)
+        <div className="flex-1 flex flex-col gap-16 pt-4">
+          
+          {/* Typographic Raw Stats Block (No Cards) */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
+          >
+            <h2 className="text-3xl font-['Archivo_Black'] uppercase tracking-tight text-black border-b-4 border-black pb-4 mb-6">
+              Performance Metrics
             </h2>
-            <div className="flex-1 w-full relative">
-                <div className="absolute inset-0 pt-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4">
+              <div className="flex flex-col border-l-4 border-black pl-4">
+                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">Rating</span>
+                <span className="text-4xl lg:text-5xl font-['Archivo_Black'] text-black">{player.raw_stats.rating}</span>
+              </div>
+              <div className="flex flex-col border-l-4 border-black pl-4">
+                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">ACS</span>
+                <span className="text-4xl lg:text-5xl font-['Archivo_Black'] text-black">{player.raw_stats.acs}</span>
+              </div>
+              <div className="flex flex-col border-l-4 border-black pl-4">
+                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">K/D Ratio</span>
+                <span className="text-4xl lg:text-5xl font-['Archivo_Black'] text-black">{player.raw_stats.kd}</span>
+              </div>
+              <div className="flex flex-col border-l-4 border-black pl-4">
+                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">ADR</span>
+                <span className="text-4xl lg:text-5xl font-['Archivo_Black'] text-black">{player.raw_stats.adr}</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Radar Chart Container */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3, ease: [0.23, 1, 0.32, 1] }}
+            className="flex flex-col"
+          >
+            <h2 className="text-3xl font-['Archivo_Black'] uppercase tracking-tight text-black border-b-4 border-black pb-4 mb-8">
+              SMART Radar (2026)
+            </h2>
+            <div className="w-full h-[500px] relative bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.02)_10px,rgba(0,0,0,0.02)_20px)] border-4 border-black">
+                <div className="absolute inset-0 p-4">
                     <HighchartsReact highcharts={Highcharts} options={radarOptions} containerProps={{ style: { height: '100%' } }} />
                 </div>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Raw Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatCard label="Rating" value={player.raw_stats.rating} icon={<ShieldStar size={24} />} delay={0.2} />
-            <StatCard label="ACS" value={player.raw_stats.acs} icon={<Crosshair size={24} />} delay={0.3} />
-            <StatCard label="K/D" value={player.raw_stats.kd} icon={<TrendUp size={24} />} delay={0.4} />
-            <StatCard label="ADR" value={player.raw_stats.adr} delay={0.5} />
-          </div>
-
-          {/* Agent Pool Card */}
+          {/* Agent Pool */}
           {player.most_picked_agents && player.most_picked_agents.length > 0 && (
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="bg-white border-2 border-black p-6"
-              style={{ boxShadow: '8px 8px 0px rgba(0,0,0,1)' }}
+              transition={{ duration: 0.6, delay: 0.4, ease: [0.23, 1, 0.32, 1] }}
+              className="flex flex-col"
             >
-              <div className="flex justify-between items-center mb-4 border-b-2 border-black pb-2">
-                <h2 className="text-xl font-['Archivo_Black'] uppercase">
-                  Agent Pool (2026)
+              <div className="flex justify-between items-end border-b-4 border-black pb-4 mb-6">
+                <h2 className="text-3xl font-['Archivo_Black'] uppercase tracking-tight text-black">
+                  Agent Pool
                 </h2>
-                {player.most_picked_agents.length > 3 && (
+                {player.most_picked_agents.length > 4 && (
                   <button 
                     onClick={() => setShowAllAgents(!showAllAgents)}
-                    className="text-xs font-bold uppercase tracking-wider bg-black text-white px-3 py-1 hover:bg-[var(--color-primary)] hover:text-black transition-colors border-2 border-black"
+                    className="text-[12px] font-black uppercase tracking-widest bg-black text-white px-4 py-2 hover:bg-[var(--color-primary)] hover:text-black transition-colors active:scale-95"
                   >
                     {showAllAgents ? 'Show Less' : 'View All'}
                   </button>
                 )}
               </div>
-              <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-2">
-                {player.most_picked_agents.slice(0, showAllAgents ? undefined : 3).map((agent) => (
-                  <motion.div layout key={agent.name} className="flex flex-col items-center bg-gray-50 border-2 border-black p-3 hover:-translate-y-1 hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-all">
-                    <div className="w-16 h-16 mb-3 relative bg-[var(--color-primary-subtle)] rounded-full border-2 border-black overflow-hidden flex items-center justify-center">
+              <motion.div layout className="flex flex-wrap gap-4 mt-4">
+                {player.most_picked_agents.slice(0, showAllAgents ? undefined : 4).map((agent, index) => (
+                  <motion.div 
+                    layout 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4, delay: 0.5 + index * 0.05, ease: [0.23, 1, 0.32, 1] }}
+                    key={agent.name} 
+                    className="flex items-center gap-4 border-2 border-black p-3 pr-6 bg-white hover:bg-black hover:text-white group transition-colors duration-200 shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-none translate-y-0 hover:translate-y-1 hover:translate-x-1"
+                  >
+                    <div className="w-16 h-16 bg-[var(--color-primary)] border-2 border-black rounded-full overflow-hidden flex items-center justify-center shrink-0">
                       {agent.icon_url ? (
-                        <img src={agent.icon_url} alt={agent.name} className="w-full h-full object-cover scale-110" />
+                        <img src={agent.icon_url} alt={agent.name} className="w-full h-full object-cover scale-110 filter grayscale group-hover:grayscale-0 transition-all duration-300" />
                       ) : (
-                        <span className="font-['Archivo_Black'] text-xs text-gray-400">?</span>
+                        <span className="font-['Archivo_Black'] text-xl text-black">?</span>
                       )}
                     </div>
-                    <span className="font-['Archivo_Black'] text-sm uppercase text-center w-full truncate mb-1" title={agent.name}>{agent.name}</span>
-                    <div className="flex flex-col items-center gap-0.5">
-                      <span className="font-['JetBrains_Mono'] font-bold text-[var(--color-primary)] text-sm leading-none">{agent.percentage}</span>
-                      <span className="text-[10px] font-bold text-gray-500 uppercase leading-none">{agent.count} picks</span>
+                    <div className="flex flex-col justify-center">
+                      <span className="font-['Archivo_Black'] text-lg uppercase tracking-wide leading-tight group-hover:text-[var(--color-primary)] transition-colors">
+                        {agent.name}
+                      </span>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="font-['JetBrains_Mono'] font-black text-black group-hover:text-white transition-colors text-sm tabular-nums">
+                          {agent.percentage}
+                        </span>
+                        <div className="w-1 h-1 rounded-full bg-gray-300 group-hover:bg-gray-600" />
+                        <span className="font-['JetBrains_Mono'] font-bold text-gray-500 text-[11px] uppercase tracking-widest">
+                          {agent.count} picks
+                        </span>
+                      </div>
                     </div>
                   </motion.div>
                 ))}
               </motion.div>
             </motion.div>
           )}
-        </motion.div>
+        </div>
       </div>
     </div>
-  );
-}
-
-function StatCard({ label, value, icon, delay }: { label: string, value: string | number, icon?: React.ReactNode, delay: number }) {
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay }}
-      className="bg-white border-2 border-black p-4 flex flex-col justify-between"
-      style={{ boxShadow: '4px 4px 0px rgba(0,0,0,1)' }}
-      whileHover={{ y: -4, boxShadow: '8px 8px 0px rgba(0,0,0,1)', transition: { duration: 0.2 } }}
-    >
-      <div className="flex justify-between items-start mb-4">
-        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{label}</span>
-        {icon && <span className="text-gray-400">{icon}</span>}
-      </div>
-      <span className="text-3xl font-['Archivo_Black']">{value}</span>
-    </motion.div>
   );
 }
