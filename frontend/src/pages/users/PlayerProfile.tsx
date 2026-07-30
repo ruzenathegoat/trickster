@@ -84,7 +84,7 @@ export default function PlayerProfile() {
   if (!player) {
     return (
       <div className="py-32 flex justify-center border-4 border-black bg-white">
-        <p className="font-['JetBrains_Mono'] font-bold text-xl uppercase tracking-widest text-black">Player not found.</p>
+        <p className="font-label font-bold text-xl uppercase tracking-widest text-black">Player not found.</p>
       </div>
     );
   }
@@ -180,7 +180,7 @@ export default function PlayerProfile() {
     <div className="max-w-7xl pb-24">
       <button 
         onClick={() => navigate(-1)}
-        className="flex items-center gap-3 mb-12 font-['JetBrains_Mono'] text-[13px] font-black uppercase tracking-widest text-black/50 hover:text-black transition-colors"
+        className="flex items-center gap-3 mb-12 font-label text-[13px] font-black uppercase tracking-widest text-black/50 hover:text-black transition-colors"
       >
         <ArrowLeft size={20} weight="bold" />
         Back to Leaderboard
@@ -211,7 +211,7 @@ export default function PlayerProfile() {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#f3f4f6_10px,#f3f4f6_20px)]">
-                  <span className="font-['Archivo_Black'] text-4xl text-gray-300 -rotate-90">NO PHOTO</span>
+                  <span className="font-display text-4xl text-gray-300 -rotate-90">NO PHOTO</span>
                 </div>
               )}
             </div>
@@ -226,34 +226,34 @@ export default function PlayerProfile() {
                 ) : (
                   <div className="w-3 h-3 bg-black rounded-full" />
                 )}
-                <span className="font-['JetBrains_Mono'] text-sm font-bold uppercase tracking-widest text-black">
+                <span className="font-label text-sm font-bold uppercase tracking-widest text-black">
                   {player.team_name}
                 </span>
               </div>
 
-              <h1 className="text-6xl lg:text-7xl font-['Archivo_Black'] uppercase tracking-tighter leading-none mb-2 text-black break-words">
+              <h1 className="text-6xl lg:text-7xl font-display uppercase tracking-tighter leading-none mb-2 text-black break-words">
                 {player.ign}
               </h1>
-              <p className="text-black/60 font-['JetBrains_Mono'] text-[15px] font-bold uppercase tracking-widest mb-10">
+              <p className="text-black/60 font-label text-[15px] font-bold uppercase tracking-widest mb-10">
                 {player.name}
               </p>
               
               <div className="space-y-6">
                 <div className="flex justify-between items-end border-b-2 border-black/20 pb-2">
                   <span className="text-[11px] font-black text-black/50 uppercase tracking-widest">Country</span>
-                  <span className="font-['JetBrains_Mono'] font-bold text-[15px] text-black uppercase">{player.country || 'Unknown'}</span>
+                  <span className="font-label font-bold text-[15px] text-black uppercase">{player.country || 'Unknown'}</span>
                 </div>
                 <div className="flex justify-between items-end border-b-2 border-black/20 pb-2">
                   <span className="text-[11px] font-black text-black/50 uppercase tracking-widest">Matches (2026)</span>
-                  <span className="font-['JetBrains_Mono'] font-black text-[15px] text-black tabular-nums">{player.raw_stats.matches}</span>
+                  <span className="font-numeric font-black text-[15px] text-black tabular-nums">{player.raw_stats.matches}</span>
                 </div>
                 <div className="flex justify-between items-end border-b-2 border-black/20 pb-2">
                   <span className="text-[11px] font-black text-black/50 uppercase tracking-widest">Win Rate</span>
-                  <span className="font-['JetBrains_Mono'] font-black text-[15px] text-black tabular-nums">{player.raw_stats.win_rate}</span>
+                  <span className="font-numeric font-black text-[15px] text-black tabular-nums">{player.raw_stats.win_rate}</span>
                 </div>
                 <div className="flex justify-between items-end pt-2">
                   <span className="text-[11px] font-black text-black uppercase tracking-widest">SMART Rank</span>
-                  <span className="font-['Archivo_Black'] text-black text-4xl leading-none">
+                  <span className="font-display text-black text-4xl leading-none">
                     {player.smart_rank ? `#${player.smart_rank}` : 'N/A'}
                   </span>
                 </div>
@@ -271,25 +271,25 @@ export default function PlayerProfile() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
           >
-            <h2 className="text-3xl font-['Archivo_Black'] uppercase tracking-tight text-black border-b-4 border-black pb-4 mb-6">
+            <h2 className="text-3xl font-display uppercase tracking-tight text-black border-b-4 border-black pb-4 mb-6">
               Performance Metrics
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4">
-              <div className="flex flex-col border-l-4 border-black pl-4">
-                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">Rating</span>
-                <span className="text-4xl lg:text-5xl font-['Archivo_Black'] text-black">{player.raw_stats.rating}</span>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-6 lg:gap-8">
+              <div className="flex flex-col border-l-4 border-black pl-4 overflow-hidden">
+                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1 truncate">Rating</span>
+                <span className="text-4xl lg:text-4xl xl:text-5xl font-display text-black tabular-nums tracking-tighter truncate">{player.raw_stats.rating}</span>
               </div>
-              <div className="flex flex-col border-l-4 border-black pl-4">
-                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">ACS</span>
-                <span className="text-4xl lg:text-5xl font-['Archivo_Black'] text-black">{player.raw_stats.acs}</span>
+              <div className="flex flex-col border-l-4 border-black pl-4 overflow-hidden">
+                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1 truncate">ACS</span>
+                <span className="text-4xl lg:text-4xl xl:text-5xl font-display text-black tabular-nums tracking-tighter truncate">{player.raw_stats.acs}</span>
               </div>
-              <div className="flex flex-col border-l-4 border-black pl-4">
-                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">K/D Ratio</span>
-                <span className="text-4xl lg:text-5xl font-['Archivo_Black'] text-black">{player.raw_stats.kd}</span>
+              <div className="flex flex-col border-l-4 border-black pl-4 overflow-hidden">
+                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1 truncate">K/D Ratio</span>
+                <span className="text-4xl lg:text-4xl xl:text-5xl font-display text-black tabular-nums tracking-tighter truncate">{player.raw_stats.kd}</span>
               </div>
-              <div className="flex flex-col border-l-4 border-black pl-4">
-                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">ADR</span>
-                <span className="text-4xl lg:text-5xl font-['Archivo_Black'] text-black">{player.raw_stats.adr}</span>
+              <div className="flex flex-col border-l-4 border-black pl-4 overflow-hidden">
+                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1 truncate">ADR</span>
+                <span className="text-4xl lg:text-4xl xl:text-5xl font-display text-black tabular-nums tracking-tighter truncate">{player.raw_stats.adr}</span>
               </div>
             </div>
           </motion.div>
@@ -301,7 +301,7 @@ export default function PlayerProfile() {
             transition={{ duration: 0.6, delay: 0.3, ease: [0.23, 1, 0.32, 1] }}
             className="flex flex-col"
           >
-            <h2 className="text-3xl font-['Archivo_Black'] uppercase tracking-tight text-black border-b-4 border-black pb-4 mb-8">
+            <h2 className="text-3xl font-display uppercase tracking-tight text-black border-b-4 border-black pb-4 mb-8">
               SMART Radar (2026)
             </h2>
             <div className="w-full h-[500px] relative bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.02)_10px,rgba(0,0,0,0.02)_20px)] border-4 border-black">
@@ -320,7 +320,7 @@ export default function PlayerProfile() {
               className="flex flex-col"
             >
               <div className="flex justify-between items-end border-b-4 border-black pb-4 mb-6">
-                <h2 className="text-3xl font-['Archivo_Black'] uppercase tracking-tight text-black">
+                <h2 className="text-3xl font-display uppercase tracking-tight text-black">
                   Agent Pool
                 </h2>
                 {player.most_picked_agents.length > 4 && (
@@ -346,19 +346,19 @@ export default function PlayerProfile() {
                       {agent.icon_url ? (
                         <img src={agent.icon_url} alt={agent.name} className="w-full h-full object-cover scale-110 filter grayscale group-hover:grayscale-0 transition-all duration-300" />
                       ) : (
-                        <span className="font-['Archivo_Black'] text-xl text-black">?</span>
+                        <span className="font-display text-xl text-black">?</span>
                       )}
                     </div>
-                    <div className="flex flex-col justify-center">
-                      <span className="font-['Archivo_Black'] text-lg uppercase tracking-wide leading-tight group-hover:text-[var(--color-primary)] transition-colors">
+                    <div className="flex flex-col justify-center min-w-[80px]">
+                      <span className="font-display text-lg uppercase tracking-wide leading-tight group-hover:text-[var(--color-primary)] transition-colors">
                         {agent.name}
                       </span>
                       <div className="flex items-center gap-3 mt-1">
-                        <span className="font-['JetBrains_Mono'] font-black text-black group-hover:text-white transition-colors text-sm tabular-nums">
+                        <span className="font-numeric font-black text-black group-hover:text-white transition-colors text-sm tabular-nums">
                           {agent.percentage}
                         </span>
                         <div className="w-1 h-1 rounded-full bg-gray-300 group-hover:bg-gray-600" />
-                        <span className="font-['JetBrains_Mono'] font-bold text-gray-500 text-[11px] uppercase tracking-widest">
+                        <span className="font-label font-bold text-gray-500 text-[11px] uppercase tracking-widest">
                           {agent.count} picks
                         </span>
                       </div>
