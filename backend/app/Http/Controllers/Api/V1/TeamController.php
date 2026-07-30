@@ -28,7 +28,7 @@ class TeamController extends Controller
             $query->where('region', $request->region);
         }
 
-        $query->orderByDesc('win_rate_2026');
+        $query->orderByRaw('win_rate_2026 DESC NULLS LAST');
 
         $paginator = $query->paginate(15);
 
