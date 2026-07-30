@@ -44,34 +44,37 @@ export default function AppLayout() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#fafafa] flex font-['Inter'] text-[var(--color-secondary)]">
+    <div className="min-h-screen bg-white flex text-black">
       {/* Sidebar */}
       <aside 
         className={clsx(
-          "bg-[var(--color-surface)] border-r border-gray-200 transition-all duration-300 ease-in-out flex flex-col z-20 sticky top-0 h-screen shrink-0",
-          collapsed ? "w-[72px]" : "w-[260px]"
+          "bg-white border-r-4 border-black transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] flex flex-col z-20 sticky top-0 h-screen shrink-0",
+          collapsed ? "w-[80px]" : "w-[280px]"
         )}
       >
         {/* Logo Area */}
-        <div className="h-[72px] flex items-center justify-between px-4 border-b border-gray-200 shrink-0">
+        <div className="h-[80px] flex items-center justify-between px-5 border-b-4 border-black shrink-0 bg-[var(--color-primary)]">
           {!collapsed && (
-            <Link to="/app/dashboard" className="flex items-center gap-3 font-['Archivo_Black'] text-xl uppercase tracking-widest font-black truncate">
+            <Link to="/app/dashboard" className="flex items-center gap-3 font-display text-2xl uppercase tracking-tighter text-black truncate">
               <div className="w-8 h-8 flex items-center justify-center shrink-0">
-                <img src="/logo.png" alt="Trickster" className="w-full h-full object-contain" />
+                <img src="/logo.png" alt="Trickster" className="w-full h-full object-contain filter invert" />
               </div>
-              Trickster
+              TRICKSTER
             </Link>
           )}
           <button 
             onClick={() => setCollapsed(!collapsed)}
-            className="p-1.5 hover:bg-gray-100 rounded-md transition-colors mx-auto active:scale-95"
+            className={clsx(
+              "p-2 border-2 border-black bg-white hover:bg-black hover:text-white transition-colors active:scale-95",
+              collapsed && "mx-auto"
+            )}
           >
-            {collapsed ? <List weight="regular" size={20} /> : <CaretLeft weight="regular" size={20} />}
+            {collapsed ? <List weight="bold" size={20} /> : <CaretLeft weight="bold" size={20} />}
           </button>
         </div>
 
         {/* Navigation */}
-        <nav data-lenis-prevent="true" className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        <nav data-lenis-prevent="true" className="flex-1 overflow-y-auto py-6 px-4 space-y-2 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.02)_10px,rgba(0,0,0,0.02)_20px)]">
           {navItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path);
             return (
@@ -79,60 +82,60 @@ export default function AppLayout() {
                 key={item.path}
                 to={item.path}
                 className={clsx(
-                  "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-150 relative group",
+                  "flex items-center gap-4 px-4 py-3 border-2 transition-all duration-200 group font-label uppercase tracking-widest text-[13px] font-bold",
                   isActive 
-                    ? "bg-gray-100 text-gray-900 font-medium shadow-sm" 
-                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                    ? "bg-black text-[var(--color-primary)] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] translate-x-1" 
+                    : "border-transparent text-gray-500 hover:border-black hover:bg-white hover:text-black hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 hover:translate-x-0.5"
                 )}
                 title={collapsed ? item.label : undefined}
               >
-                {isActive && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[50%] bg-black rounded-r-md" />
-                )}
-                <item.icon weight="regular" size={18} className={clsx(isActive ? "text-black" : "text-gray-400 group-hover:text-gray-600")} />
-                {!collapsed && <span className="text-[14px]">{item.label}</span>}
+                <item.icon weight={isActive ? "fill" : "bold"} size={20} className={clsx("shrink-0", isActive ? "text-[var(--color-primary)]" : "text-black opacity-50 group-hover:opacity-100")} />
+                {!collapsed && <span className="truncate">{item.label}</span>}
               </Link>
             );
           })}
         </nav>
 
         {/* Bottom Account Area */}
-        <div className="p-4 border-t border-gray-200 shrink-0">
+        <div className="p-4 border-t-4 border-black shrink-0 bg-white">
           <Link 
             to="/"
-            className="flex items-center gap-3 hover:bg-gray-100 p-2 mb-2 rounded-md transition-colors text-gray-600"
-          >
-            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-              <Globe weight="regular" className="text-[18px]" />
-            </div>
-            {!collapsed && (
-              <p className="text-[13px] font-semibold">Back to Website</p>
+            className={clsx(
+              "flex items-center gap-3 p-3 mb-2 border-2 border-transparent hover:border-black hover:bg-black hover:text-white transition-colors text-black font-label text-[11px] font-bold uppercase tracking-widest group",
+              collapsed && "justify-center"
             )}
+            title={collapsed ? "Back to Website" : undefined}
+          >
+            <Globe weight="bold" size={20} className="shrink-0 group-hover:text-white" />
+            {!collapsed && <span className="truncate">Back to Website</span>}
           </Link>
 
           <button 
             onClick={logout}
-            className="w-full flex items-center gap-3 hover:bg-red-50 p-2 mb-2 rounded-md transition-colors text-red-600"
-          >
-            <div className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">
-              <SignOut weight="regular" className="text-[18px]" />
-            </div>
-            {!collapsed && (
-              <p className="text-[13px] font-semibold">Logout</p>
+            className={clsx(
+              "w-full flex items-center gap-3 p-3 mb-4 border-2 border-transparent hover:border-black hover:bg-[#ff3333] hover:text-white transition-colors text-[#ff3333] font-label text-[11px] font-bold uppercase tracking-widest group",
+              collapsed && "justify-center"
             )}
+            title={collapsed ? "Logout" : undefined}
+          >
+            <SignOut weight="bold" size={20} className="shrink-0 group-hover:text-white" />
+            {!collapsed && <span className="truncate">Logout</span>}
           </button>
 
           <Link 
             to="/app/account"
-            className="flex items-center gap-3 hover:bg-gray-100 p-2 rounded-md transition-colors"
+            className={clsx(
+              "flex items-center gap-3 p-3 border-2 border-black bg-[var(--color-primary)] hover:bg-black hover:text-[var(--color-primary)] transition-colors group",
+              collapsed && "justify-center"
+            )}
           >
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
-              <UserCircle weight="regular" size={20} className="text-gray-500" />
+            <div className="w-8 h-8 rounded-full bg-black text-[var(--color-primary)] border-2 border-black flex items-center justify-center shrink-0 group-hover:bg-[var(--color-primary)] group-hover:text-black transition-colors">
+              <UserCircle weight="fill" size={24} />
             </div>
             {!collapsed && (
-              <div className="overflow-hidden">
-                <p className="text-[13px] font-semibold text-gray-900 truncate">{user?.name || 'User'}</p>
-                <p className="text-[11px] text-gray-500 truncate">{user?.email || 'user@example.com'}</p>
+              <div className="overflow-hidden flex-1">
+                <p className="font-label text-[12px] font-bold uppercase tracking-widest truncate">{user?.name || 'User'}</p>
+                <p className="font-label text-[9px] font-bold uppercase tracking-widest opacity-60 truncate">{user?.email || 'user@example.com'}</p>
               </div>
             )}
           </Link>
@@ -142,31 +145,31 @@ export default function AppLayout() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Topbar */}
-        <header className="h-[72px] sticky top-0 bg-[var(--color-surface)] border-b border-gray-200 flex items-center justify-between px-8 shrink-0 z-10">
+        <header className="h-[80px] sticky top-0 bg-white border-b-4 border-black flex items-center justify-between px-8 shrink-0 z-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiMwMDAwMDAiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')]">
           <div className="flex-1 max-w-xl">
-            <div className="relative">
-              <MagnifyingGlass weight="regular" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <div className="relative group">
+              <MagnifyingGlass weight="bold" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-black transition-transform group-focus-within:scale-110" />
               <input 
                 type="text" 
                 placeholder="Search players or teams..." 
-                className="w-full bg-white border border-gray-200 rounded-md pl-10 pr-4 py-2 text-[14px] focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-colors"
+                className="w-full bg-white border-4 border-black pl-12 pr-4 py-3 text-[13px] font-label font-bold uppercase tracking-widest text-black placeholder-gray-400 focus:outline-none focus:shadow-[6px_6px_0px_rgba(0,0,0,1)] transition-all focus:-translate-y-1"
               />
             </div>
           </div>
           
           <div className="flex items-center gap-6 ml-4">
-            <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full border border-gray-200">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              <span className="text-[12px] font-semibold font-['JetBrains_Mono']">Patch {activePatch}</span>
+            <div className="flex items-center gap-3 bg-black text-[var(--color-primary)] px-4 py-2 border-2 border-black">
+              <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)] animate-pulse" />
+              <span className="text-[12px] font-bold font-label uppercase tracking-widest">Patch {activePatch}</span>
             </div>
-            <button className="text-gray-500 hover:text-gray-900 transition-colors">
-              <Bell weight="regular" size={20} />
+            <button className="p-2.5 border-4 border-black bg-white hover:bg-[var(--color-primary)] hover:scale-110 transition-transform active:scale-95 shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+              <Bell weight="bold" size={20} className="text-black" />
             </button>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-8 lg:p-12">
           <Outlet />
         </main>
       </div>
