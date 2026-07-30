@@ -148,6 +148,12 @@ class AdminCurationController extends Controller
         return response()->json($agents);
     }
 
+    public function getValorantMaps()
+    {
+        $maps = \App\Models\ValorantMap::orderBy('name')->get();
+        return response()->json($maps);
+    }
+
     public function storeBulkPatchRatings(Request $request)
     {
         $validated = $request->validate([

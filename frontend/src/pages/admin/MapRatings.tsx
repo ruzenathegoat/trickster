@@ -17,6 +17,7 @@ interface ValorantMap {
   id: string;
   name: string;
   is_active: boolean;
+  list_view_icon?: string;
 }
 
 interface Patch {
@@ -340,22 +341,29 @@ export default function MapRatings() {
                       </div>
                     </div>
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                      {valorantMaps.map(({ name: mapName, is_active }) => {
+                      {valorantMaps.map(({ name: mapName, is_active, list_view_icon }) => {
                         const inPool = mapPool.has(mapName);
                         return (
                           <div
                             key={mapName}
-                            className={`relative border-2 cursor-pointer transition-all ${!is_active ? 'border-gray-200 bg-gray-50 opacity-40 cursor-not-allowed' :
+                            className={`relative border-2 cursor-pointer transition-all group overflow-hidden ${!is_active ? 'border-gray-200 bg-gray-50 opacity-40 cursor-not-allowed' :
                               inPool ? 'border-black bg-black text-white shadow-[3px_3px_0px_0px_#F5A623]' : 'border-gray-300 bg-white text-gray-600 hover:border-black'
                               }`}
                           >
+                            {list_view_icon && (
+                              <img 
+                                src={list_view_icon} 
+                                alt={mapName} 
+                                className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 ${is_active && 'group-hover:scale-105'} ${inPool ? 'opacity-40' : 'opacity-20'}`} 
+                              />
+                            )}
                             {/* Checkbox toggle */}
                             <button
                               type="button"
                               onClick={() => is_active && toggleMap(mapName)}
                               disabled={!is_active}
-                              className="absolute top-2 right-2 w-4 h-4 border-2 flex items-center justify-center text-[10px] font-bold disabled:cursor-not-allowed"
-                              style={{ borderColor: inPool ? '#fff' : '#000', color: inPool ? '#fff' : '#000' }}
+                              className="absolute top-2 right-2 w-4 h-4 border-2 flex items-center justify-center text-[10px] font-bold disabled:cursor-not-allowed z-20"
+                              style={{ borderColor: inPool ? '#fff' : '#000', color: inPool ? '#fff' : '#000', backgroundColor: inPool ? 'transparent' : 'rgba(255,255,255,0.7)' }}
                             >
                               {inPool ? '✓' : ''}
                             </button>
@@ -364,14 +372,14 @@ export default function MapRatings() {
                               type="button"
                               onClick={() => inPool && is_active && setActiveMap(mapName)}
                               disabled={!inPool || !is_active}
-                              className="w-full px-4 py-5 text-left disabled:cursor-not-allowed"
+                              className="w-full h-24 text-left disabled:cursor-not-allowed relative z-10 flex flex-col justify-end p-3"
                             >
-                              <div className="flex items-center gap-2 mb-1">
+                              <div className="flex items-center gap-1.5 mb-0.5">
                                 <MapPin size={14} weight="bold" />
-                                <span className="font-['JetBrains_Mono'] text-[12px] font-bold uppercase">{mapName}</span>
+                                <span className="font-['JetBrains_Mono'] text-[13px] font-bold uppercase tracking-wide bg-black/40 px-1 rounded-sm">{mapName}</span>
                               </div>
                               {inPool && (
-                                <span className="text-[11px] opacity-70">
+                                <span className="text-[10px] font-bold opacity-100 bg-black/40 px-1 rounded-sm w-fit inline-block">
                                   {Object.values(ratings[mapName] ?? {}).filter(e => e.score !== 5).length} agents rated
                                 </span>
                               )}
