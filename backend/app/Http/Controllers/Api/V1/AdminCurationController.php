@@ -141,8 +141,10 @@ class AdminCurationController extends Controller
 
     public function getAgents()
     {
-        // Get unique agents from the role map
-        $agents = DB::table('agent_role_map')->select('agent', 'primary_role')->get();
+        $agents = DB::table('valorant_agents')
+            ->select('name as agent', 'role as primary_role', 'icon_url')
+            ->orderBy('name')
+            ->get();
         return response()->json($agents);
     }
 
