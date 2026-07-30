@@ -68,7 +68,7 @@ class CalculateSmartJob implements ShouldQueue
                     return ['raw' => (float)$player->avg_kd, 'min' => (float)$globalStats->min_kd, 'max' => (float)$globalStats->max_kd];
                 case 'Average Damage per Round (ADR)':
                     return ['raw' => (float)$player->avg_adr, 'min' => (float)$globalStats->min_adr, 'max' => (float)$globalStats->max_adr];
-                case 'First Deaths (FD)':
+                case 'First Death Rate':
                     return ['raw' => (float)$player->avg_fd, 'min' => (float)$globalStats->min_fd, 'max' => (float)$globalStats->max_fd];
                 case 'Consistency Index':
                     $raw = $player->consistency_index !== null ? (float)$player->consistency_index : 0;

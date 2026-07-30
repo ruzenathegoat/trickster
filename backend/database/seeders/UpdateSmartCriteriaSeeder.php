@@ -18,45 +18,61 @@ class UpdateSmartCriteriaSeeder extends Seeder
 
         $criteria = [
             [
-                'name' => 'Average Combat Score (ACS)',
+                'name' => 'Consistency Index',
                 'type' => 'benefit',
-                'description' => 'Higher ACS is better'
-            ],
-            [
-                'name' => 'KAST %',
-                'type' => 'benefit',
-                'description' => 'Higher KAST is better'
+                'description' => 'Higher consistency index is better',
+                'weight' => 0.25, // custom property for seeding
             ],
             [
                 'name' => 'Kill/Death Ratio (KD)',
                 'type' => 'benefit',
-                'description' => 'Higher KD is better'
+                'description' => 'Higher KD is better',
+                'weight' => 0.14,
             ],
             [
-                'name' => 'Average Damage per Round (ADR)',
+                'name' => 'KAST %',
                 'type' => 'benefit',
-                'description' => 'Higher ADR is better'
-            ],
-            [
-                'name' => 'Consistency Index',
-                'type' => 'benefit',
-                'description' => 'Higher consistency index is better'
-            ],
-            [
-                'name' => 'Tournament Pressure',
-                'type' => 'benefit',
-                'description' => 'Higher tournament pressure is better'
+                'description' => 'Higher KAST is better',
+                'weight' => 0.14,
             ],
             [
                 'name' => 'First Death Rate',
                 'type' => 'cost',
-                'description' => 'Lower first death rate is better'
+                'description' => 'Lower first death rate is better',
+                'weight' => 0.13,
+            ],
+            [
+                'name' => 'Average Combat Score (ACS)',
+                'type' => 'benefit',
+                'description' => 'Higher ACS is better',
+                'weight' => 0.12,
+            ],
+            [
+                'name' => 'Average Damage per Round (ADR)',
+                'type' => 'benefit',
+                'description' => 'Higher ADR is better',
+                'weight' => 0.12,
+            ],
+            [
+                'name' => 'Meta Adaptability Index',
+                'type' => 'benefit',
+                'description' => 'Higher adaptability to map metas is better',
+                'weight' => 0.10,
             ]
         ];
 
-        DB::table('smart_criteria')->insert($criteria);
+        // Insert criteria (without the temporary weight property)
+        $insertData = array_map(function($c) {
+            return [
+                'name' => $c['name'],
+                'type' => $c['type'],
+                'description' => $c['description']
+            ];
+        }, $criteria);
         
-        // Also seed some default SmartWeightProfiles so we can test it
+        DB::table('smart_criteria')->insert($insertData);
+        
+        // Also seed default SmartWeightProfile
         DB::table('smart_weight_profiles')->truncate();
         
         $admin = DB::table('users')->first();
@@ -81,18 +97,25 @@ class UpdateSmartCriteriaSeeder extends Seeder
             'created_at' => now(),
         ]);
         
-        // Distribute weights equally
+        // Distribute specific weights based on rank
         $criteriaRecords = DB::table('smart_criteria')->get();
-        $weight = 1.0 / count($criteriaRecords);
         
         $weightValues = [];
         $rank = 1;
-        foreach ($criteriaRecords as $c) {
+        
+        // Sort original criteria array by weight descending to assign ranks
+        usort($criteria, function($a, $b) {
+            return $b['weight'] <=> $a['weight'];
+        });
+
+        foreach ($criteria as $c) {
+            $dbRecord = $criteriaRecords->where('name', $c['name'])->first();
+            
             $weightValues[] = [
                 'profile_id' => $profileId,
-                'criteria_id' => $c->id,
+                'criteria_id' => $dbRecord->id,
                 'rank_position' => $rank++,
-                'computed_weight' => $weight,
+                'computed_weight' => $c['weight'],
             ];
         }
         
