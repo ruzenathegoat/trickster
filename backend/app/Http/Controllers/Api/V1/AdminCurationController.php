@@ -148,6 +148,15 @@ class AdminCurationController extends Controller
         return response()->json($agents);
     }
 
+    public function getEvents()
+    {
+        $events = DB::table('events')
+            ->select('id', 'name')
+            ->orderByDesc('start_date')
+            ->get();
+        return response()->json($events);
+    }
+
     public function getValorantMaps()
     {
         $maps = \App\Models\ValorantMap::orderBy('name')->get();
