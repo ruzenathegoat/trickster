@@ -80,4 +80,7 @@ Route::prefix('v1')->group(function () {
     
     // Valorant Agents (Photos & Meta)
     Route::get('/valorant-agents', [\App\Http\Controllers\Api\V1\ValorantAgentController::class, 'index']);
+
+    // Valorant Maps (Photos & Meta)
+    Route::get('/valorant-maps', [\App\Http\Controllers\Api\V1\ValorantMapController::class, 'index']);
 });

@@ -61,7 +61,7 @@ class SyncVlrEventsJob implements ShouldQueue
                                     ]
                                 );
                                 
-                                SyncEventJob::dispatch($event, $link);
+                                SyncEventJob::dispatch($event, $link)->onQueue('scrape-default');
                                 $records++;
                             }
                         }

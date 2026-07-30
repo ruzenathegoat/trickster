@@ -41,6 +41,16 @@ class UpdateSmartCriteriaSeeder extends Seeder
                 'name' => 'Consistency Index',
                 'type' => 'benefit',
                 'description' => 'Higher consistency index is better'
+            ],
+            [
+                'name' => 'Tournament Pressure',
+                'type' => 'benefit',
+                'description' => 'Higher tournament pressure is better'
+            ],
+            [
+                'name' => 'First Death Rate',
+                'type' => 'cost',
+                'description' => 'Lower first death rate is better'
             ]
         ];
 
