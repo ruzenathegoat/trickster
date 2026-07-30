@@ -66,29 +66,24 @@ export default function TeamProfile() {
     xAxis: {
       categories: stats.tournaments.map((t: any) => t.name),
       lineColor: '#000',
-      lineWidth: 2,
       tickColor: '#000',
-      labels: { 
-        style: { color: '#000', fontWeight: 'bold', fontSize: '10px', textOverflow: 'ellipsis' },
-        rotation: -45,
-        align: 'right'
+      labels: {
+        style: { color: '#000', fontWeight: 'bold' }
       }
     },
     yAxis: {
       min: 0,
-      title: { text: null },
+      title: { text: 'Matches', style: { color: '#000', fontWeight: 'bold' } },
       gridLineDashStyle: 'Dash',
-      gridLineColor: '#e5e7eb',
-      lineColor: '#000',
-      lineWidth: 2,
+      gridLineColor: '#e5e7eb'
     },
     legend: {
-      enabled: false
+      itemStyle: { fontWeight: 'bold', color: '#000' }
     },
     tooltip: {
       shared: true,
       backgroundColor: '#000',
-      style: { color: '#fff', fontFamily: 'JetBrains Mono' },
+      style: { color: '#fff' },
       borderColor: '#000',
       borderRadius: 0,
     },
@@ -97,13 +92,19 @@ export default function TeamProfile() {
         stacking: 'normal',
         borderWidth: 2,
         borderColor: '#000',
-        pointPadding: 0.1,
-        groupPadding: 0.15,
       }
     },
     series: [
-      { name: 'Wins', data: stats.tournaments.map((t: any) => t.wins), color: 'var(--color-primary)' },
-      { name: 'Losses', data: stats.tournaments.map((t: any) => t.losses), color: '#111111' }
+      {
+        name: 'Wins',
+        data: stats.tournaments.map((t: any) => t.wins),
+        color: 'var(--color-primary)'
+      },
+      {
+        name: 'Losses',
+        data: stats.tournaments.map((t: any) => t.losses),
+        color: '#ef4444' // red-500
+      }
     ],
     credits: { enabled: false }
   };
@@ -180,22 +181,12 @@ export default function TeamProfile() {
             transition={{ duration: 0.5, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
             className="border-4 border-black bg-white"
           >
-            <div className="border-b-4 border-black px-6 py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <div className="border-b-4 border-black px-6 py-4">
               <h2 className="text-2xl font-display uppercase tracking-tight">Tournament Performance</h2>
-              <div className="flex gap-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-[var(--color-primary)] border-2 border-black" />
-                  <span className="font-label text-[10px] font-bold uppercase tracking-widest">Wins</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-[#111111] border-2 border-black" />
-                  <span className="font-label text-[10px] font-bold uppercase tracking-widest">Losses</span>
-                </div>
-              </div>
             </div>
             <div className="p-6">
               {stats.tournaments.length > 0 ? (
-                <div className="h-[420px]">
+                <div className="h-96">
                   <HighchartsReact highcharts={Highcharts} options={chartOptions} />
                 </div>
               ) : (
