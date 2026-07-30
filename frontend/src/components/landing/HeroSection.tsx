@@ -1,153 +1,247 @@
-import { useEffect, useRef } from 'react';
-import gsap from 'gsap';
-import { ArrowRight, PlayCircle, TrendUp, Target, CheckCircle, Cpu, DiceSix } from '@phosphor-icons/react';
+import { useRef, useEffect } from 'react';
+import { motion, useScroll, useTransform, useSpring, useMotionValue } from 'framer-motion';
+import { ArrowRight, Crosshair, TerminalWindow, TrendUp } from '@phosphor-icons/react';
+import { Link } from 'react-router-dom';
+
+const easeOut: [number, number, number, number] = [0.23, 1, 0.32, 1]; // Strong custom ease-out per Emil's principles
+
+// Staggered animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.2 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20, scale: 0.95 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,
+    transition: { duration: 0.6, ease: easeOut }
+  }
+};
 
 export default function HeroSection() {
-  const sealRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLElement>(null);
+  
+  // Parallax on scroll for the background grid
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"]
+  });
+  const gridY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
 
-  useEffect(() => {
-    if (sealRef.current) {
-      gsap.to(sealRef.current, {
-        rotation: 360,
-        duration: 30,
-        ease: "none",
-        repeat: -1,
-      });
-    }
-  }, []);
+  // Mouse tracking spring physics for the Data Terminal
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  // Smooth, heavy spring (emulating mass and momentum)
+  const springConfig = { damping: 25, stiffness: 150, mass: 1 };
+  const smoothX = useSpring(mouseX, springConfig);
+  const smoothY = useSpring(mouseY, springConfig);
+
+  // Map mouse movement to rotation (subtle 3D tilt)
+  const rotateX = useTransform(smoothY, [-0.5, 0.5], [10, -10]);
+  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-10, 10]);
+  // Map mouse movement to translation (parallax layers)
+  const translateX = useTransform(smoothX, [-0.5, 0.5], [-30, 30]);
+  const translateY = useTransform(smoothY, [-0.5, 0.5], [-30, 30]);
+
+  // Handle mouse move to update raw motion values (normalized between -0.5 and 0.5)
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!containerRef.current) return;
+    const { left, top, width, height } = containerRef.current.getBoundingClientRect();
+    const x = (e.clientX - left) / width - 0.5;
+    const y = (e.clientY - top) / height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
 
   return (
-    <main className="pt-[var(--spacing-topbar-height)] md:pt-32 pb-24 px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] max-w-[var(--spacing-max-width)] mx-auto relative overflow-hidden">
-      {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[var(--color-primary-container)] opacity-20 rounded-full blur-[100px] -z-10" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[var(--color-warning)] opacity-10 rounded-full blur-[80px] -z-10" />
+    <main 
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="pt-[120px] md:pt-40 pb-32 px-6 md:px-12 max-w-[var(--spacing-max-width)] mx-auto relative overflow-hidden bg-[var(--color-surface)]"
+      style={{ perspective: 1200 }}
+    >
+      {/* Background Architectural Grid (Parallax) */}
+      <motion.div 
+        style={{ y: gridY }}
+        className="absolute inset-0 z-0 pointer-events-none opacity-20"
+      >
+        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="hero-grid" width="60" height="60" patternUnits="userSpaceOnUse">
+              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="black" strokeWidth="1" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#hero-grid)" />
+        </svg>
+      </motion.div>
 
-      {/* Hero Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-[var(--spacing-gutter)] items-center min-h-[716px]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-8 items-center min-h-[70vh] relative z-10">
 
-        {/* Left Content */}
-        <div className="lg:col-span-6 z-10 space-y-8 relative">
-          <h1 className="font-['Archivo_Black'] text-[2.25rem] md:text-[3rem] font-black uppercase leading-none tracking-tighter text-[var(--color-on-background)] drop-shadow-[2px_2px_0px_#F59E0B]">
-            VALORANT TALENT<br />
-            <span className="bg-[var(--color-primary-container)] px-2 border-2 border-[var(--color-on-background)] inline-block mt-2 -rotate-1">DECISION SUPPORT.</span>
-          </h1>
-          <p className="font-['Inter'] text-[1.125rem] font-medium text-[var(--color-secondary)] max-w-xl border-l-4 border-[var(--color-primary)] pl-4 leading-relaxed">
-            Stop guessing. Start scouting with data. Trickster combines automated VLR.gg data with multi-criteria SMART scoring to help coaches build winning rosters.
-          </p>
-          <div className="flex flex-wrap gap-4 pt-4">
-            <a href="#scout" className="bg-[var(--color-primary)] text-[var(--color-on-background)] font-['JetBrains_Mono'] text-xs font-bold uppercase px-8 py-4 border-2 border-[var(--color-on-background)] rounded-full brutal-shadow brutal-hover transition-all interactive-scale flex items-center gap-2 group">
-              START EVALUATING
-              <ArrowRight weight="bold" size={18} className="group-hover:translate-x-1 transition-transform" />
-            </a>
-            <a href="#demo" className="bg-[var(--color-surface)] text-[var(--color-on-background)] font-['JetBrains_Mono'] text-xs font-bold uppercase px-8 py-4 border-2 border-[var(--color-on-background)] rounded-full brutal-shadow-sm brutal-hover transition-all interactive-scale flex items-center gap-2">
-              <PlayCircle weight="bold" size={18} />
-              WATCH DEMO
-            </a>
-          </div>
-
-          {/* Trust Badges */}
-          <div className="pt-8 flex items-center gap-4 text-sm font-['JetBrains_Mono'] font-bold text-[var(--color-secondary)]">
-            <span className="flex items-center gap-1">
-              <CheckCircle weight="fill" className="text-[var(--color-success)]" size={20} />
-              VCT Data Included
+        {/* Left Column: Typography & CTAs */}
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="lg:col-span-6 space-y-8"
+        >
+          <motion.h1 
+            variants={itemVariants}
+            className="font-display text-[3.5rem] md:text-[5.5rem] font-black uppercase leading-[0.9] tracking-tighter text-black"
+          >
+            VALORANT<br/>
+            TALENT<br/>
+            <span className="text-white bg-black px-4 pt-2 pb-1 inline-block mt-2 border-4 border-black">
+              DECISIONS.
             </span>
-            <span className="flex items-center gap-1">
-              <CheckCircle weight="fill" className="text-[var(--color-success)]" size={20} />
-              Live API Sync
-            </span>
-          </div>
-        </div>
+          </motion.h1>
 
-        {/* Right Visuals (Bento / Overlapping) */}
-        <div className="lg:col-span-6 relative mt-16 lg:mt-0 h-[600px] flex items-center justify-center">
+          <motion.div variants={itemVariants} className="pl-6 border-l-8 border-black">
+            <p className="font-label text-sm md:text-base font-bold uppercase tracking-widest text-gray-600 max-w-lg leading-relaxed">
+              Stop guessing. Start scouting with data. Trickster combines automated VLR.gg data with multi-criteria SMART scoring to help coaches build winning rosters.
+            </p>
+          </motion.div>
 
-          {/* GSAP Animated Seal Badge */}
-          <div className="absolute z-30 -top-12 -right-4 md:-right-12 w-36 h-36 md:w-40 md:h-40 drop-shadow-xl">
-            <div ref={sealRef} className="w-full h-full bg-[var(--color-inverse-surface)] rounded-full border-2 border-[var(--color-on-background)] flex items-center justify-center relative">
-              <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full text-[var(--color-inverse-on-surface)]">
-                <defs>
-                  <path id="circlePath" d="M 100, 100 m -75, 0 a 75,75 0 1,1 150,0 a 75,75 0 1,1 -150,0" />
-                </defs>
-                <text className="font-['JetBrains_Mono'] text-[12px] font-bold tracking-[0.1em] uppercase" fill="currentColor">
-                  <textPath href="#circlePath" startOffset="0%">
-                    ★ START EVALUATING ★ START EVALUATING
-                  </textPath>
-                </text>
-              </svg>
-              <div className="text-[var(--color-primary)] font-['Archivo_Black'] text-xl font-black uppercase text-center leading-none z-10">
-                START<br />GENERATE
+          <motion.div variants={itemVariants} className="pt-6">
+            {/* Compound Button */}
+            <div className="relative group inline-block">
+              <Link to="/app/dashboard" className="flex items-stretch hover:-translate-y-1 transition-transform active:scale-[0.97]">
+                {/* Label Segment */}
+                <div className="bg-[#111111] text-white px-8 md:px-10 py-5 rounded-l-full font-display text-xl md:text-2xl uppercase tracking-tighter shadow-[8px_8px_0px_rgba(0,0,0,0.2)] flex items-center justify-center border-y-4 border-l-4 border-black">
+                  START EVALUATING
+                </div>
+                {/* Icon Segment (Fused) */}
+                <div className="bg-[var(--color-primary)] text-black w-16 md:w-20 flex items-center justify-center rounded-r-full border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] group-hover:bg-white transition-colors">
+                  <ArrowRight weight="bold" size={28} />
+                </div>
+              </Link>
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* Right Column: Interactive Data Terminal */}
+        <motion.div 
+          className="lg:col-span-6 relative h-[500px] md:h-[600px] flex items-center justify-center w-full"
+          style={{ transformStyle: 'preserve-3d' }}
+        >
+          <motion.div 
+            style={{ 
+              rotateX, 
+              rotateY,
+              x: translateX,
+              y: translateY
+            }}
+            className="relative w-full max-w-lg aspect-square"
+          >
+            {/* Layer 1: Background Terminal Window */}
+            <div className="absolute inset-0 bg-white border-4 border-black shadow-[16px_16px_0px_rgba(0,0,0,1)] rounded-xl overflow-hidden flex flex-col">
+              {/* Terminal Header */}
+              <div className="bg-black text-white px-4 py-3 border-b-4 border-black flex justify-between items-center shrink-0">
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-white border-2 border-black" />
+                  <div className="w-3 h-3 rounded-full bg-white border-2 border-black" />
+                  <div className="w-3 h-3 rounded-full bg-white border-2 border-black" />
+                </div>
+                <div className="font-numeric text-[10px] font-bold uppercase tracking-widest">
+                  TRICKSTER_SMART_V2.4
+                </div>
+              </div>
+              
+              {/* Terminal Body (Data Viz Mockup) */}
+              <div className="flex-1 p-6 relative overflow-hidden bg-[#FAFAFA]">
+                {/* Radar Chart SVG Graphic */}
+                <svg viewBox="0 0 100 100" className="w-full h-full opacity-80" style={{ filter: 'drop-shadow(4px 4px 0px rgba(0,0,0,0.1))' }}>
+                  {/* Grid Web */}
+                  <polygon points="50,5 95,25 95,75 50,95 5,75 5,25" fill="none" stroke="black" strokeWidth="0.5" opacity="0.3"/>
+                  <polygon points="50,20 80,35 80,65 50,80 20,65 20,35" fill="none" stroke="black" strokeWidth="0.5" opacity="0.3"/>
+                  <polygon points="50,35 65,45 65,55 50,65 35,55 35,45" fill="none" stroke="black" strokeWidth="0.5" opacity="0.3"/>
+                  {/* Axes */}
+                  <line x1="50" y1="50" x2="50" y2="5" stroke="black" strokeWidth="0.5" opacity="0.3"/>
+                  <line x1="50" y1="50" x2="95" y2="25" stroke="black" strokeWidth="0.5" opacity="0.3"/>
+                  <line x1="50" y1="50" x2="95" y2="75" stroke="black" strokeWidth="0.5" opacity="0.3"/>
+                  <line x1="50" y1="50" x2="50" y2="95" stroke="black" strokeWidth="0.5" opacity="0.3"/>
+                  <line x1="50" y1="50" x2="5" y2="75" stroke="black" strokeWidth="0.5" opacity="0.3"/>
+                  <line x1="50" y1="50" x2="5" y2="25" stroke="black" strokeWidth="0.5" opacity="0.3"/>
+                  {/* Data Shape */}
+                  <motion.polygon 
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 1, delay: 0.5, ease: easeOut }}
+                    style={{ transformOrigin: '50% 50%' }}
+                    points="50,15 85,30 70,70 50,85 15,60 25,30" 
+                    fill="var(--color-primary)" 
+                    stroke="black" 
+                    strokeWidth="2" 
+                  />
+                  {/* Highlight Dots */}
+                  <circle cx="50" cy="15" r="2" fill="white" stroke="black" strokeWidth="1" />
+                  <circle cx="85" cy="30" r="2" fill="white" stroke="black" strokeWidth="1" />
+                  <circle cx="70" cy="70" r="2" fill="white" stroke="black" strokeWidth="1" />
+                  <circle cx="50" cy="85" r="2" fill="white" stroke="black" strokeWidth="1" />
+                  <circle cx="15" cy="60" r="2" fill="white" stroke="black" strokeWidth="1" />
+                  <circle cx="25" cy="30" r="2" fill="white" stroke="black" strokeWidth="1" />
+                </svg>
+
+                {/* Overlaid Terminal Text */}
+                <div className="absolute top-6 left-6 font-numeric text-xs font-bold leading-relaxed">
+                  <div className="text-black uppercase">Analyzing: <span className="bg-black text-white px-1">TenZ</span></div>
+                  <div className="text-gray-500 mt-2">Roles: DUELIST, FLEX</div>
+                  <div className="text-gray-500">Tier: S-TIER</div>
+                  <div className="text-gray-500 mt-4 flex items-center gap-2">
+                    <span className="w-2 h-2 bg-[var(--color-primary)] border border-black inline-block animate-pulse" />
+                    SYNCING VCT DATA...
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Main Graphic Card with Decoration Strip */}
-          <div className="absolute w-[90%] md:w-[80%] h-[400px] bg-[var(--color-surface)] border-2 border-[var(--color-on-background)] cut-corner-lg brutal-shadow z-10 flex overflow-hidden group">
-            {/* Decoration Strip */}
-            <div className="w-12 h-full bg-[var(--color-primary)] border-r-2 border-[var(--color-on-background)] flex flex-col items-center py-4 justify-between shrink-0">
-              <span className="text-[var(--color-on-background)] font-black text-lg">★</span>
-              <div className="w-[2px] h-full bg-[var(--color-on-background)] mx-auto opacity-30 my-2"></div>
-              <ArrowRight weight="bold" className="text-[var(--color-on-background)] rotate-90" size={20} />
-            </div>
-            {/* Image Area */}
-            <div className="flex-1 relative overflow-hidden">
-              <div className="absolute inset-0 noise-bg z-10 pointer-events-none opacity-20" />
-              <div className="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                style={{ backgroundImage: "url('https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')" }}>
+            {/* Layer 2: Floating SMART Score Badge (Counter-Parallax) */}
+            <motion.div 
+              style={{ x: useTransform(smoothX, [-0.5, 0.5], [20, -20]), y: useTransform(smoothY, [-0.5, 0.5], [20, -20]) }}
+              className="absolute -top-6 -right-6 md:-top-10 md:-right-10 bg-white border-4 border-black p-6 w-48 md:w-56 shadow-[8px_8px_0px_rgba(0,0,0,1)] z-20"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <span className="font-label text-xs font-bold text-gray-500 uppercase tracking-widest">SMART Score</span>
+                <TrendUp weight="bold" className="text-black" size={24} />
               </div>
-              {/* Inner Overlay Content */}
-              <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent z-20">
-                <h3 className="font-['Archivo_Black'] text-[1.5rem] font-black text-[var(--color-surface)] uppercase">TenZ_Analysis</h3>
-                <p className="font-['JetBrains_Mono'] text-xs font-bold text-[var(--color-primary-container)]">Duelist / Flex</p>
+              <div className="font-numeric text-5xl md:text-6xl font-black text-black">
+                94<span className="text-3xl text-gray-400">.2</span>
               </div>
-            </div>
-          </div>
+              <div className="w-full bg-gray-200 h-3 mt-4 border-2 border-black overflow-hidden">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: "94%" }}
+                  transition={{ duration: 1.5, delay: 1, ease: easeOut }}
+                  className="bg-[var(--color-primary)] h-full border-r-2 border-black" 
+                />
+              </div>
+            </motion.div>
 
-          {/* Floating Data Card 1 */}
-          <div className="absolute z-20 top-20 -left-4 md:-left-12 bg-[var(--color-surface)] border-2 border-[var(--color-on-background)] p-4 rounded-lg brutal-shadow-sm w-48 rotate-[-5deg] md:hover:rotate-0 transition-transform">
-            <div className="flex justify-between items-center mb-2">
-              <span className="font-['JetBrains_Mono'] text-xs font-bold text-[var(--color-secondary)] uppercase">SMART Score</span>
-              <TrendUp weight="bold" className="text-[var(--color-primary)]" size={16} />
-            </div>
-            <div className="font-['JetBrains_Mono'] text-3xl font-bold text-[var(--color-on-background)]">94.2</div>
-            <div className="w-full bg-[var(--color-surface-variant)] h-2 mt-2 rounded-full overflow-hidden">
-              <div className="bg-[var(--color-primary)] h-full w-[94%]" />
-            </div>
-          </div>
+            {/* Layer 3: Sticker Badge */}
+            <motion.div 
+              style={{ x: useTransform(smoothX, [-0.5, 0.5], [40, -40]), y: useTransform(smoothY, [-0.5, 0.5], [40, -40]) }}
+              className="absolute -bottom-8 -left-8 w-28 h-28 bg-[var(--color-primary)] rounded-full border-4 border-black flex flex-col items-center justify-center shadow-[4px_4px_0px_rgba(0,0,0,1)] z-30 -rotate-12 cursor-default"
+            >
+              <Crosshair weight="bold" size={32} className="text-black mb-1" />
+              <span className="font-label text-[9px] font-bold uppercase text-center leading-tight tracking-widest text-black">
+                MATCH<br/>SYNCED
+              </span>
+            </motion.div>
+          </motion.div>
+        </motion.div>
 
-          {/* Floating Data Card 2 */}
-          <div className="absolute z-20 bottom-24 -right-4 md:-right-8 bg-[var(--color-primary-container)] border-2 border-[var(--color-on-background)] p-4 rounded-lg brutal-shadow-sm w-40 rotate-[3deg] md:hover:rotate-0 transition-transform">
-            <div className="flex items-center gap-2 mb-2">
-              <Target weight="bold" size={16} />
-              <span className="font-['JetBrains_Mono'] text-xs font-bold uppercase">Role Match</span>
-            </div>
-            <div className="font-['Archivo_Black'] text-[1.5rem] font-black text-[var(--color-on-background)] leading-tight uppercase">Initiator</div>
-            <div className="text-xs font-['JetBrains_Mono'] font-bold mt-1 opacity-80">98% Synergy</div>
-          </div>
-
-          {/* Decorative Grid Lines */}
-          <svg className="absolute inset-0 w-full h-full z-0 opacity-20 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="1" className="text-[var(--color-on-background)]" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
-          </svg>
-        </div>
-      </div>
-
-      {/* Bottom Right Info Box (Fixed, but we will place it absolutely within main or just fixed globally) */}
-      <div className="fixed bottom-6 right-6 z-40 hidden md:block">
-        <div className="bg-[var(--color-inverse-surface)] text-[var(--color-inverse-on-surface)] border-2 border-[var(--color-on-background)] p-4 rounded-lg brutal-shadow-sm w-64">
-          <div className="flex items-start gap-3">
-            <Cpu weight="fill" className="text-[var(--color-primary-container)]" size={24} />
-            <div>
-              <h4 className="font-['JetBrains_Mono'] text-[10px] font-bold uppercase mb-1 text-[var(--color-primary-container)] tracking-wider">Powered By</h4>
-              <p className="font-['Inter'] text-sm font-medium">SMART Algorithm v2.4</p>
-              <p className="font-['JetBrains_Mono'] text-[10px] font-bold text-[var(--color-text-muted)] mt-2">Processing 10k+ matches/day</p>
-            </div>
-          </div>
-        </div>
       </div>
     </main>
   );
