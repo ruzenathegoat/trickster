@@ -47,7 +47,7 @@ class SyncEventJob implements ShouldQueue
                         $queueItem = MatchScrapeQueue::firstOrCreate(
                             ["vlr_match_id" => $matchId],
                             [
-                                "event_id" => $this->event->id,
+                                "vlr_event_id" => $this->event->vlr_event_id,
                                 "url" => "https://www.vlr.gg" . $link,
                                 "status" => "pending"
                             ]

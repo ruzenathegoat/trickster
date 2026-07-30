@@ -117,10 +117,12 @@ class SyncMatchJob implements ShouldQueue
                     }
                 }
 
+                $event = \App\Models\Event::where('vlr_event_id', $this->queueItem->vlr_event_id)->first();
+
                 MatchData::updateOrCreate(
                     ["vlr_match_id" => $this->queueItem->vlr_match_id],
                     [
-                        "event_id" => $this->queueItem->event_id,
+                        "event_id" => $event ? $event->id : null,
                         "team_a_id" => $teamA->id,
                         "team_b_id" => $teamB->id,
                         "winner_team_id" => $winnerTeamId,

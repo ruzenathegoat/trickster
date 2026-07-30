@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class MatchScrapeQueue extends Model
 {
     protected $fillable = [
-        'event_id',
+        'vlr_event_id',
         'vlr_match_id',
         'url',
         'status',

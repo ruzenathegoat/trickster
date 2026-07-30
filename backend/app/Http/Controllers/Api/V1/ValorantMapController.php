@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\ValorantMap;
 
 class ValorantMapController extends Controller
 {
     public function index()
     {
-        $maps = \App\Models\ValorantMap::where('is_active', true)->get();
+        $maps = ValorantMap::where('is_active', true)->get();
         return response()->json($maps);
     }
 }
