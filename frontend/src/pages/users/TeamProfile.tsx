@@ -68,7 +68,11 @@ export default function TeamProfile() {
       lineColor: '#000',
       lineWidth: 2,
       tickColor: '#000',
-      labels: { style: { color: '#000', fontWeight: 'bold', fontSize: '10px' } }
+      labels: { 
+        style: { color: '#000', fontWeight: 'bold', fontSize: '10px' },
+        rotation: -45,
+        align: 'right'
+      }
     },
     yAxis: {
       min: 0,
