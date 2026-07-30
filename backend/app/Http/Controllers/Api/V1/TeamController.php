@@ -89,7 +89,9 @@ class TeamController extends Controller
         $team = Team::with([
             'players',
             'matchesAsTeamA.event',
-            'matchesAsTeamB.event'
+            'matchesAsTeamB.event',
+            'matchesAsTeamA.maps',
+            'matchesAsTeamB.maps'
         ])->findOrFail($id);
 
         $allMatches = $team->matchesAsTeamA->concat($team->matchesAsTeamB);
@@ -139,6 +141,46 @@ class TeamController extends Controller
             return $b['total'] <=> $a['total'];
         });
 
+        // Compute most picked maps
+        $valorantMaps = \App\Models\ValorantMap::all()->keyBy('name');
+        $mapStats = [];
+        $totalMapsPlayed = 0;
+
+        foreach ($allMatches as $match) {
+            foreach ($match->maps as $map) {
+                if (!$map->valorant_map_name) continue;
+                $mapName = $map->valorant_map_name;
+                
+                if (!isset($mapStats[$mapName])) {
+                    $mapStats[$mapName] = ['picks' => 0, 'wins' => 0];
+                }
+                
+                $mapStats[$mapName]['picks']++;
+                $totalMapsPlayed++;
+                
+                if ($map->winner_team_id === $team->id) {
+                    $mapStats[$mapName]['wins']++;
+                }
+            }
+        }
+        
+        $mostPickedMaps = [];
+        foreach ($mapStats as $mapName => $stats) {
+            $vMap = $valorantMaps->get($mapName);
+            $mostPickedMaps[] = [
+                'name' => $mapName,
+                'count' => $stats['picks'],
+                'win_rate' => $stats['picks'] > 0 ? round(($stats['wins'] / $stats['picks']) * 100, 1) : 0,
+                'percentage' => $totalMapsPlayed > 0 ? round(($stats['picks'] / $totalMapsPlayed) * 100, 1) . '%' : '0%',
+                'icon_url' => $vMap ? $vMap->list_view_icon : null,
+                'splash_url' => $vMap ? $vMap->splash_url : null,
+            ];
+        }
+
+        usort($mostPickedMaps, function($a, $b) {
+            return $b['count'] <=> $a['count'];
+        });
+
         return response()->json([
             'id' => $team->id,
             'name' => $team->name,
@@ -151,7 +193,8 @@ class TeamController extends Controller
                 'total_wins' => $totalWins,
                 'total_losses' => $totalLosses,
                 'tournaments' => $tournaments
-            ]
+            ],
+            'most_picked_maps' => $mostPickedMaps
         ]);
     }
 }

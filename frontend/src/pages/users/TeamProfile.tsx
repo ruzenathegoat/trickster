@@ -206,6 +206,50 @@ export default function TeamProfile() {
               </div>
             )}
           </motion.div>
+
+          {/* Map Pool Card */}
+          {team.most_picked_maps && team.most_picked_maps.length > 0 && (
+            <motion.div 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.15 }}
+              className="bg-white border-2 border-black p-6"
+              style={{ boxShadow: '6px 6px 0px rgba(0,0,0,1)' }}
+            >
+              <div className="flex items-center gap-3 border-b-2 border-black pb-4 mb-6">
+                <Trophy size={24} weight="bold" />
+                <h2 className="text-2xl font-['Archivo_Black'] uppercase tracking-tight">Map Pool (2026)</h2>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+                {team.most_picked_maps.slice(0, 8).map((map: any) => (
+                  <motion.div key={map.name} className="flex flex-col items-center bg-gray-50 border-2 border-black p-3 hover:-translate-y-1 hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-all relative overflow-hidden group">
+                    <div className="w-full h-24 mb-3 relative bg-[var(--color-primary-subtle)] border-2 border-black overflow-hidden flex items-center justify-center">
+                      {map.icon_url ? (
+                        <img src={map.icon_url} alt={map.name} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                      ) : (
+                        <span className="font-['Archivo_Black'] text-xs text-gray-400">NO MAP IMAGE</span>
+                      )}
+                      
+                      {/* Overlay Win Rate */}
+                      <div className="absolute top-1 right-1 bg-black text-white px-2 py-0.5 border-2 border-black">
+                        <span className="font-['JetBrains_Mono'] font-bold text-[10px] uppercase">WR {map.win_rate}%</span>
+                      </div>
+                    </div>
+                    <span className="font-['Archivo_Black'] text-sm uppercase text-center w-full truncate mb-1" title={map.name}>{map.name}</span>
+                    <div className="flex flex-col items-center gap-0.5 w-full">
+                      <div className="w-full h-1.5 bg-gray-200 mt-1 mb-1">
+                         <div className="h-full bg-[var(--color-primary)]" style={{ width: map.percentage }} />
+                      </div>
+                      <div className="flex justify-between w-full">
+                        <span className="font-['JetBrains_Mono'] font-bold text-gray-800 text-[10px] leading-none">{map.percentage}</span>
+                        <span className="text-[10px] font-bold text-gray-500 uppercase leading-none">{map.count} picks</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
         </div>
 
         {/* Right Column: Roster */}
