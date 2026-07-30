@@ -15,6 +15,8 @@ interface RecentMatch {
   event: string;
   team_a: string;
   team_b: string;
+  team_a_logo?: string | null;
+  team_b_logo?: string | null;
   team_a_id: string;
   team_b_id: string;
   winner_id: string;
@@ -238,17 +240,23 @@ export default function Dashboard() {
                     </td>
                     <td className="px-6 py-5 font-['JetBrains_Mono'] transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] group-active:scale-[0.98] origin-left">
                       <div className="flex items-center gap-3">
-                        <span className={match.winner_id === match.team_a_id ? "font-black text-black" : "text-gray-400 font-bold"}>
+                        <span className={`flex items-center gap-2 ${match.winner_id === match.team_a_id ? "font-black text-black" : "text-gray-400 font-bold"}`}>
+                          {match.team_a_logo && (
+                             <img src={match.team_a_logo} alt={match.team_a} className="w-5 h-5 object-contain" />
+                          )}
                           {match.team_a}
                           {match.winner_id === match.team_a_id && (
-                            <span className="inline-block bg-[var(--color-primary)] text-black border-2 border-black px-1.5 py-0.5 ml-2 font-black text-[10px] uppercase shadow-[2px_2px_0px_rgba(0,0,0,1)] -translate-y-0.5">WIN</span>
+                            <span className="inline-block bg-[var(--color-primary)] text-black border-2 border-black px-1.5 py-0.5 ml-1 font-black text-[10px] uppercase shadow-[2px_2px_0px_rgba(0,0,0,1)] -translate-y-0.5">WIN</span>
                           )}
                         </span>
                         <span className="text-gray-300 font-black mx-1 italic">VS</span>
-                        <span className={match.winner_id === match.team_b_id ? "font-black text-black" : "text-gray-400 font-bold"}>
+                        <span className={`flex items-center gap-2 ${match.winner_id === match.team_b_id ? "font-black text-black" : "text-gray-400 font-bold"}`}>
+                          {match.team_b_logo && (
+                             <img src={match.team_b_logo} alt={match.team_b} className="w-5 h-5 object-contain" />
+                          )}
                           {match.team_b}
                           {match.winner_id === match.team_b_id && (
-                            <span className="inline-block bg-[var(--color-primary)] text-black border-2 border-black px-1.5 py-0.5 ml-2 font-black text-[10px] uppercase shadow-[2px_2px_0px_rgba(0,0,0,1)] -translate-y-0.5">WIN</span>
+                            <span className="inline-block bg-[var(--color-primary)] text-black border-2 border-black px-1.5 py-0.5 ml-1 font-black text-[10px] uppercase shadow-[2px_2px_0px_rgba(0,0,0,1)] -translate-y-0.5">WIN</span>
                           )}
                         </span>
                       </div>

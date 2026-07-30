@@ -91,6 +91,8 @@ class DashboardController extends Controller
                 'event' => $match->event->name ?? 'Unknown Event',
                 'team_a' => $match->teamA->name ?? 'TBD',
                 'team_b' => $match->teamB->name ?? 'TBD',
+                'team_a_logo' => $match->teamA->logo_url ?? null,
+                'team_b_logo' => $match->teamB->logo_url ?? null,
                 'team_a_id' => $match->team_a_id,
                 'team_b_id' => $match->team_b_id,
                 'winner_id' => $match->winner_team_id
