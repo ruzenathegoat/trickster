@@ -69,7 +69,7 @@ export default function TeamProfile() {
       lineWidth: 2,
       tickColor: '#000',
       labels: { 
-        style: { color: '#000', fontWeight: 'bold', fontSize: '10px' },
+        style: { color: '#000', fontWeight: 'bold', fontSize: '10px', textOverflow: 'ellipsis' },
         rotation: -45,
         align: 'right'
       }
@@ -195,7 +195,7 @@ export default function TeamProfile() {
             </div>
             <div className="p-6">
               {stats.tournaments.length > 0 ? (
-                <div className="h-80">
+                <div className="h-[420px]">
                   <HighchartsReact highcharts={Highcharts} options={chartOptions} />
                 </div>
               ) : (
