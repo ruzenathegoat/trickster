@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import Marquee from 'react-fast-marquee';
+
 
 export default function AdminLayout() {
   const location = useLocation();
@@ -56,8 +56,8 @@ export default function AdminLayout() {
 
         {/* Marquee Area */}
         <div className="flex-1 flex items-center border-b-4 md:border-b-0 md:border-r-4 border-black overflow-hidden bg-black text-white relative">
-          <Marquee speed={40} gradient={false} className="py-3">
-            <div className="flex items-center gap-8 font-label text-xs font-bold uppercase tracking-widest px-4">
+          <div className="flex w-[200%] animate-marquee py-3">
+            <div className="flex items-center justify-around w-1/2 gap-8 font-label text-xs font-bold uppercase tracking-widest px-4">
               <span className="text-[var(--color-primary)]">/// SYSTEM STATUS: ONLINE ///</span>
               <span>LATEST SCRAPE: SUCCESS (VCT 2026 CHINA KICKOFF)</span>
               <span>ACTIVE WORKERS: 12</span>
@@ -65,7 +65,15 @@ export default function AdminLayout() {
               <span className="text-red-500">WARNING: 3 FAILED JOBS DETECTED</span>
               <span className="text-[var(--color-primary)]">/// END OF LINE ///</span>
             </div>
-          </Marquee>
+            <div className="flex items-center justify-around w-1/2 gap-8 font-label text-xs font-bold uppercase tracking-widest px-4">
+              <span className="text-[var(--color-primary)]">/// SYSTEM STATUS: ONLINE ///</span>
+              <span>LATEST SCRAPE: SUCCESS (VCT 2026 CHINA KICKOFF)</span>
+              <span>ACTIVE WORKERS: 12</span>
+              <span>MEMORY USAGE: 42%</span>
+              <span className="text-red-500">WARNING: 3 FAILED JOBS DETECTED</span>
+              <span className="text-[var(--color-primary)]">/// END OF LINE ///</span>
+            </div>
+          </div>
         </div>
 
         {/* User Actions */}
