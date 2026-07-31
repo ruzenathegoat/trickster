@@ -26,15 +26,7 @@ export default function AuthLayout() {
           </h1>
         </div>
         
-        {/* Rotating Seal */}
-        <div className="absolute bottom-[var(--spacing-margin-desktop)] right-[var(--spacing-margin-desktop)] w-32 h-32 z-10 animate-spin-slow flex items-center justify-center">
-          <svg className="w-full h-full fill-[var(--color-on-background)]" viewBox="0 0 100 100">
-            <path d="M 50,50 m -40,0 a 40,40 0 1,1 80,0 a 40,40 0 1,1 -80,0" fill="transparent" id="curve"></path>
-            <text className="font-['JetBrains_Mono'] text-[10.5px] font-bold uppercase tracking-widest">
-              <textPath href="#curve" startOffset="0%">* SCOUTING * ANALYTICS * ROSTERS </textPath>
-            </text>
-          </svg>
-        </div>
+
       </div>
       
       {/* Right Panel: Form Area */}
