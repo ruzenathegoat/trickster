@@ -65,19 +65,17 @@ export default function Leaderboard() {
     return (
       <div className="space-y-16 max-w-7xl pb-24">
         <div>
-          <Skeleton className="h-12 w-80 mb-4 bg-gray-200" />
-          <Skeleton className="h-5 w-96 bg-gray-100" />
+          <Skeleton className="h-12 w-80 mb-4 border-2 border-black" />
+          <Skeleton className="h-5 w-96 border-2 border-black" />
         </div>
-        
-        <div className="flex flex-col lg:flex-row gap-6 md:gap-8 pt-8">
-          <Skeleton className="flex-1 min-h-[500px] border-4 border-black bg-gray-100" />
-          <div className="flex flex-col gap-6 md:gap-8 lg:w-[40%]">
-            <Skeleton className="flex-1 h-64 border-4 border-black bg-gray-50" />
-            <Skeleton className="flex-1 h-64 border-4 border-black bg-gray-50" />
+        <div className="flex flex-col lg:flex-row gap-12 mt-12">
+          <Skeleton className="flex-1 min-h-[500px] border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+          <div className="flex-[2] flex flex-col gap-12">
+            <Skeleton className="flex-1 h-64 border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+            <Skeleton className="flex-1 h-64 border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
           </div>
         </div>
-        
-        <Skeleton className="h-96 w-full mt-16 bg-gray-50 border-t-4 border-black" />
+        <Skeleton className="h-96 w-full mt-16 border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
       </div>
     );
   }

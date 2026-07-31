@@ -68,13 +68,13 @@ export default function PlayerProfile() {
   if (loading) {
     return (
       <div className="space-y-8 max-w-7xl pb-24">
-        <Skeleton className="h-6 w-48 bg-gray-200" />
+        <Skeleton className="h-6 w-48 border-2 border-black" />
         <div className="flex flex-col lg:flex-row gap-12">
-          <Skeleton className="w-full lg:w-[400px] h-[800px] border-4 border-black bg-gray-100 shrink-0" />
+          <Skeleton className="w-full lg:w-[400px] h-[800px] border-4 border-black shadow-[12px_12px_0px_0px_#111111] shrink-0" />
           <div className="flex-1 space-y-12">
-            <Skeleton className="h-96 w-full border-4 border-black bg-gray-50" />
-            <Skeleton className="h-48 w-full border-t-4 border-black bg-gray-50" />
-            <Skeleton className="h-48 w-full border-t-4 border-black bg-gray-50" />
+            <Skeleton className="h-96 w-full border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+            <Skeleton className="h-48 w-full border-t-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+            <Skeleton className="h-48 w-full border-t-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
           </div>
         </div>
       </div>

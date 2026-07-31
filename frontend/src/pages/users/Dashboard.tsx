@@ -65,15 +65,15 @@ export default function Dashboard() {
     return (
       <div className="space-y-16 max-w-7xl">
         <div>
-          <Skeleton className="h-12 w-80 mb-4 bg-gray-200" />
-          <Skeleton className="h-5 w-96 bg-gray-100" />
+          <Skeleton className="h-12 w-80 mb-4 border-2 border-black" />
+          <Skeleton className="h-5 w-96 border-2 border-black" />
         </div>
-        <Skeleton className="h-[28rem] w-full bg-gray-100 border-2 border-black" />
+        <Skeleton className="h-[28rem] w-full border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
         <div className="flex flex-col md:flex-row gap-16">
-          <Skeleton className="h-64 flex-1 bg-gray-100" />
-          <Skeleton className="h-48 w-full md:w-[35%] bg-gray-50" />
+          <Skeleton className="h-64 flex-1 border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+          <Skeleton className="h-48 w-full md:w-[35%] border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
         </div>
-        <Skeleton className="h-64 w-full bg-gray-100 border-t-2 border-black" />
+        <Skeleton className="h-64 w-full border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
       </div>
     );
   }

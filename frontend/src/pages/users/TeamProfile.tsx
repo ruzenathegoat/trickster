@@ -30,11 +30,11 @@ export default function TeamProfile() {
   if (loading) {
     return (
       <div className="space-y-8 max-w-7xl mx-auto">
-        <Skeleton className="h-8 w-32" />
-        <Skeleton className="h-[400px] w-full border-4 border-black" />
+        <Skeleton className="h-8 w-32 border-2 border-black" />
+        <Skeleton className="h-[400px] w-full border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Skeleton className="lg:col-span-2 h-96 border-4 border-black" />
-          <Skeleton className="h-96 border-4 border-black" />
+          <Skeleton className="lg:col-span-2 h-96 border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+          <Skeleton className="h-96 border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
         </div>
       </div>
     );

@@ -54,12 +54,15 @@ export default function TeamExplorer() {
   if (loadingTop) {
     return (
       <div className="space-y-8 max-w-7xl">
-        <Skeleton className="h-12 w-64 border-2 border-black" />
-        <div className="flex gap-6">
-          <Skeleton className="flex-[2] h-[500px] border-4 border-black" />
-          <div className="flex-1 space-y-4">
-            <Skeleton className="h-60 border-4 border-black" />
-            <Skeleton className="h-60 border-4 border-black" />
+        <div>
+          <Skeleton className="h-12 w-64 border-2 border-black mb-4" />
+          <Skeleton className="h-6 w-96 border-2 border-black" />
+        </div>
+        <div className="flex flex-col lg:flex-row gap-12 mt-12">
+          <Skeleton className="flex-[2] h-[500px] border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+          <div className="flex-1 flex flex-col gap-12">
+            <Skeleton className="h-60 border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+            <Skeleton className="h-60 border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
           </div>
         </div>
       </div>

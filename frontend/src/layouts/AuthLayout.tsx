@@ -1,52 +1,55 @@
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AuthLayout() {
-  return (
-    <div className="bg-[var(--color-background)] text-[var(--color-on-background)] min-h-screen flex flex-col md:flex-row overflow-hidden font-['Inter']">
-      
-      {/* Left Panel: Branding (Hidden on Mobile) */}
-      <div className="hidden md:flex flex-col justify-between w-[40%] bg-[var(--color-background)] p-[var(--spacing-margin-desktop)] relative overflow-hidden border-r-2 border-[var(--color-on-background)]">
-        
-        {/* Brand Logo Area */}
-        <div className="z-10">
-          <Link to="/" className="flex items-center gap-2 font-['Archivo_Black'] text-[var(--font-h2-size,2rem)] font-extrabold uppercase tracking-tighter hover:text-[var(--color-primary)] transition-colors">
-            <img src="/logo.png" alt="Trickster Logo" className="w-8 h-8 object-contain" />
-            Trickster*
-          </Link>
-        </div>
-        
-        {/* Decorative Elements */}
-        <div className="absolute inset-0 noise-bg opacity-40 pointer-events-none" />
-        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, black 1px, transparent 0)', backgroundSize: '32px 32px' }} />
-        
-        {/* Large Headline */}
-        <div className="z-10 mt-auto mb-32">
-          <h1 className="font-['Archivo_Black'] text-[4rem] xl:text-[5rem] uppercase font-black leading-none max-w-sm tracking-tighter">
-            ENTER<br />THE<br />META.
-          </h1>
-        </div>
-        
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
 
-      </div>
-      
-      {/* Right Panel: Form Area */}
-      <div className="flex-1 flex flex-col justify-center items-center p-[var(--spacing-margin-mobile)] md:p-[var(--spacing-margin-desktop)] bg-[var(--color-surface-variant)] min-h-screen md:min-h-0 relative">
-        <div className="absolute inset-0 noise-bg opacity-30 pointer-events-none" />
-        
-        {/* Mobile Logo (Visible only on small screens) */}
-        <div className="md:hidden w-full max-w-md mb-8 flex justify-center z-10">
-          <Link to="/" className="flex items-center gap-2 font-['Archivo_Black'] text-[2.25rem] font-extrabold uppercase tracking-tighter">
-            <img src="/logo.png" alt="Trickster Logo" className="w-8 h-8 object-contain" />
-            Trickster*
-          </Link>
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white">
+        {/* Left Form Skeleton */}
+        <div className="w-full lg:w-1/2 min-h-screen flex items-center justify-center p-8 md:p-12 relative z-10">
+          <div className="w-full max-w-md space-y-8">
+            <Skeleton className="w-12 h-12 border-4 border-black shadow-[4px_4px_0px_#111111]" />
+            <div className="space-y-4">
+              <Skeleton className="h-16 w-64 border-2 border-black" />
+              <div className="w-16 h-2 bg-gray-200 border-2 border-black" />
+              <Skeleton className="h-6 w-80" />
+            </div>
+            <div className="space-y-6 mt-12">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-14 w-full border-4 border-black shadow-[4px_4px_0px_#111111]" />
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+                <Skeleton className="h-14 w-full border-4 border-black shadow-[4px_4px_0px_#111111]" />
+              </div>
+              <Skeleton className="h-16 w-full mt-8 border-4 border-black shadow-[6px_6px_0px_#111111]" />
+            </div>
+          </div>
         </div>
-        
-        <Outlet />
-        
-        <div className="mt-8 md:hidden text-center z-10">
-          <p className="font-['JetBrains_Mono'] text-xs font-bold uppercase text-[var(--color-secondary)]">© 2024 TRICKSTER MEDIA GROUP.</p>
+        {/* Right Brand Skeleton */}
+        <div className="hidden lg:flex lg:w-1/2 min-h-screen bg-black border-l-4 border-black flex-col items-center justify-center p-12">
+          <div className="w-full max-w-xl space-y-8">
+            <Skeleton className="h-8 w-48 border-2 border-white bg-gray-800" />
+            <Skeleton className="h-48 w-full bg-gray-900 border-none" />
+            <Skeleton className="h-24 w-full bg-gray-800 border-none" />
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  if (user) {
+    return <Navigate to="/app/dashboard" state={{ from: location }} replace />;
+  }
+
+  // Pass through directly to Auth pages (Login, Register) which handle their own split-screen layouts
+  return <Outlet />;
 }
