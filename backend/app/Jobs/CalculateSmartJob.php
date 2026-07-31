@@ -181,5 +181,15 @@ class CalculateSmartJob implements ShouldQueue
             FROM RankedResults
             WHERE player_smart_results.id = RankedResults.id;
         ');
+
+        // Step 6: Capture daily snapshot for Growth Chart
+        $today = now()->format('Y-m-d');
+        DB::statement("
+            INSERT INTO player_smart_rank_history (player_id, profile_id, mode, patch_id, final_score, rank, snapshot_date, created_at, updated_at)
+            SELECT player_id, profile_id, mode, patch_id, final_score, rank, '{$today}', NOW(), NOW()
+            FROM player_smart_results
+            ON CONFLICT (player_id, profile_id, mode, snapshot_date)
+            DO UPDATE SET final_score = EXCLUDED.final_score, rank = EXCLUDED.rank, updated_at = NOW();
+        ");
     }
 }

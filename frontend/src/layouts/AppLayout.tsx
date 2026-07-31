@@ -40,7 +40,7 @@ export default function AppLayout() {
     { label: 'Recommend', icon: Sparkle, path: '/app/recommend' },
     { label: 'Simulation', icon: Sword, path: '/app/simulation' },
     { label: 'Meta', icon: TrendUp, path: '/app/meta' },
-    { label: 'My Profiles', icon: UserCircle, path: '/app/profiles' },
+    { label: 'My Profile', icon: UserCircle, path: '/app/profile' },
   ];
 
   return (
@@ -123,14 +123,18 @@ export default function AppLayout() {
           </button>
 
           <Link 
-            to="/app/account"
+            to="/app/profile"
             className={clsx(
               "flex items-center gap-3 p-3 border-2 border-black bg-[var(--color-primary)] hover:bg-black hover:text-[var(--color-primary)] transition-colors group",
               collapsed && "justify-center"
             )}
           >
-            <div className="w-8 h-8 rounded-full bg-black text-[var(--color-primary)] border-2 border-black flex items-center justify-center shrink-0 group-hover:bg-[var(--color-primary)] group-hover:text-black transition-colors">
-              <UserCircle weight="fill" size={24} />
+            <div className="w-8 h-8 rounded-full bg-black text-[var(--color-primary)] border-2 border-black overflow-hidden flex items-center justify-center shrink-0 group-hover:bg-[var(--color-primary)] group-hover:text-black transition-colors">
+              {user?.profile_photo_url ? (
+                <img src={user.profile_photo_url} alt={user.name} className="w-full h-full object-cover" />
+              ) : (
+                <UserCircle weight="fill" size={24} />
+              )}
             </div>
             {!collapsed && (
               <div className="overflow-hidden flex-1">
@@ -145,7 +149,7 @@ export default function AppLayout() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Topbar */}
-        <header className="h-[80px] sticky top-0 bg-white border-b-4 border-black flex items-center justify-between px-8 shrink-0 z-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiMwMDAwMDAiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')]">
+        <header className="h-[80px] sticky top-0 bg-white border-b-4 border-black flex items-center justify-between px-8 shrink-0 z-40 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiMwMDAwMDAiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')]">
           <div className="flex-1 max-w-xl">
             <div className="relative group">
               <MagnifyingGlass weight="bold" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-black transition-transform group-focus-within:scale-110" />

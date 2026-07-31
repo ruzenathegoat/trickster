@@ -13,7 +13,9 @@ class ValorantAgentController extends Controller
      */
     public function index(Request $request)
     {
-        $agents = ValorantAgent::all();
+        $agents = \Illuminate\Support\Facades\Cache::rememberForever('api_valorant_agents', function() {
+            return ValorantAgent::all()->toArray();
+        });
         
         return response()->json([
             'data' => $agents

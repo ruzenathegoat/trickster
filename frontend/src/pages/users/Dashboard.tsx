@@ -46,19 +46,40 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    let isMounted = true;
+
+    const fetchDashboardData = async (showLoading = true) => {
+      if (showLoading) setLoading(true);
       try {
         const response = await axios.get('/api/v1/dashboard');
-        setData(response.data);
+        if (isMounted) {
+          setData(response.data);
+          setError(null);
+        }
       } catch (err: any) {
-        console.error(err);
-        setError('Failed to load dashboard data.');
+        if (isMounted) {
+          console.error(err);
+          if (!data) setError('Failed to load dashboard data.');
+        }
       } finally {
-        setLoading(false);
+        if (isMounted && showLoading) {
+          setLoading(false);
+        }
       }
     };
     
-    fetchDashboardData();
+    // Initial fetch
+    fetchDashboardData(true);
+
+    // Poll every 60 seconds
+    const interval = setInterval(() => {
+      fetchDashboardData(false);
+    }, 60000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   if (loading) {
@@ -257,18 +278,20 @@ export default function Dashboard() {
                     </td>
                     <td className="py-6 pl-8 font-['JetBrains_Mono']">
                       <div className="flex items-center gap-6">
-                        <span className={`flex items-center gap-3 w-[180px] justify-end ${match.winner_id === match.team_a_id ? "font-black text-black" : "text-gray-400 font-bold"}`}>
+                        <span className={`flex items-center gap-3 w-[220px] justify-end ${match.winner_id === match.team_a_id ? "font-black text-black" : "text-gray-400 font-bold"}`}>
+                          {match.winner_id === match.team_a_id && <span className="text-[10px] font-black bg-[var(--color-primary)] text-black border-2 border-black px-1.5 py-0.5 uppercase tracking-widest leading-none shadow-[2px_2px_0px_rgba(0,0,0,1)]">WIN</span>}
                           <span className="truncate">{match.team_a}</span>
                           {match.team_a_logo && (
                              <img src={match.team_a_logo} alt={match.team_a} className="w-6 h-6 object-contain shrink-0" />
                           )}
                         </span>
-                        <span className="text-gray-300 font-black text-[11px] uppercase tracking-widest">VS</span>
-                        <span className={`flex items-center gap-3 w-[180px] ${match.winner_id === match.team_b_id ? "font-black text-black" : "text-gray-400 font-bold"}`}>
+                        <span className="text-gray-300 font-black text-[11px] uppercase tracking-widest shrink-0">VS</span>
+                        <span className={`flex items-center gap-3 w-[220px] ${match.winner_id === match.team_b_id ? "font-black text-black" : "text-gray-400 font-bold"}`}>
                           {match.team_b_logo && (
                              <img src={match.team_b_logo} alt={match.team_b} className="w-6 h-6 object-contain shrink-0" />
                           )}
                           <span className="truncate">{match.team_b}</span>
+                          {match.winner_id === match.team_b_id && <span className="text-[10px] font-black bg-[var(--color-primary)] text-black border-2 border-black px-1.5 py-0.5 uppercase tracking-widest leading-none shadow-[2px_2px_0px_rgba(0,0,0,1)]">WIN</span>}
                         </span>
                       </div>
                     </td>

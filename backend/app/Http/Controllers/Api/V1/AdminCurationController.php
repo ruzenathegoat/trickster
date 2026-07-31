@@ -10,6 +10,15 @@ use Illuminate\Support\Facades\DB;
 
 class AdminCurationController extends Controller
 {
+    private function getCacheKey($name) {
+        $version = \Illuminate\Support\Facades\Cache::get('api_admin_cache_version', 1);
+        return $name . '_v' . $version;
+    }
+
+    private function invalidateCache() {
+        \Illuminate\Support\Facades\Cache::put('api_admin_cache_version', microtime(true));
+    }
+
     public function storePatchRating(Request $request)
     {
         $validated = $request->validate([
@@ -88,6 +97,7 @@ class AdminCurationController extends Controller
             $oldRating->update(['superseded_by_id' => $newRating->id]);
             
             DB::commit();
+            $this->invalidateCache();
             return response()->json($newRating, 201);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -104,62 +114,67 @@ class AdminCurationController extends Controller
         ]);
         
         $mapping = StageLabelMapping::create($validated);
+        $this->invalidateCache();
         return response()->json($mapping, 201);
     }
 
     public function getStageMappings()
     {
-        return response()->json(StageLabelMapping::all());
+        return response()->json(\Illuminate\Support\Facades\Cache::remember($this->getCacheKey('stage_mappings'), 3600, fn() => StageLabelMapping::all()->toArray()));
     }
 
     public function getPatchRatings()
     {
-        return response()->json(
+        return response()->json(\Illuminate\Support\Facades\Cache::remember($this->getCacheKey('patch_ratings'), 3600, fn() => 
             AgentPatchRating::with('patch')
                 ->join('patches', 'agent_patch_ratings.patch_id', '=', 'patches.id')
                 ->orderBy('patches.release_date', 'desc')
                 ->select('agent_patch_ratings.*')
-                ->get()
-        );
+                ->get()->toArray()
+        ));
     }
 
     public function getMapRatings()
     {
-        return response()->json(
+        return response()->json(\Illuminate\Support\Facades\Cache::remember($this->getCacheKey('map_ratings'), 3600, fn() => 
             AgentMapRating::with('patch')
                 ->join('patches', 'agent_map_ratings.patch_id', '=', 'patches.id')
                 ->orderBy('patches.release_date', 'desc')
                 ->select('agent_map_ratings.*')
-                ->get()
-        );
+                ->get()->toArray()
+        ));
     }
 
     public function getPatches()
     {
-        return response()->json(\App\Models\Patch::orderBy('release_date', 'desc')->get());
+        return response()->json(\Illuminate\Support\Facades\Cache::remember($this->getCacheKey('patches'), 3600, fn() => \App\Models\Patch::orderBy('release_date', 'desc')->get()->toArray()));
     }
 
     public function getAgents()
     {
-        $agents = DB::table('valorant_agents')
-            ->select('name as agent', 'role as primary_role', 'icon_url')
-            ->orderBy('name')
-            ->get();
+        $agents = \Illuminate\Support\Facades\Cache::remember($this->getCacheKey('agents'), 3600, fn() => 
+            DB::table('valorant_agents')
+                ->select('name as agent', 'role as primary_role', 'icon_url')
+                ->orderBy('name')
+                ->get()->toArray()
+        );
         return response()->json($agents);
     }
 
     public function getEvents()
     {
-        $events = DB::table('events')
-            ->select('id', 'name')
-            ->orderByDesc('start_date')
-            ->get();
+        $events = \Illuminate\Support\Facades\Cache::remember($this->getCacheKey('events'), 3600, fn() => 
+            DB::table('events')
+                ->select('id', 'name')
+                ->orderByDesc('start_date')
+                ->get()->toArray()
+        );
         return response()->json($events);
     }
 
     public function getValorantMaps()
     {
-        $maps = \App\Models\ValorantMap::orderBy('name')->get();
+        $maps = \Illuminate\Support\Facades\Cache::remember($this->getCacheKey('maps'), 3600, fn() => \App\Models\ValorantMap::orderBy('name')->get()->toArray());
         return response()->json($maps);
     }
 
@@ -179,23 +194,37 @@ class AdminCurationController extends Controller
 
         \Illuminate\Support\Facades\DB::beginTransaction();
         try {
+            $existingRatings = \App\Models\AgentPatchRating::where('patch_id', $patch->id)
+                ->get()
+                ->keyBy('agent');
+                
+            $inserts = [];
             foreach ($validated['ratings'] as $ratingData) {
-                \App\Models\AgentPatchRating::updateOrCreate(
-                    [
-                        'patch_id' => $patch->id,
-                        'agent' => $ratingData['agent']
-                    ],
-                    [
+                if (isset($existingRatings[$ratingData['agent']])) {
+                    $existingRatings[$ratingData['agent']]->update([
                         'role' => $ratingData['role'],
                         'tier' => $ratingData['tier'],
                         'direction' => $ratingData['direction'],
                         'notes' => $ratingData['notes'] ?? null,
-                    ]
-                );
+                    ]);
+                } else {
+                    $inserts[] = [
+                        'patch_id' => $patch->id,
+                        'agent' => $ratingData['agent'],
+                        'role' => $ratingData['role'],
+                        'tier' => $ratingData['tier'],
+                        'direction' => $ratingData['direction'],
+                        'notes' => $ratingData['notes'] ?? null,
+                    ];
+                }
             }
-            \Illuminate\Support\Facades\DB::commit();
             
-            \App\Jobs\CalculateMetaAdaptabilityJob::dispatch();
+            if (!empty($inserts)) {
+                \App\Models\AgentPatchRating::insert($inserts);
+            }
+            
+            \Illuminate\Support\Facades\DB::commit();
+            $this->invalidateCache();
             
             return response()->json(['message' => 'Bulk patch ratings saved successfully.']);
         } catch (\Exception $e) {
@@ -219,35 +248,43 @@ class AdminCurationController extends Controller
 
         \Illuminate\Support\Facades\DB::beginTransaction();
         try {
+            $existingCollection = \App\Models\AgentMapRating::where('patch_id', $patch->id)
+                ->whereNull('superseded_by_id')
+                ->get();
+            
+            $existingMap = [];
+            foreach ($existingCollection as $item) {
+                $existingMap[$item->map][$item->agent] = $item;
+            }
+            
+            $inserts = [];
             foreach ($validated['ratings'] as $mapName => $agentRatings) {
                 foreach ($agentRatings as $agentName => $data) {
-                    $existing = \App\Models\AgentMapRating::where('patch_id', $patch->id)
-                        ->where('agent', $agentName)
-                        ->where('map', $mapName)
-                        ->whereNull('superseded_by_id')
-                        ->first();
-                        
-                    if ($existing) {
-                        $existing->update([
+                    if (isset($existingMap[$mapName][$agentName])) {
+                        $existingMap[$mapName][$agentName]->update([
                             'score' => $data['score'],
                             'confidence_level' => $data['confidence_level'] ?? null,
                             'source_reference' => $data['source_reference'] ?? null,
                         ]);
                     } else {
-                        \App\Models\AgentMapRating::create([
+                        $inserts[] = [
                             'patch_id' => $patch->id,
                             'agent' => $agentName,
                             'map' => $mapName,
                             'score' => $data['score'],
                             'confidence_level' => $data['confidence_level'] ?? null,
                             'source_reference' => $data['source_reference'] ?? null,
-                        ]);
+                        ];
                     }
                 }
             }
-            \Illuminate\Support\Facades\DB::commit();
             
-            \App\Jobs\CalculateMetaAdaptabilityJob::dispatch();
+            if (!empty($inserts)) {
+                \App\Models\AgentMapRating::insert($inserts);
+            }
+            
+            \Illuminate\Support\Facades\DB::commit();
+            $this->invalidateCache();
             
             return response()->json(['message' => 'Bulk map ratings saved successfully'], 200);
         } catch (\Exception $e) {
@@ -281,7 +318,7 @@ class AdminCurationController extends Controller
         foreach ($snapshots as $snap) {
             $map = $snap->valorant_map_name;
             // Handle naming inconsistencies via role map if necessary, but agent pick rates use standard names.
-            $agent = ucfirst(strtolower($snap->agent));
+            $agent = ucfirst(strtolower($snap->agent_name));
             
             if (!isset($stats[$map])) {
                 $stats[$map] = [];
@@ -294,7 +331,7 @@ class AdminCurationController extends Controller
             }
             
             $stats[$map][$agent]['total_matches'] += $snap->total_matches;
-            $stats[$map][$agent]['total_picks'] += $snap->pick_count;
+            $stats[$map][$agent]['total_picks'] += $snap->total_picks;
         }
         
         $ratings = [];
@@ -321,5 +358,66 @@ class AdminCurationController extends Controller
         }
         
         return response()->json(['ratings' => $ratings]);
+    }
+
+    public function getMapRatingsByPatch($patchId)
+    {
+        $ratings = \App\Models\AgentMapRating::where('patch_id', $patchId)
+            ->whereNull('superseded_by_id')
+            ->get();
+            
+        $formatted = [];
+        foreach ($ratings as $r) {
+            if (!isset($formatted[$r->map])) {
+                $formatted[$r->map] = [];
+            }
+            $formatted[$r->map][$r->agent] = [
+                'score' => $r->score,
+                'confidence_level' => $r->confidence_level,
+                'source_reference' => $r->source_reference
+            ];
+        }
+        
+        return response()->json($formatted);
+    }
+
+    public function getPatchMapPool($patchId)
+    {
+        $pool = \App\Models\PatchMapPool::where('patch_id', $patchId)->pluck('map_name');
+        return response()->json($pool);
+    }
+
+    public function savePatchMapPool(Request $request)
+    {
+        $validated = $request->validate([
+            'patch_version' => 'required|string',
+            'maps' => 'required|array',
+            'maps.*' => 'string'
+        ]);
+
+        $patch = \App\Models\Patch::firstOrCreate(['version' => $validated['patch_version']]);
+
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            \App\Models\PatchMapPool::where('patch_id', $patch->id)->delete();
+            
+            $inserts = [];
+            foreach ($validated['maps'] as $map) {
+                $inserts[] = [
+                    'patch_id' => $patch->id,
+                    'map_name' => $map,
+                ];
+            }
+            if (!empty($inserts)) {
+                \App\Models\PatchMapPool::insert($inserts);
+            }
+            
+            \Illuminate\Support\Facades\DB::commit();
+            $this->invalidateCache();
+            return response()->json(['message' => 'Patch map pool saved successfully']);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }

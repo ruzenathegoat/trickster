@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\PlayerController;
 use App\Http\Controllers\Api\V1\SmartEngineController;
 
-use App\Http\Controllers\Api\V1\TestAuthController;
 use App\Http\Controllers\Api\V1\AdminCurationController;
 
 Route::prefix('v1/auth')->group(function () {
@@ -13,8 +12,19 @@ Route::prefix('v1/auth')->group(function () {
     Route::post('/logout', [\App\Http\Controllers\Api\V1\AuthController::class, 'logout'])->middleware('auth:sanctum');
 });
 
-Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
-    return $request->user();
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+
+    Route::prefix('v1')->group(function () {
+        Route::get('/user/profile', [\App\Http\Controllers\Api\V1\UserProfileController::class, 'getProfile']);
+        Route::put('/user/profile', [\App\Http\Controllers\Api\V1\UserProfileController::class, 'updateProfile']);
+        Route::post('/user/favorites/players/{id}', [\App\Http\Controllers\Api\V1\UserProfileController::class, 'toggleFavoritePlayer']);
+        Route::post('/user/favorites/teams/{id}', [\App\Http\Controllers\Api\V1\UserProfileController::class, 'toggleFavoriteTeam']);
+        Route::post('/user/simulations', [\App\Http\Controllers\Api\V1\UserProfileController::class, 'saveSimulation']);
+        Route::delete('/user/simulations/{id}', [\App\Http\Controllers\Api\V1\UserProfileController::class, 'deleteSimulation']);
+    });
 });
 
 Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
@@ -59,10 +69,17 @@ Route::prefix('v1')->group(function () {
     Route::get('/players/{id}', [PlayerController::class, 'show']);
 
     Route::prefix('smart')->group(function () {
+        Route::get('/bounds', [SmartEngineController::class, 'bounds']);
+        Route::post('/scout', [SmartEngineController::class, 'scout']);
         Route::get('/criteria', [SmartEngineController::class, 'criteria']);
         Route::get('/profiles', [SmartEngineController::class, 'profiles']);
         Route::post('/profiles', [SmartEngineController::class, 'storeProfile']);
         Route::post('/calculate', [SmartEngineController::class, 'calculate']);
+    });
+
+    Route::prefix('meta')->group(function () {
+        Route::get('/patches', [\App\Http\Controllers\Api\V1\MetaController::class, 'getPatches']);
+        Route::get('/map-pool/{patchVersion}', [\App\Http\Controllers\Api\V1\MetaController::class, 'getMapMetaByPatch']);
     });
     
     // User Dashboard

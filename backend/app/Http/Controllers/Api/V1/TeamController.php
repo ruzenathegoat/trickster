@@ -12,73 +12,85 @@ class TeamController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Team::withCount([
-                'matchesAsTeamA as resolved_a' => function($q) { $q->whereNotNull('winner_team_id'); },
-                'matchesAsTeamB as resolved_b' => function($q) { $q->whereNotNull('winner_team_id'); },
-            ])
-            ->addSelect(['*',
-                DB::raw('(SELECT COUNT(*) FROM matches WHERE winner_team_id = teams.id) as wins'),
-            ]);
+        $q = $request->get('q', '');
+        $region = $request->get('region', 'All');
+        $page = $request->get('page', 1);
 
-        if ($request->filled('q')) {
-            $query->where('name', 'ilike', '%' . $request->q . '%');
-        }
+        $cacheKey = 'api_teams_explorer_' . md5(json_encode(compact('q', 'region', 'page')));
 
-        if ($request->filled('region') && $request->region !== 'All') {
-            $query->where('region', $request->region);
-        }
+        $paginatorArray = \Illuminate\Support\Facades\Cache::remember($cacheKey, 3600, function() use ($q, $region) {
+            $query = Team::withCount([
+                    'matchesAsTeamA as resolved_a' => function($query) { $query->whereNotNull('winner_team_id'); },
+                    'matchesAsTeamB as resolved_b' => function($query) { $query->whereNotNull('winner_team_id'); },
+                ])
+                ->addSelect(['*',
+                    DB::raw('(SELECT COUNT(*) FROM matches WHERE winner_team_id = teams.id) as wins'),
+                ]);
 
-        $query->orderByRaw('win_rate_2026 DESC NULLS LAST');
+            if (!empty($q)) {
+                $query->where('name', 'ilike', '%' . $q . '%');
+            }
 
-        $paginator = $query->paginate(15);
+            if ($region !== 'All') {
+                $query->where('region', $region);
+            }
 
-        $paginator->getCollection()->transform(function ($team) {
-            $totalMatches = $team->resolved_a + $team->resolved_b;
-            return [
-                'id' => $team->id,
-                'name' => $team->name,
-                'region' => $team->region ?? 'Unknown',
-                'logo_url' => $team->logo_url,
-                'win_rate' => $team->win_rate_2026 ? round($team->win_rate_2026, 1) : null,
-                'total_matches' => $totalMatches,
-                'wins' => (int) $team->wins,
-                'losses' => $totalMatches - (int) $team->wins,
-                'player_count' => $team->players_count ?? null,
-            ];
+            $query->orderByRaw('win_rate_2026 DESC NULLS LAST');
+
+            $paginator = $query->paginate(15);
+
+            $paginator->getCollection()->transform(function ($team) {
+                $totalMatches = $team->resolved_a + $team->resolved_b;
+                return [
+                    'id' => $team->id,
+                    'name' => $team->name,
+                    'region' => $team->region ?? 'Unknown',
+                    'logo_url' => $team->logo_url,
+                    'win_rate' => $team->win_rate_2026 ? round($team->win_rate_2026, 1) : null,
+                    'total_matches' => $totalMatches,
+                    'wins' => (int) $team->wins,
+                    'losses' => $totalMatches - (int) $team->wins,
+                    'player_count' => $team->players_count ?? null,
+                ];
+            });
+
+            return $paginator->toArray();
         });
 
-        return response()->json($paginator);
+        return response()->json($paginatorArray);
     }
 
     public function top()
     {
-        $teams = Team::withCount([
-                'matchesAsTeamA as resolved_a' => function($q) { $q->whereNotNull('winner_team_id'); },
-                'matchesAsTeamB as resolved_b' => function($q) { $q->whereNotNull('winner_team_id'); },
-                'players',
-            ])
-            ->addSelect(['*',
-                DB::raw('(SELECT COUNT(*) FROM matches WHERE winner_team_id = teams.id) as wins'),
-            ])
-            ->whereNotNull('win_rate_2026')
-            ->orderByDesc('win_rate_2026')
-            ->take(3)
-            ->get();
+        $data = \Illuminate\Support\Facades\Cache::remember('api_teams_top', 3600, function() {
+            $teams = Team::withCount([
+                    'matchesAsTeamA as resolved_a' => function($q) { $q->whereNotNull('winner_team_id'); },
+                    'matchesAsTeamB as resolved_b' => function($q) { $q->whereNotNull('winner_team_id'); },
+                    'players',
+                ])
+                ->addSelect(['*',
+                    DB::raw('(SELECT COUNT(*) FROM matches WHERE winner_team_id = teams.id) as wins'),
+                ])
+                ->whereNotNull('win_rate_2026')
+                ->orderByDesc('win_rate_2026')
+                ->take(3)
+                ->get();
 
-        $data = $teams->map(function ($team, $index) {
-            $totalMatches = $team->resolved_a + $team->resolved_b;
-            return [
-                'id' => $team->id,
-                'rank' => $index + 1,
-                'name' => $team->name,
-                'region' => $team->region ?? 'Unknown',
-                'logo_url' => $team->logo_url,
-                'win_rate' => round($team->win_rate_2026, 1),
-                'total_matches' => $totalMatches,
-                'wins' => (int) $team->wins,
-                'losses' => $totalMatches - (int) $team->wins,
-                'player_count' => $team->players_count,
-            ];
+            return $teams->map(function ($team, $index) {
+                $totalMatches = $team->resolved_a + $team->resolved_b;
+                return [
+                    'id' => $team->id,
+                    'rank' => $index + 1,
+                    'name' => $team->name,
+                    'region' => $team->region ?? 'Unknown',
+                    'logo_url' => $team->logo_url,
+                    'win_rate' => round($team->win_rate_2026, 1),
+                    'total_matches' => $totalMatches,
+                    'wins' => (int) $team->wins,
+                    'losses' => $totalMatches - (int) $team->wins,
+                    'player_count' => $team->players_count,
+                ];
+            })->toArray();
         });
 
         return response()->json($data);
@@ -86,115 +98,116 @@ class TeamController extends Controller
 
     public function show($id)
     {
-        $team = Team::with([
-            'players',
-            'matchesAsTeamA.event',
-            'matchesAsTeamB.event',
-            'matchesAsTeamA.maps',
-            'matchesAsTeamB.maps'
-        ])->findOrFail($id);
+        $data = \Illuminate\Support\Facades\Cache::remember('api_team_profile_' . $id, 3600, function() use ($id) {
+            $team = Team::with([
+                'players',
+                'matchesAsTeamA.event',
+                'matchesAsTeamB.event',
+                'matchesAsTeamA.maps',
+                'matchesAsTeamB.maps'
+            ])->findOrFail($id);
 
-        $allMatches = $team->matchesAsTeamA->concat($team->matchesAsTeamB);
+            $allMatches = $team->matchesAsTeamA->concat($team->matchesAsTeamB);
 
-        $totalWins = 0;
-        $totalLosses = 0;
-        $tournamentStats = [];
+            $totalWins = 0;
+            $totalLosses = 0;
+            $tournamentStats = [];
 
-        foreach ($allMatches as $match) {
-            $isWin = $match->winner_team_id === $team->id;
-            
-            if ($isWin) {
-                $totalWins++;
-            } else if ($match->winner_team_id !== null) { // Count as loss only if there is a winner
-                $totalLosses++;
-            } else {
-                continue; // Skip draws or unresolved matches for W/L stats
-            }
-
-            $eventName = $match->event ? $match->event->name : 'Unknown Event';
-            
-            if (!isset($tournamentStats[$eventName])) {
-                $tournamentStats[$eventName] = ['wins' => 0, 'losses' => 0, 'total' => 0];
-            }
-
-            $tournamentStats[$eventName]['total']++;
-            if ($isWin) {
-                $tournamentStats[$eventName]['wins']++;
-            } else {
-                $tournamentStats[$eventName]['losses']++;
-            }
-        }
-
-        // Format for frontend charts
-        $tournaments = [];
-        foreach ($tournamentStats as $name => $stats) {
-            $tournaments[] = [
-                'name' => $name,
-                'wins' => $stats['wins'],
-                'losses' => $stats['losses'],
-                'total' => $stats['total']
-            ];
-        }
-
-        // Sort tournaments by total matches (descending) or by name
-        usort($tournaments, function($a, $b) {
-            return $b['total'] <=> $a['total'];
-        });
-
-        // Compute most picked maps
-        $valorantMaps = \App\Models\ValorantMap::all()->keyBy('name');
-        $mapStats = [];
-        $totalMapsPlayed = 0;
-
-        foreach ($allMatches as $match) {
-            foreach ($match->maps as $map) {
-                if (!$map->valorant_map_name) continue;
-                $mapName = $map->valorant_map_name;
+            foreach ($allMatches as $match) {
+                $isWin = $match->winner_team_id === $team->id;
                 
-                if (!isset($mapStats[$mapName])) {
-                    $mapStats[$mapName] = ['picks' => 0, 'wins' => 0];
+                if ($isWin) {
+                    $totalWins++;
+                } else if ($match->winner_team_id !== null) {
+                    $totalLosses++;
+                } else {
+                    continue; 
                 }
+
+                $eventName = $match->event ? $match->event->name : 'Unknown Event';
                 
-                $mapStats[$mapName]['picks']++;
-                $totalMapsPlayed++;
-                
-                if ($map->winner_team_id === $team->id) {
-                    $mapStats[$mapName]['wins']++;
+                if (!isset($tournamentStats[$eventName])) {
+                    $tournamentStats[$eventName] = ['wins' => 0, 'losses' => 0, 'total' => 0];
+                }
+
+                $tournamentStats[$eventName]['total']++;
+                if ($isWin) {
+                    $tournamentStats[$eventName]['wins']++;
+                } else {
+                    $tournamentStats[$eventName]['losses']++;
                 }
             }
-        }
-        
-        $mostPickedMaps = [];
-        foreach ($mapStats as $mapName => $stats) {
-            $vMap = $valorantMaps->get($mapName);
-            $mostPickedMaps[] = [
-                'name' => $mapName,
-                'count' => $stats['picks'],
-                'win_rate' => $stats['picks'] > 0 ? round(($stats['wins'] / $stats['picks']) * 100, 1) : 0,
-                'percentage' => $totalMapsPlayed > 0 ? round(($stats['picks'] / $totalMapsPlayed) * 100, 1) . '%' : '0%',
-                'icon_url' => $vMap ? $vMap->list_view_icon : null,
-                'splash_url' => $vMap ? $vMap->splash_url : null,
-            ];
-        }
 
-        usort($mostPickedMaps, function($a, $b) {
-            return $b['count'] <=> $a['count'];
+            $tournaments = [];
+            foreach ($tournamentStats as $name => $stats) {
+                $tournaments[] = [
+                    'name' => $name,
+                    'wins' => $stats['wins'],
+                    'losses' => $stats['losses'],
+                    'total' => $stats['total']
+                ];
+            }
+
+            usort($tournaments, function($a, $b) {
+                return $b['total'] <=> $a['total'];
+            });
+
+            $valorantMaps = \App\Models\ValorantMap::all()->keyBy('name');
+            $mapStats = [];
+            $totalMapsPlayed = 0;
+
+            foreach ($allMatches as $match) {
+                foreach ($match->maps as $map) {
+                    if (!$map->valorant_map_name || strtoupper($map->valorant_map_name) === 'TBD') continue;
+                    $mapName = $map->valorant_map_name;
+                    
+                    if (!isset($mapStats[$mapName])) {
+                        $mapStats[$mapName] = ['picks' => 0, 'wins' => 0];
+                    }
+                    
+                    $mapStats[$mapName]['picks']++;
+                    $totalMapsPlayed++;
+                    
+                    if ($map->winner_team_id === $team->id) {
+                        $mapStats[$mapName]['wins']++;
+                    }
+                }
+            }
+            
+            $mostPickedMaps = [];
+            foreach ($mapStats as $mapName => $stats) {
+                $vMap = $valorantMaps->get($mapName);
+                $mostPickedMaps[] = [
+                    'name' => $mapName,
+                    'count' => $stats['picks'],
+                    'win_rate' => $stats['picks'] > 0 ? round(($stats['wins'] / $stats['picks']) * 100, 1) : 0,
+                    'percentage' => $totalMapsPlayed > 0 ? round(($stats['picks'] / $totalMapsPlayed) * 100, 1) . '%' : '0%',
+                    'icon_url' => $vMap ? $vMap->list_view_icon : null,
+                    'splash_url' => $vMap ? $vMap->splash_url : null,
+                ];
+            }
+
+            usort($mostPickedMaps, function($a, $b) {
+                return $b['count'] <=> $a['count'];
+            });
+
+            return [
+                'id' => $team->id,
+                'name' => $team->name,
+                'region' => $team->region,
+                'logo_url' => $team->logo_url,
+                'win_rate' => $team->win_rate_2026,
+                'players' => $team->players->toArray(),
+                'stats' => [
+                    'total_matches' => $totalWins + $totalLosses,
+                    'total_wins' => $totalWins,
+                    'total_losses' => $totalLosses,
+                    'tournaments' => $tournaments
+                ],
+                'most_picked_maps' => $mostPickedMaps
+            ];
         });
 
-        return response()->json([
-            'id' => $team->id,
-            'name' => $team->name,
-            'region' => $team->region,
-            'logo_url' => $team->logo_url,
-            'win_rate' => $team->win_rate_2026,
-            'players' => $team->players,
-            'stats' => [
-                'total_matches' => $totalWins + $totalLosses,
-                'total_wins' => $totalWins,
-                'total_losses' => $totalLosses,
-                'tournaments' => $tournaments
-            ],
-            'most_picked_maps' => $mostPickedMaps
-        ]);
+        return response()->json($data);
     }
 }

@@ -17,4 +17,5 @@ class Player extends Model
     public function mapStats(): HasMany { return $this->hasMany(PlayerMapStat::class); }
     public function criteriaScores(): HasMany { return $this->hasMany(PlayerCriteriaScore::class); }
     public function smartResults(): HasMany { return $this->hasMany(PlayerSmartResult::class); }
+    public function matchAgents(): HasMany { return $this->hasMany(PlayerMatchAgent::class); }
 }

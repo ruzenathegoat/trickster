@@ -139,7 +139,7 @@ class SyncMatchJob implements ShouldQueue
                 // Dispatch ParseMatchJob on scrape-high so it runs before remaining SyncMatchJobs
                 ParseMatchJob::dispatch($this->queueItem, $fileName)->onQueue("scrape-high");
             } else {
-                $this->queueItem->update(["status" => "completed", "error_message" => "Skipped: TBD Match (Teams not decided yet)"]);
+                $this->queueItem->update(["status" => "pending", "error_message" => "Pending: TBD Match (Teams not decided yet)"]);
             }
             
         } catch (\Exception $e) {

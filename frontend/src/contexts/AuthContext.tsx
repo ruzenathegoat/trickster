@@ -6,6 +6,10 @@ interface User {
   name: string;
   email: string;
   role?: string;
+  profile_photo_url?: string | null;
+  theme_color?: string | null;
+  favorite_role?: string | null;
+  favorite_agent_id?: string | null;
 }
 
 interface AuthContextType {
@@ -40,6 +44,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     checkAuth();
   }, []);
+
+  useEffect(() => {
+    if (user?.theme_color) {
+      document.documentElement.style.setProperty('--color-primary', user.theme_color);
+    } else {
+      // Revert to default Trickster Yellow
+      document.documentElement.style.setProperty('--color-primary', '#FFEB00');
+    }
+  }, [user?.theme_color]);
 
   const login = async (data: any) => {
     await csrf();

@@ -10,13 +10,24 @@ use Illuminate\Validation\Rule;
 
 class AdminUserController extends Controller
 {
+    private function getCacheKey() {
+        $version = \Illuminate\Support\Facades\Cache::get('api_admin_users_version', 1);
+        return 'api_admin_users_v' . $version;
+    }
+
+    private function invalidateCache() {
+        \Illuminate\Support\Facades\Cache::put('api_admin_users_version', microtime(true));
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        // Get all users, ordered by created_at descending
-        $users = User::orderBy('created_at', 'desc')->get();
+        // Get all users, ordered by created_at descending, cached to prevent N+1 and huge JSON payload serialization delays
+        $users = \Illuminate\Support\Facades\Cache::remember($this->getCacheKey(), 3600, fn() => 
+            User::orderBy('created_at', 'desc')->get()->toArray()
+        );
         return response()->json($users);
     }
 
@@ -39,6 +50,7 @@ class AdminUserController extends Controller
             'role' => $validated['role'],
         ]);
 
+        $this->invalidateCache();
         return response()->json($user, 201);
     }
 
@@ -80,6 +92,7 @@ class AdminUserController extends Controller
 
         $user->save();
 
+        $this->invalidateCache();
         return response()->json($user);
     }
 
@@ -97,6 +110,7 @@ class AdminUserController extends Controller
 
         $user->delete();
 
+        $this->invalidateCache();
         return response()->json(null, 204);
     }
 }

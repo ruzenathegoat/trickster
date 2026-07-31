@@ -161,6 +161,8 @@ class CalculateMetricJob implements ShouldQueue
                 "current_role" => $currentRole ?? $player->current_role,
             ]);
         }
+        // Calculate Meta Adaptability Index for the involved players first
+        \App\Jobs\CalculateMetaAdaptabilityJob::dispatch($this->players);
 
         // Pass to the next phase: AI Smart Results
         CalculateSmartJob::dispatch($this->matchId, $this->players);

@@ -19,6 +19,7 @@ import ScraperDashboard from './pages/admin/ScraperDashboard';
 import AdminLogin from './pages/admin/AdminLogin';
 
 import PlayerProfile from './pages/users/PlayerProfile';
+import UserProfile from './pages/users/UserProfile';
 
 import PatchRatings from './pages/admin/PatchRatings';
 import MapRatings from './pages/admin/MapRatings';
@@ -55,8 +56,7 @@ function App() {
             <Route path="recommend/*" element={<RecommendFlow />} />
             <Route path="simulation" element={<div className="p-8">Simulation Coming Soon</div>} />
             <Route path="meta" element={<MetaExplorer />} />
-            <Route path="profiles" element={<div className="p-8">My Profiles Coming Soon</div>} />
-            <Route path="account" element={<div className="p-8">Account Coming Soon</div>} />
+            <Route path="profile" element={<UserProfile />} />
           </Route>
         </Route>
 

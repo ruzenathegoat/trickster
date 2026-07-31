@@ -4,8 +4,9 @@ import axios from '../../lib/axios';
 import { motion } from 'framer-motion';
 import Highcharts from 'highcharts';
 import { HighchartsReact } from 'highcharts-react-official';
-import { ArrowLeft } from '@phosphor-icons/react';
+import { ArrowLeft, Star } from '@phosphor-icons/react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function TeamProfile() {
   const { teamId } = useParams();
@@ -14,18 +15,52 @@ export default function TeamProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [showAllMaps, setShowAllMaps] = useState(false);
+  const { user } = useAuth();
+  const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
-    if (!teamId) return;
     setLoading(true);
-    axios.get(`/api/v1/teams/${teamId}`)
-      .then(res => setTeam(res.data))
-      .catch(err => {
+    const fetchData = async () => {
+      try {
+        if (user) {
+          // Fetch concurrently if user is logged in
+          const [teamRes, profRes] = await Promise.all([
+            axios.get(`/api/v1/teams/${teamId}`),
+            axios.get('/api/v1/user/profile').catch(() => null)
+          ]);
+          
+          setTeam(teamRes.data);
+          if (profRes && profRes.data) {
+            const favs = profRes.data.user.favorite_teams || [];
+            setIsFavorite(favs.some((t: any) => t.id === teamId));
+          }
+        } else {
+          const teamRes = await axios.get(`/api/v1/teams/${teamId}`);
+          setTeam(teamRes.data);
+        }
+      } catch (err) {
         console.error('Failed to fetch team data:', err);
         setError(true);
-      })
-      .finally(() => setLoading(false));
-  }, [teamId]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (teamId) fetchData();
+  }, [teamId, user]);
+
+  const toggleFavorite = async () => {
+    try {
+      if (!user) {
+        // toast or handle
+        return;
+      }
+      await axios.post(`/api/v1/user/favorites/teams/${teamId}`);
+      setIsFavorite(!isFavorite);
+    } catch (err) {
+      console.error('Failed to toggle favorite:', err);
+    }
+  };
 
   if (loading) {
     return (
@@ -112,13 +147,25 @@ export default function TeamProfile() {
   return (
     <div className="max-w-7xl mx-auto pb-16 space-y-12">
       {/* Back */}
-      <button
-        onClick={() => navigate('/app/teams')}
-        className="flex items-center gap-2 font-label text-[12px] font-bold uppercase tracking-widest text-gray-500 hover:text-black transition-colors"
-      >
-        <ArrowLeft size={16} weight="bold" />
-        Back to Teams
-      </button>
+      <div className="flex justify-between items-center">
+        <button
+          onClick={() => navigate('/app/teams')}
+          className="flex items-center gap-2 font-label text-[12px] font-bold uppercase tracking-widest text-gray-500 hover:text-black transition-colors"
+        >
+          <ArrowLeft size={16} weight="bold" />
+          Back to Teams
+        </button>
+
+        {user && (
+          <button 
+            onClick={toggleFavorite}
+            className={`flex items-center gap-2 font-label text-[11px] font-bold uppercase tracking-widest px-4 py-2 border-2 transition-all ${isFavorite ? 'bg-[var(--color-primary)] border-black shadow-[4px_4px_0px_0px_#111111] text-black hover:translate-y-1 hover:shadow-none' : 'bg-white border-gray-300 text-gray-500 hover:border-black hover:text-black'}`}
+          >
+            <Star size={16} weight={isFavorite ? 'fill' : 'regular'} />
+            {isFavorite ? 'Favorited' : 'Add to Favorites'}
+          </button>
+        )}
+      </div>
 
       {/* Hero Header — Full-bleed poster style */}
       <motion.section

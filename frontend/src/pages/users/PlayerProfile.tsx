@@ -5,8 +5,10 @@ import { motion } from 'framer-motion';
 import Highcharts from 'highcharts';
 import { HighchartsReact } from 'highcharts-react-official';
 import 'highcharts/highcharts-more';
-import { ArrowLeft } from '@phosphor-icons/react';
+import { ArrowLeft, Star } from '@phosphor-icons/react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '../../contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface PlayerDetails {
   id: string;
@@ -19,6 +21,8 @@ interface PlayerDetails {
   role: string;
   smart_score: number | null;
   smart_rank: number | null;
+  smart_rank_history?: { date: string; rank: number }[];
+  rank_shift?: string;
   raw_stats: {
     matches: number;
     win_rate: string;
@@ -50,12 +54,28 @@ export default function PlayerProfile() {
   const [loading, setLoading] = useState(true);
   const [player, setPlayer] = useState<PlayerDetails | null>(null);
   const [showAllAgents, setShowAllAgents] = useState(false);
+  const { user } = useAuth();
+  const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
     const fetchPlayer = async () => {
       try {
-        const response = await axios.get(`/api/v1/players/${playerId}`);
-        setPlayer(response.data);
+        if (user) {
+          // Fetch concurrently if user is logged in to avoid waterfall
+          const [playerRes, profRes] = await Promise.all([
+            axios.get(`/api/v1/players/${playerId}`),
+            axios.get('/api/v1/user/profile').catch(() => null)
+          ]);
+          
+          setPlayer(playerRes.data);
+          if (profRes && profRes.data) {
+            const favs = profRes.data.user.favorite_players || [];
+            setIsFavorite(favs.some((p: any) => p.id === playerId));
+          }
+        } else {
+          const response = await axios.get(`/api/v1/players/${playerId}`);
+          setPlayer(response.data);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -63,7 +83,21 @@ export default function PlayerProfile() {
       }
     };
     if (playerId) fetchPlayer();
-  }, [playerId]);
+  }, [playerId, user]);
+
+  const toggleFavorite = async () => {
+    if (!user) {
+      toast.error('You must be logged in to favorite players');
+      return;
+    }
+    try {
+      await axios.post(`/api/v1/user/favorites/players/${playerId}`);
+      setIsFavorite(!isFavorite);
+      toast.success(isFavorite ? 'Removed from favorites' : 'Added to favorites');
+    } catch (error) {
+      toast.error('Failed to update favorite status');
+    }
+  };
 
   if (loading) {
     return (
@@ -176,15 +210,76 @@ export default function PlayerProfile() {
     }
   };
 
+  const growthOptions: Highcharts.Options | undefined = player?.smart_rank_history ? {
+    chart: {
+      type: 'spline',
+      backgroundColor: 'transparent',
+      style: { fontFamily: "'JetBrains Mono', monospace" }
+    },
+    title: { text: undefined },
+    xAxis: {
+      categories: player.smart_rank_history.map(h => {
+          const d = new Date(h.date);
+          return `${d.getDate()}/${d.getMonth()+1}`;
+      }),
+      labels: { style: { fontSize: '10px', fontWeight: 'bold' } },
+      tickInterval: Math.ceil(player.smart_rank_history.length / 7)
+    },
+    yAxis: {
+      reversed: true,
+      title: { text: 'Rank', style: { fontWeight: 'bold', textTransform: 'uppercase' } },
+      allowDecimals: false,
+      gridLineDashStyle: 'Dash',
+      gridLineColor: '#eaeaea',
+      labels: { style: { fontWeight: 'bold', fontSize: '12px' } }
+    },
+    tooltip: {
+      formatter: function() {
+          return `<span style="font-size:10px">${this.x}</span><br/><span style="font-size:14px;font-weight:900">Rank #${this.y}</span>`;
+      },
+      backgroundColor: '#111',
+      style: { color: '#fff', fontWeight: 'bold' },
+      borderWidth: 0,
+      borderRadius: 0,
+      shadow: false
+    },
+    legend: { enabled: false },
+    credits: { enabled: false },
+    plotOptions: {
+      spline: {
+        lineWidth: 4,
+        marker: { enabled: false, states: { hover: { enabled: true, radius: 6 } } },
+        color: 'var(--color-primary)'
+      }
+    },
+    series: [{
+      type: 'spline',
+      name: 'Rank',
+      data: player.smart_rank_history.map(h => h.rank)
+    }]
+  } : undefined;
+
   return (
     <div className="max-w-7xl pb-24">
-      <button 
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-3 mb-12 font-label text-[13px] font-black uppercase tracking-widest text-black/50 hover:text-black transition-colors"
-      >
-        <ArrowLeft size={20} weight="bold" />
-        Back to Leaderboard
-      </button>
+      <div className="flex justify-between items-center mb-12">
+        <button 
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-3 font-label text-[13px] font-black uppercase tracking-widest text-black/50 hover:text-black transition-colors"
+        >
+          <ArrowLeft size={20} weight="bold" />
+          Back to Leaderboard
+        </button>
+
+        {user && (
+          <button 
+            onClick={toggleFavorite}
+            className={`flex items-center gap-2 font-label text-[13px] font-black uppercase tracking-widest px-4 py-2 border-2 transition-all ${isFavorite ? 'bg-[var(--color-primary)] border-black shadow-[4px_4px_0px_0px_#111111] text-black hover:translate-y-1 hover:shadow-none' : 'bg-white border-gray-300 text-gray-500 hover:border-black hover:text-black'}`}
+          >
+            <Star size={20} weight={isFavorite ? 'fill' : 'regular'} />
+            {isFavorite ? 'Favorited' : 'Add to Favorites'}
+          </button>
+        )}
+      </div>
 
       <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
         
@@ -207,7 +302,7 @@ export default function PlayerProfile() {
                 <img 
                   src={player.photo_url} 
                   alt={player.ign} 
-                  className="absolute inset-0 w-full h-full object-cover object-top filter grayscale contrast-125 hover:grayscale-0 transition-all duration-700 hover:scale-105" 
+                  className="absolute inset-0 w-full h-full object-cover object-top transition-all duration-700 hover:scale-105" 
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#f3f4f6_10px,#f3f4f6_20px)]">
@@ -241,7 +336,16 @@ export default function PlayerProfile() {
               <div className="space-y-6">
                 <div className="flex justify-between items-end border-b-2 border-black/20 pb-2">
                   <span className="text-[11px] font-black text-black/50 uppercase tracking-widest">Country</span>
-                  <span className="font-label font-bold text-[15px] text-black uppercase">{player.country || 'Unknown'}</span>
+                  {player.country ? (
+                    <img 
+                      src={`https://flagcdn.com/w40/${player.country.toLowerCase()}.png`}
+                      alt={player.country}
+                      className="h-[18px] object-cover border border-black/20 shadow-[2px_2px_0px_rgba(0,0,0,1)]"
+                      title={player.country.toUpperCase()}
+                    />
+                  ) : (
+                    <span className="font-label font-bold text-[15px] text-black uppercase">Unknown</span>
+                  )}
                 </div>
                 <div className="flex justify-between items-end border-b-2 border-black/20 pb-2">
                   <span className="text-[11px] font-black text-black/50 uppercase tracking-widest">Matches (2026)</span>
@@ -253,9 +357,16 @@ export default function PlayerProfile() {
                 </div>
                 <div className="flex justify-between items-end pt-2">
                   <span className="text-[11px] font-black text-black uppercase tracking-widest">SMART Rank</span>
-                  <span className="font-display text-black text-4xl leading-none">
-                    {player.smart_rank ? `#${player.smart_rank}` : 'N/A'}
-                  </span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-display text-black text-4xl leading-none">
+                      {player.smart_rank ? `#${player.smart_rank}` : 'N/A'}
+                    </span>
+                    {player.rank_shift && player.rank_shift !== '0' && (
+                      <span className={`font-numeric font-bold text-[16px] ${player.rank_shift.startsWith('+') ? 'text-[#00E676]' : 'text-[#FF3366]'}`}>
+                        {player.rank_shift}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -274,22 +385,22 @@ export default function PlayerProfile() {
             <h2 className="text-3xl font-display uppercase tracking-tight text-black border-b-4 border-black pb-4 mb-6">
               Performance Metrics
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-6 lg:gap-8">
-              <div className="flex flex-col border-l-4 border-black pl-4">
-                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">Rating</span>
-                <span className="text-3xl lg:text-4xl font-display text-black tabular-nums tracking-tighter">{player.raw_stats.rating}</span>
+            <div className="flex flex-wrap gap-6 md:gap-8 lg:gap-12">
+              <div className="flex flex-col border-l-4 border-black pl-3 md:pl-4 justify-between min-w-[100px]">
+                <span className="text-[10px] md:text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 whitespace-nowrap">Rating</span>
+                <span className="text-4xl lg:text-5xl font-display text-black tracking-tighter leading-none">{player.raw_stats.rating}</span>
               </div>
-              <div className="flex flex-col border-l-4 border-black pl-4">
-                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">ACS</span>
-                <span className="text-3xl lg:text-4xl font-display text-black tabular-nums tracking-tighter">{player.raw_stats.acs}</span>
+              <div className="flex flex-col border-l-4 border-black pl-3 md:pl-4 justify-between min-w-[100px]">
+                <span className="text-[10px] md:text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 whitespace-nowrap">ACS</span>
+                <span className="text-4xl lg:text-5xl font-display text-black tracking-tighter leading-none">{player.raw_stats.acs}</span>
               </div>
-              <div className="flex flex-col border-l-4 border-black pl-4">
-                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">K/D Ratio</span>
-                <span className="text-3xl lg:text-4xl font-display text-black tabular-nums tracking-tighter">{player.raw_stats.kd}</span>
+              <div className="flex flex-col border-l-4 border-black pl-3 md:pl-4 justify-between min-w-[100px]">
+                <span className="text-[10px] md:text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 whitespace-nowrap">K/D Ratio</span>
+                <span className="text-4xl lg:text-5xl font-display text-black tracking-tighter leading-none">{player.raw_stats.kd}</span>
               </div>
-              <div className="flex flex-col border-l-4 border-black pl-4">
-                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">ADR</span>
-                <span className="text-3xl lg:text-4xl font-display text-black tabular-nums tracking-tighter">{player.raw_stats.adr}</span>
+              <div className="flex flex-col border-l-4 border-black pl-3 md:pl-4 justify-between min-w-[100px]">
+                <span className="text-[10px] md:text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 whitespace-nowrap">ADR</span>
+                <span className="text-4xl lg:text-5xl font-display text-black tracking-tighter leading-none">{player.raw_stats.adr}</span>
               </div>
             </div>
           </motion.div>
@@ -304,12 +415,31 @@ export default function PlayerProfile() {
             <h2 className="text-3xl font-display uppercase tracking-tight text-black border-b-4 border-black pb-4 mb-8">
               SMART Radar (2026)
             </h2>
-            <div className="w-full h-[500px] relative bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.02)_10px,rgba(0,0,0,0.02)_20px)] border-4 border-black">
+            <div className="w-full h-[500px] relative bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.02)_10px,rgba(0,0,0,0.02)_20px)] border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)]">
                 <div className="absolute inset-0 p-4">
                     <HighchartsReact highcharts={Highcharts} options={radarOptions} containerProps={{ style: { height: '100%' } }} />
                 </div>
             </div>
           </motion.div>
+
+          {/* Growth Chart Container */}
+          {player.smart_rank_history && player.smart_rank_history.length > 0 && growthOptions && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.35, ease: [0.23, 1, 0.32, 1] }}
+              className="flex flex-col"
+            >
+              <h2 className="text-3xl font-display uppercase tracking-tight text-black border-b-4 border-black pb-4 mb-8">
+                Growth (30 Days)
+              </h2>
+              <div className="w-full h-[350px] relative bg-white border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+                  <div className="absolute inset-0 p-4">
+                      <HighchartsReact highcharts={Highcharts} options={growthOptions} containerProps={{ style: { height: '100%' } }} />
+                  </div>
+              </div>
+            </motion.div>
+          )}
 
           {/* Agent Pool */}
           {player.most_picked_agents && player.most_picked_agents.length > 0 && (

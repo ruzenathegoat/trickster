@@ -207,7 +207,15 @@ class ParseMatchJob implements ShouldQueue
 
             // Delete temporary HTML
             Storage::delete($this->fileName);
-            $this->queueItem->update(["status" => "completed"]);
+            
+            // Re-fetch match data to check if winner was set during SyncMatchJob
+            $matchDataCheck = MatchData::where("vlr_match_id", $this->queueItem->vlr_match_id)->first();
+            
+            if ($matchDataCheck && $matchDataCheck->winner_team_id && count($players) > 0) {
+                $this->queueItem->update(["status" => "completed", "error_message" => null]);
+            } else {
+                $this->queueItem->update(["status" => "pending", "error_message" => "Pending: Waiting for match to finish or stats to be available"]);
+            }
 
             // Dispatch CalculateMetricJob
             CalculateMetricJob::dispatch($this->queueItem->vlr_match_id, $players)->onQueue("scrape-default");

@@ -2,46 +2,8 @@ import { useState, useEffect } from 'react';
 import { ArrowRight } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import axios from '../../lib/axios';
 
-const MOCK_RESULTS_BY_ROLE: Record<string, { id: string; name: string; role: string; smart_score: number; adaptability: string; photo_url: string | null; top_agents: string[] }[]> = {
-  Duelist: [
-    {
-      id: '2', name: 'something', role: 'Duelist (Top Agents)', smart_score: 62.4, adaptability: 'Specialist', photo_url: null,
-      top_agents: [
-        'https://media.valorant-api.com/agents/add6443a-41bd-3414-f6ad-e58d267f4e95/displayicon.png',
-        'https://media.valorant-api.com/agents/e370fa57-4757-3604-3648-499e1f642d3f/displayicon.png',
-        'https://media.valorant-api.com/agents/f94c3b30-42be-e959-889c-5d4fc13def43/displayicon.png'
-      ]
-    },
-    {
-      id: '1', name: 'f0rsakeN', role: 'Duelist (Top Agents)', smart_score: 59.8, adaptability: 'Adaptable', photo_url: null,
-      top_agents: [
-        'https://media.valorant-api.com/agents/e370fa57-4757-3604-3648-499e1f642d3f/displayicon.png',
-        'https://media.valorant-api.com/agents/eb93336a-449b-9c1b-0a54-a891f7921d69/displayicon.png',
-        'https://media.valorant-api.com/agents/add6443a-41bd-3414-f6ad-e58d267f4e95/displayicon.png'
-      ]
-    }
-  ],
-  Controller: [
-    {
-      id: '3', name: 'mindfreak', role: 'Controller (Top Agents)', smart_score: 61.2, adaptability: 'Adaptable', photo_url: null,
-      top_agents: [
-        'https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/displayicon.png',
-        'https://media.valorant-api.com/agents/707eab51-4836-f488-046a-cda6bf494859/displayicon.png',
-        'https://media.valorant-api.com/agents/41fb69c1-4189-7b37-f117-bcaf1e96f1bf/displayicon.png'
-      ]
-    }
-  ],
-  _default: [
-    {
-      id: '4', name: 'Player_XYZ', role: 'Flex (Top Agents)', smart_score: 58.1, adaptability: 'Adaptable', photo_url: null,
-      top_agents: [
-        'https://media.valorant-api.com/agents/320b2a48-4d9b-a075-30f1-1f93a9b638fa/displayicon.png',
-        'https://media.valorant-api.com/agents/6f2a04ca-43e0-be17-7f36-b3908627744d/displayicon.png',
-      ]
-    }
-  ]
-};
 
 export default function RecommendFlow() {
   const [step, setStep] = useState(1);
@@ -49,6 +11,37 @@ export default function RecommendFlow() {
   const [minScore, setMinScore] = useState<number>(45);
   const [playstyle, setPlaystyle] = useState<'Adaptable' | 'Specialist'>('Adaptable');
   const [scanProgress, setScanProgress] = useState(0);
+  
+  const [minBound, setMinBound] = useState<number>(20);
+  const [maxBound, setMaxBound] = useState<number>(80);
+  const [allAgents, setAllAgents] = useState<any[]>([]);
+  const [preferredAgents, setPreferredAgents] = useState<string[]>([]);
+  const [results, setResults] = useState<any[]>([]);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Derived state: perfectly syncs without side effects
+  const agents = selectedRole ? allAgents.filter((a: any) => a.role === selectedRole) : [];
+
+  useEffect(() => {
+    // Fetch bounds
+    axios.get('/api/v1/smart/bounds')
+      .then(({ data }) => {
+        setMinBound(data.min);
+        setMaxBound(data.max);
+        setMinScore(Math.floor((data.min + data.max) / 2));
+      })
+      .catch(console.error);
+
+    // Fetch all agents ONCE on mount
+    axios.get('/api/v1/valorant-agents')
+      .then(({ data }) => {
+        const agentsArray = data.data || data || [];
+        setAllAgents(Array.isArray(agentsArray) ? agentsArray : []);
+      })
+      .catch(console.error);
+  }, []);
+
+  // Agent filtering is now handled synchronously in handleRoleSelect
 
   useEffect(() => {
     if (step === 3) {
@@ -68,12 +61,36 @@ export default function RecommendFlow() {
 
   const handleRoleSelect = (role: string) => {
     setSelectedRole(role);
+    setPreferredAgents([]); // Reset preferences when changing or re-selecting a role
     setStep(2);
   };
 
-  const handleStartScan = () => {
+  const handleStartScan = async () => {
     setScanProgress(0);
     setStep(3);
+    setErrorMsg(null);
+
+    try {
+      const { data } = await axios.post('/api/v1/smart/scout', {
+        role: selectedRole,
+        min_score: minScore,
+        playstyle,
+        agent_preferences: preferredAgents
+      });
+
+      if (Array.isArray(data)) {
+        setResults(data);
+        setErrorMsg(null);
+      } else {
+        console.error('API returned non-array:', data);
+        setErrorMsg(data?.message || 'Server Error: Invalid response format.');
+        setResults([]);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg(err.response?.data?.message || err.message || 'Failed to fetch data.');
+      setResults([]);
+    }
   };
 
   const roles = ['Duelist', 'Initiator', 'Controller', 'Sentinel', 'Flex'];
@@ -85,10 +102,7 @@ export default function RecommendFlow() {
     Flex: 'Multi-role adaptability',
   };
 
-  const getFilteredResults = () => {
-    if (!selectedRole) return [];
-    return MOCK_RESULTS_BY_ROLE[selectedRole] || MOCK_RESULTS_BY_ROLE._default;
-  };
+
 
   const steps = ['Role', 'Standards', 'Scan'];
 
@@ -193,17 +207,52 @@ export default function RecommendFlow() {
               </div>
               <input 
                 type="range" 
-                min="20" max="65" 
+                min={minBound} max={maxBound} 
                 value={minScore} 
                 onChange={(e) => setMinScore(Number(e.target.value))}
                 className="w-full h-4 bg-gray-200 border-2 border-black appearance-none cursor-pointer accent-black"
                 style={{
-                  background: `linear-gradient(to right, black ${((minScore - 20) / 45) * 100}%, #e5e7eb ${((minScore - 20) / 45) * 100}%)`
+                  background: `linear-gradient(to right, black ${((minScore - minBound) / (maxBound - minBound)) * 100}%, #e5e7eb ${((minScore - minBound) / (maxBound - minBound)) * 100}%)`
                 }}
               />
               <div className="flex justify-between mt-3 font-label text-[11px] font-bold text-gray-400 uppercase tracking-widest">
-                <span>Rookie (20)</span>
-                <span>Pro Level (65)</span>
+                <span>Rookie ({minBound})</span>
+                <span>Pro Level ({maxBound})</span>
+              </div>
+            </div>
+
+            {/* Agent Preferences */}
+            <div className="p-8 lg:p-10 border-b-4 border-black">
+              <div className="flex justify-between items-end mb-6">
+                <label className="font-display text-xl uppercase">Agent Preferences (Optional)</label>
+                <span className="font-label text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                  {preferredAgents.length}/3 Selected
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-4">
+                {agents.map((agent) => {
+                  const isSelected = preferredAgents.includes(agent.name);
+                  return (
+                    <button
+                      key={agent.id}
+                      onClick={() => {
+                        if (isSelected) {
+                          setPreferredAgents(prev => prev.filter(a => a !== agent.name));
+                        } else if (preferredAgents.length < 3) {
+                          setPreferredAgents(prev => [...prev, agent.name]);
+                        }
+                      }}
+                      className={`flex flex-col items-center gap-2 p-2 border-2 transition-all active:scale-95 ${
+                        isSelected 
+                          ? 'border-black bg-black text-[var(--color-primary)]' 
+                          : 'border-gray-200 hover:border-black hover:bg-gray-50'
+                      } ${!isSelected && preferredAgents.length >= 3 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <img src={agent.icon_url} alt={agent.name} className="w-12 h-12" />
+                      <span className="font-label text-[10px] uppercase font-bold tracking-widest">{agent.name}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -306,12 +355,31 @@ export default function RecommendFlow() {
           </div>
 
           {(() => {
-            const results = getFilteredResults();
-            const hero = results[0];
-            const rest = results.slice(1);
-
+            const validResults = Array.isArray(results) ? results : [];
+            const hero = validResults[0];
+            const rest = validResults.slice(1);
             return (
               <div className="space-y-6">
+                {validResults.length === 0 ? (
+                  <div className="p-12 border-4 border-dashed border-gray-300 text-center bg-white">
+                    {errorMsg ? (
+                      <>
+                        <p className="font-display text-2xl uppercase text-red-500 mb-2">Error Occurred</p>
+                        <p className="font-label text-[11px] text-red-400 uppercase tracking-widest">
+                          {errorMsg}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="font-display text-2xl uppercase text-black mb-2">No players found</p>
+                        <p className="font-label text-[11px] text-gray-400 uppercase tracking-widest">
+                          Try lowering your SMART score threshold or changing agent preferences.
+                        </p>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <>
                 {/* Rank 1 — Full-width hero block */}
                 {hero && (
                   <motion.div
@@ -326,6 +394,18 @@ export default function RecommendFlow() {
                       <span className="font-display text-7xl leading-none">#1</span>
                     </div>
                     
+                    {/* Hero Photo */}
+                    {hero.photo_url ? (
+                      <div className="w-full md:w-56 shrink-0 border-b-4 md:border-b-0 md:border-r-4 border-black bg-[#111] flex items-end justify-center overflow-hidden">
+                        <img src={hero.photo_url} alt={hero.name} className="w-[120%] h-auto object-cover object-bottom translate-y-4" />
+                      </div>
+                    ) : (
+                      <div className="w-full md:w-56 shrink-0 border-b-4 md:border-b-0 md:border-r-4 border-black bg-[#111] flex items-center justify-center">
+                        <span className="font-label text-[10px] text-white/30 uppercase tracking-widest">No Photo</span>
+                      </div>
+                    )}
+
+                    
                     {/* Right: Player data */}
                     <div className="flex-1 p-8 lg:p-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                       <div>
@@ -337,7 +417,7 @@ export default function RecommendFlow() {
                           <span className="font-label text-[11px] font-bold text-black/60 uppercase tracking-widest">Adapt: {hero.adaptability}</span>
                         </div>
                         <div className="flex gap-2 mt-4">
-                          {hero.top_agents.map((agent, i) => (
+                          {hero.top_agents?.map((agent: string, i: number) => (
                             <img key={i} src={agent} className="w-12 h-12 bg-black border-2 border-black shadow-[2px_2px_0px_rgba(0,0,0,1)]" alt="agent" />
                           ))}
                         </div>
@@ -369,6 +449,14 @@ export default function RecommendFlow() {
                     <div className="md:w-24 bg-black text-white font-display text-3xl flex items-center justify-center p-5 border-b-4 md:border-b-0 md:border-r-4 border-black shrink-0">
                       #{idx + 2}
                     </div>
+                    
+                    {/* Row Photo */}
+                    {player.photo_url && (
+                      <div className="hidden md:flex w-24 shrink-0 border-r-4 border-black bg-[#111] items-end justify-center overflow-hidden">
+                        <img src={player.photo_url} alt={player.name} className="w-[120%] h-auto object-cover object-bottom translate-y-2" />
+                      </div>
+                    )}
+
                     {/* Data */}
                     <div className="flex-1 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
@@ -377,7 +465,7 @@ export default function RecommendFlow() {
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="flex gap-1.5">
-                          {player.top_agents.map((agent, i) => (
+                          {player.top_agents?.map((agent: string, i: number) => (
                             <img key={i} src={agent} className="w-9 h-9 bg-black border-2 border-black" alt="agent" />
                           ))}
                         </div>
@@ -392,15 +480,11 @@ export default function RecommendFlow() {
                     </div>
                   </motion.div>
                 ))}
+                  </>
+                )}
               </div>
             );
           })()}
-
-          <div className="mt-10 p-6 border-4 border-dashed border-gray-300 text-center">
-            <p className="font-label text-[11px] text-gray-400 uppercase tracking-widest max-w-lg mx-auto">
-              Mock data. Real API integration required for live scouting results.
-            </p>
-          </div>
         </motion.div>
       )}
     </div>

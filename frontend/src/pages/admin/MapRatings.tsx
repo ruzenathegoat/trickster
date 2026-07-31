@@ -30,6 +30,7 @@ interface Patch {
 interface Agent {
   agent: string;
   primary_role: string;
+  icon_url?: string;
 }
 
 interface AgentMapEntry {
@@ -407,14 +408,29 @@ export default function MapRatings() {
                             type="button"
                             onClick={async () => {
                               if (selectedEvents.length === 0) return toast.error('Select at least one event');
+                              if (mapPool.size === 0) return toast.error('Select at least one map for the pool first');
                               const tid = toast.loading('Executing Auto-Calc Script...', { style: { backgroundColor: '#000', color: '#fff' }});
                               try {
                                 const res = await axios.post('/api/v1/admin/agent-map-ratings/auto-calc', {
-                                  patch_id: selectedPatch?.id,
-                                  event_ids: selectedEvents
+                                  patch_version: selectedPatch?.version,
+                                  event_ids: selectedEvents,
+                                  map_pool: Array.from(mapPool)
                                 });
-                                toast.success(res.data.message, { id: tid });
-                                openModal(selectedPatch!);
+                                
+                                // Merge calculated ratings into current state
+                                const newRatings = res.data.ratings;
+                                setRatings(prev => {
+                                  const updated = { ...prev };
+                                  for (const mapName in newRatings) {
+                                    if (!updated[mapName]) updated[mapName] = {};
+                                    for (const agentName in newRatings[mapName]) {
+                                      updated[mapName][agentName] = { ...updated[mapName][agentName], ...newRatings[mapName][agentName] };
+                                    }
+                                  }
+                                  return updated;
+                                });
+
+                                toast.success('Auto-calculation applied! Please review and save.', { id: tid });
                               } catch (err: any) {
                                 toast.error(err.response?.data?.message || 'Failed to auto-calc', { id: tid });
                               }
@@ -535,9 +551,14 @@ export default function MapRatings() {
                               <tr key={agent.agent} className="border-b-4 border-black last:border-b-0 hover:bg-yellow-50 transition-colors">
                                 <td className="px-6 py-4 border-r-4 border-black">
                                   <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 border-4 border-black font-display text-lg pt-1 flex items-center justify-center shadow-[2px_2px_0px_#000] ${scoreBg(entry.score)}`}>
+                                    <div className={`w-10 h-10 border-4 border-black font-display text-lg pt-1 flex items-center justify-center shrink-0 shadow-[2px_2px_0px_#000] ${scoreBg(entry.score)}`}>
                                       {entry.score}
                                     </div>
+                                    {agent.icon_url && (
+                                      <div className="w-10 h-10 bg-black border-2 border-black flex items-center justify-center shrink-0 overflow-hidden shadow-[2px_2px_0px_var(--color-primary)]">
+                                        <img src={agent.icon_url} alt={agent.agent} className="w-[120%] h-[120%] object-cover object-top scale-110 filter grayscale" />
+                                      </div>
+                                    )}
                                     <div className="flex flex-col">
                                       <span className="font-display text-xl uppercase tracking-tighter leading-none">{agent.agent}</span>
                                       <span className="font-label text-[10px] font-black text-gray-500 uppercase tracking-widest">{agent.primary_role}</span>
