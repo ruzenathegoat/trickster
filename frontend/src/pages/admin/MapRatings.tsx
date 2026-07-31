@@ -65,10 +65,15 @@ export default function MapRatings() {
   // ratings[mapName][agentName] = entry
   const [ratings, setRatings] = useState<RatingsState>({});
 
-  // Lock body scroll when modal open
+  // Lock body scroll and collapse sidebar when modal open
   useEffect(() => {
     document.body.style.overflow = isModalOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    // Dispatch custom event to tell AdminLayout to close/open sidebar
+    window.dispatchEvent(new CustomEvent('toggleSidebar', { detail: { isOpen: !isModalOpen } }));
+    
+    return () => { 
+      document.body.style.overflow = ''; 
+    };
   }, [isModalOpen]);
 
   const fetchData = async () => {

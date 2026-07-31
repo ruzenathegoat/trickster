@@ -1,14 +1,14 @@
 import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
-import { Terminal, ChartLineUp, MapTrifold, ListNumbers, SignOut, Users, WarningCircle, CheckCircle } from '@phosphor-icons/react';
+import { Terminal, ChartLineUp, MapTrifold, ListNumbers, SignOut, Users, WarningCircle, CheckCircle, List } from '@phosphor-icons/react';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-
 
 export default function AdminLayout() {
   const location = useLocation();
   const { user, isLoading, logout } = useAuth();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const navLinks = [
     { name: 'Scraper Logs', path: '/admin/scraper', icon: Terminal },
@@ -25,6 +25,16 @@ export default function AdminLayout() {
       });
     }
   }, [isLoading, user]);
+
+  useEffect(() => {
+    const handleToggle = (e: any) => {
+      if (e.detail && typeof e.detail.isOpen === 'boolean') {
+        setIsSidebarOpen(e.detail.isOpen);
+      }
+    };
+    window.addEventListener('toggleSidebar', handleToggle);
+    return () => window.removeEventListener('toggleSidebar', handleToggle);
+  }, []);
 
   if (isLoading) {
     return (
@@ -45,9 +55,15 @@ export default function AdminLayout() {
       <header className="w-full bg-white border-b-4 border-black sticky top-0 z-50 flex flex-col md:flex-row">
         
         {/* Brand Area */}
-        <div className="flex items-center justify-between md:w-64 shrink-0 border-b-4 md:border-b-0 md:border-r-4 border-black p-4 bg-[var(--color-primary)] text-black">
+        <div className="flex items-center justify-between md:w-64 shrink-0 border-b-4 md:border-b-0 md:border-r-4 border-black p-4 bg-[var(--color-primary)] text-black transition-all duration-300">
           <div className="flex items-center gap-2">
-            <WarningCircle weight="bold" className="text-2xl" />
+            <button 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+              className="p-1 border-2 border-transparent hover:border-black hover:bg-black hover:text-white transition-colors"
+              aria-label="Toggle Sidebar"
+            >
+              <List weight="bold" size={24} />
+            </button>
             <h1 className="text-xl font-display font-black uppercase tracking-tighter leading-none mt-1">
               SYS.ADMIN
             </h1>
@@ -93,50 +109,51 @@ export default function AdminLayout() {
       </header>
 
       {/* Main Layout (Sidebar + Content) */}
-      <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
+      <div className="flex flex-1 overflow-hidden flex-col md:flex-row relative">
         
         {/* 2. Sidebar */}
-        <aside className="w-full md:w-64 bg-white border-b-4 md:border-b-0 md:border-r-4 border-black shrink-0 overflow-y-auto flex flex-col z-40 relative">
-          
-          <div className="p-4 border-b-4 border-black bg-[#f4f4f4]">
-            <h2 className="font-label text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">
-              Navigation Protocol
-            </h2>
-          </div>
+        <aside className={`${isSidebarOpen ? 'w-full md:w-64 md:border-r-4 opacity-100' : 'w-0 border-r-0 opacity-0 pointer-events-none'} bg-white border-b-4 md:border-b-0 border-black shrink-0 flex flex-col z-40 relative transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]`}>
+          <div className="min-w-[16rem] h-full flex flex-col">
+            <div className="p-4 border-b-4 border-black bg-[#f4f4f4]">
+              <h2 className="font-label text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">
+                Navigation Protocol
+              </h2>
+            </div>
 
-          <nav className="flex flex-col flex-grow p-4 gap-3">
-            {navLinks.map((link) => {
-              const isActive = location.pathname.startsWith(link.path);
-              const Icon = link.icon;
-              return (
-                <Link key={link.path} to={link.path}>
-                  <motion.div
-                    whileHover={isActive ? {} : { x: 4, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`flex items-center gap-3 px-4 py-3 font-label text-xs font-bold uppercase tracking-widest transition-all duration-200 border-2 border-black ${
-                      isActive 
-                        ? 'bg-black text-white shadow-[4px_4px_0px_var(--color-primary)] translate-x-1 -translate-y-1' 
-                        : 'bg-white text-black hover:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
-                    }`}
-                  >
-                    <Icon weight={isActive ? "fill" : "bold"} className="text-lg shrink-0" />
-                    <span className="truncate">{link.name}</span>
-                  </motion.div>
-                </Link>
-              );
-            })}
-          </nav>
+            <nav className="flex flex-col flex-grow p-4 gap-3 overflow-y-auto">
+              {navLinks.map((link) => {
+                const isActive = location.pathname.startsWith(link.path);
+                const Icon = link.icon;
+                return (
+                  <Link key={link.path} to={link.path} onClick={() => { if (window.innerWidth < 768) setIsSidebarOpen(false); }}>
+                    <motion.div
+                      whileHover={isActive ? {} : { x: 4, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`flex items-center gap-3 px-4 py-3 font-label text-xs font-bold uppercase tracking-widest transition-all duration-200 border-2 border-black ${
+                        isActive 
+                          ? 'bg-black text-white shadow-[4px_4px_0px_var(--color-primary)] translate-x-1 -translate-y-1' 
+                          : 'bg-white text-black hover:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                      }`}
+                    >
+                      <Icon weight={isActive ? "fill" : "bold"} className="text-lg shrink-0" />
+                      <span className="truncate">{link.name}</span>
+                    </motion.div>
+                  </Link>
+                );
+              })}
+            </nav>
 
-          <div className="p-4 border-t-4 border-black mt-auto bg-[#f4f4f4]">
-            <Link to="/">
-              <motion.div
-                whileHover={{ x: 4, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-black text-black hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] font-label text-xs font-bold uppercase tracking-widest transition-all"
-              >
-                Return to Public
-              </motion.div>
-            </Link>
+            <div className="p-4 border-t-4 border-black mt-auto bg-[#f4f4f4]">
+              <Link to="/">
+                <motion.div
+                  whileHover={{ x: 4, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-black text-black hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] font-label text-xs font-bold uppercase tracking-widest transition-all"
+                >
+                  Return to Public
+                </motion.div>
+              </Link>
+            </div>
           </div>
         </aside>
 
