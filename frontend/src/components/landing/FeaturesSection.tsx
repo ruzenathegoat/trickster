@@ -64,8 +64,16 @@ export default function FeaturesSection() {
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             className="md:col-span-2 bg-white border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_var(--color-primary)] overflow-hidden group cursor-default transition-shadow"
           >
-            <div className="h-48 md:h-64 bg-[#f4f4f4] border-b-4 border-black flex items-center justify-center p-8 relative overflow-hidden group-hover:bg-[var(--color-primary)] transition-colors duration-300">
-               <MagnifyingGlass weight="bold" className="text-[6rem] md:text-[8rem] text-black opacity-10 absolute -right-4 -bottom-4 group-hover:opacity-100 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-500" />
+            <div className="h-48 md:h-64 bg-[#f4f4f4] border-b-4 border-black flex items-center justify-center p-8 relative overflow-hidden group-hover:bg-black transition-colors duration-300">
+              {/* Bespoke Data Visual: Filter Code Snippet */}
+              <div className="w-full max-w-sm bg-white border-4 border-black p-4 shadow-[4px_4px_0px_rgba(0,0,0,1)] group-hover:-translate-y-2 group-hover:shadow-[8px_8px_0px_var(--color-primary)] transition-all duration-500">
+                <div className="font-numeric text-xs font-bold text-gray-500 mb-2">QUERY_BUILDER</div>
+                <div className="font-display text-lg lg:text-xl uppercase leading-tight text-black group-hover:text-[var(--color-primary)] transition-colors">
+                  SELECT * FROM players<br/>
+                  WHERE KAST {'>'} 75%<br/>
+                  AND ROLE = 'FLEX'
+                </div>
+              </div>
             </div>
             <div className="p-8 bg-white">
               <h3 className="font-display text-[1.5rem] md:text-[2rem] font-bold uppercase mb-2 leading-none">Deep Scouting</h3>
@@ -83,8 +91,11 @@ export default function FeaturesSection() {
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             className="md:col-span-1 bg-[#111111] text-white border-4 border-black shadow-[8px_8px_0px_var(--color-primary)] hover:shadow-[12px_12px_0px_var(--color-primary)] overflow-hidden group cursor-default transition-shadow"
           >
-            <div className="h-48 md:h-64 border-b-4 border-black flex items-center justify-center p-8 relative overflow-hidden group-hover:bg-[var(--color-primary)] group-hover:text-black transition-colors duration-300">
-               <ChartBar weight="bold" className="text-[6rem] md:text-[8rem] opacity-20 absolute right-4 bottom-4 group-hover:opacity-100 group-hover:-translate-y-4 group-hover:scale-110 transition-all duration-500" />
+            <div className="h-48 md:h-64 border-b-4 border-black flex items-end justify-center gap-2 p-8 relative overflow-hidden group-hover:bg-[var(--color-primary)] transition-colors duration-300">
+              {/* Bespoke Data Visual: CSS Bar Chart */}
+              <div className="w-8 bg-[#333333] h-[30%] border-t-4 border-x-4 border-black group-hover:h-[40%] transition-all duration-500 delay-75" />
+              <div className="w-8 bg-[#555555] h-[50%] border-t-4 border-x-4 border-black group-hover:h-[60%] transition-all duration-500 delay-100" />
+              <div className="w-8 bg-white h-[80%] border-t-4 border-x-4 border-black group-hover:h-[100%] group-hover:bg-black transition-all duration-500 delay-150" />
             </div>
             <div className="p-8">
               <h3 className="font-display text-[1.5rem] font-bold uppercase mb-2 leading-none">Contextual Analytics</h3>
@@ -103,7 +114,16 @@ export default function FeaturesSection() {
             className="md:col-span-1 bg-[var(--color-primary)] border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_rgba(0,0,0,1)] overflow-hidden group cursor-default transition-shadow"
           >
             <div className="h-48 md:h-64 border-b-4 border-black flex items-center justify-center p-8 relative overflow-hidden group-hover:bg-white transition-colors duration-300">
-               <Sword weight="bold" className="text-[6rem] md:text-[8rem] text-black opacity-20 absolute left-4 bottom-4 group-hover:opacity-100 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500" />
+              {/* Bespoke Data Visual: VS Lockup */}
+              <div className="flex items-center gap-4 group-hover:scale-110 transition-transform duration-500">
+                <div className="w-16 h-16 bg-black border-4 border-black flex items-center justify-center group-hover:bg-[var(--color-primary)] transition-colors">
+                  <div className="w-6 h-6 bg-white rounded-full" />
+                </div>
+                <div className="font-display text-4xl font-black italic text-black opacity-20 group-hover:opacity-100 transition-opacity">VS</div>
+                <div className="w-16 h-16 bg-white border-4 border-black flex items-center justify-center group-hover:bg-black transition-colors">
+                  <div className="w-6 h-6 bg-black group-hover:bg-white rounded-full transition-colors" />
+                </div>
+              </div>
             </div>
             <div className="p-8">
               <h3 className="font-display text-[1.5rem] font-bold uppercase mb-2 leading-none">Head-to-Head</h3>
@@ -121,8 +141,15 @@ export default function FeaturesSection() {
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             className="md:col-span-2 bg-white border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_rgba(0,0,0,1)] overflow-hidden group cursor-default transition-shadow"
           >
-            <div className="h-48 md:h-64 bg-[#f4f4f4] border-b-4 border-black flex items-center justify-center p-8 relative overflow-hidden group-hover:bg-black group-hover:text-white transition-colors duration-300">
-               <UsersThree weight="bold" className="text-[6rem] md:text-[8rem] text-black group-hover:text-white opacity-10 absolute -right-4 -bottom-4 group-hover:opacity-100 group-hover:-translate-x-4 group-hover:scale-110 transition-all duration-500" />
+            <div className="h-48 md:h-64 bg-[#f4f4f4] border-b-4 border-black flex items-center justify-center p-8 relative overflow-hidden group-hover:bg-[var(--color-primary)] transition-colors duration-300">
+              {/* Bespoke Data Visual: Roster Slots */}
+              <div className="flex gap-2 lg:gap-4 group-hover:scale-110 transition-transform duration-500">
+                {[1, 2, 3, 4, 5].map((slot) => (
+                  <div key={slot} className={`w-10 h-16 md:w-14 md:h-20 border-4 border-black flex items-end p-1 ${slot === 3 ? 'bg-black shadow-[4px_4px_0px_rgba(0,0,0,0.3)] group-hover:shadow-[4px_4px_0px_white]' : 'bg-white'}`}>
+                    <div className={`w-full h-1/3 border-2 border-black ${slot === 3 ? 'bg-[var(--color-primary)]' : 'bg-[#e5e5e5] group-hover:bg-white'}`} />
+                  </div>
+                ))}
+              </div>
             </div>
             <div className="p-8 bg-white">
               <h3 className="font-display text-[1.5rem] md:text-[2rem] font-bold uppercase mb-2 leading-none">Roster Architect</h3>
