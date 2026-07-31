@@ -39,6 +39,7 @@ export default function Users() {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -60,16 +61,17 @@ export default function Users() {
 
   useEffect(() => { fetchData(); }, []);
 
-  // Lock body scroll and collapse sidebar when modal open
+  // Lock body scroll and collapse sidebar when any modal open
   useEffect(() => {
-    document.body.style.overflow = isModalOpen ? 'hidden' : '';
+    const isAnyModalOpen = isModalOpen || userToDelete !== null;
+    document.body.style.overflow = isAnyModalOpen ? 'hidden' : '';
     // Dispatch custom event to tell AdminLayout to close/open sidebar
-    window.dispatchEvent(new CustomEvent('toggleSidebar', { detail: { isOpen: !isModalOpen } }));
+    window.dispatchEvent(new CustomEvent('toggleSidebar', { detail: { isOpen: !isAnyModalOpen } }));
     
     return () => { 
       document.body.style.overflow = ''; 
     };
-  }, [isModalOpen]);
+  }, [isModalOpen, userToDelete]);
 
   const openModal = (user: User | null = null) => {
     if (user) {
@@ -131,23 +133,28 @@ export default function Users() {
     }
   };
 
-  const handleDelete = async (user: User) => {
+  const confirmDelete = (user: User) => {
     if (currentUser?.id === user.id) {
       toast.error('Critical Error: You cannot revoke your own clearance.');
       return;
     }
+    setUserToDelete(user);
+  };
+
+  const executeDelete = async () => {
+    if (!userToDelete) return;
     
-    if (window.confirm(`WARNING: Revoking clearance for user ${user.name}. Proceed?`)) {
-      const toastId = toast.loading('Purging user record...', {
-        style: { backgroundColor: '#ef4444', color: '#fff', border: '4px solid #000' }
-      });
-      try {
-        await axios.delete(`/api/v1/admin/users/${user.id}`);
-        toast.success('User purged from registry', { id: toastId });
-        fetchData();
-      } catch (err: any) {
-        toast.error(err.response?.data?.message || 'Failed to purge user', { id: toastId });
-      }
+    const toastId = toast.loading('Purging user record...', {
+      style: { backgroundColor: '#ef4444', color: '#fff', border: '4px solid #000' }
+    });
+    try {
+      await axios.delete(`/api/v1/admin/users/${userToDelete.id}`);
+      toast.success('User purged from registry', { id: toastId });
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to purge user', { id: toastId });
+    } finally {
+      setUserToDelete(null);
     }
   };
 
@@ -191,7 +198,7 @@ export default function Users() {
           <motion.button
             whileHover={currentUser?.id !== info.row.original.id ? { scale: 1.1, y: -2, boxShadow: "2px 2px 0px 0px #111111" } : {}}
             whileTap={currentUser?.id !== info.row.original.id ? { scale: 0.9, y: 0, boxShadow: "0px 0px 0px 0px #111111" } : {}}
-            onClick={() => handleDelete(info.row.original)}
+            onClick={() => confirmDelete(info.row.original)}
             className={`p-2 border-2 border-black transition-colors ${
               currentUser?.id === info.row.original.id 
                 ? 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-50' 
@@ -465,6 +472,60 @@ export default function Users() {
                   </motion.button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Extreme Brutalist Delete Confirmation Modal ── */}
+      <AnimatePresence>
+        {userToDelete && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-12" onClick={() => setUserToDelete(null)}>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-red-900/80" 
+              style={{ backgroundImage: 'radial-gradient(black 2px, transparent 2px)', backgroundSize: '16px 16px' }} 
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', damping: 20, stiffness: 400 }}
+              className="relative w-full max-w-lg bg-red-500 border-8 border-black shadow-[16px_16px_0px_0px_#111111] flex flex-col"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="p-8 text-center space-y-6 bg-white border-b-8 border-black">
+                 <h2 className="text-4xl font-display font-black uppercase text-red-600">CRITICAL WARNING</h2>
+                 <p className="font-label text-lg font-bold text-black uppercase tracking-widest">
+                   You are about to permanently purge the clearance for operative: <br/>
+                   <span className="text-3xl font-display font-black bg-black text-white px-4 py-2 inline-block mt-4">{userToDelete.name}</span>
+                 </p>
+                 <p className="font-label text-xs font-black text-gray-500 uppercase tracking-widest mt-4">
+                   This action cannot be undone. All access will be immediately terminated.
+                 </p>
+              </div>
+              <div className="flex flex-col sm:flex-row bg-[#f4f4f4] p-6 gap-4">
+                  <motion.button
+                    whileHover={{ scale: 1.05, boxShadow: "4px 4px 0px 0px #111111" }}
+                    whileTap={{ scale: 0.95, boxShadow: "0px 0px 0px 0px #111111" }}
+                    type="button"
+                    onClick={() => setUserToDelete(null)}
+                    className="flex-1 px-6 py-4 border-4 border-black bg-white font-display text-lg font-black uppercase tracking-tight text-black transition-all"
+                  >
+                    ABORT
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05, boxShadow: "4px 4px 0px 0px #111111" }}
+                    whileTap={{ scale: 0.95, boxShadow: "0px 0px 0px 0px #111111" }}
+                    onClick={executeDelete}
+                    className="flex-1 bg-red-500 border-4 border-black text-white px-6 py-4 font-display text-lg font-black uppercase tracking-tight transition-all hover:bg-red-600"
+                  >
+                    EXECUTE PURGE
+                  </motion.button>
+              </div>
             </motion.div>
           </div>
         )}
