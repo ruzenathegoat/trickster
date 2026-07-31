@@ -26,20 +26,20 @@ export default function HowItWorksSection() {
   const steps = [
     {
       number: "01",
-      title: "Define Needs",
-      desc: "Set your filters. Looking for a high KAST smoker in EMEA Tier 2? Need a flexible Duelist? Just set the parameters.",
+      title: "Parameter Mapping",
+      desc: "Define your exact roster requirements. Filter by region, role, economy management, and micro-metrics. Stop relying on blind searches.",
       icon: <SlidersHorizontal weight="bold" className="text-[3rem] text-black group-hover:text-white transition-colors duration-300" />
     },
     {
       number: "02",
-      title: "Data Engine",
-      desc: "Our engine scans thousands of matches, applies SMART normalizations, and ranks candidates based on pure statistical impact.",
+      title: "SMART Normalization",
+      desc: "We instantly process match histories and normalize raw stats against opponent strength, map biases, and patch metas. Raw data becomes pure truth.",
       icon: <Cpu weight="bold" className="text-[3rem] text-black group-hover:text-[var(--color-primary)] transition-colors duration-300" />
     },
     {
       number: "03",
-      title: "Simulate & Scout",
-      desc: "Drag top candidates into your roster. Predict role clashes and synergy before ever making an offer.",
+      title: "Roster Validation",
+      desc: "Test players side-by-side. Compare overlapping agent pools and statistical deltas to validate your scouting targets with mathematical certainty.",
       icon: <Flask weight="bold" className="text-[3rem] text-black group-hover:text-white transition-colors duration-300" />
     }
   ];
