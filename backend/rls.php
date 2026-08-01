@@ -1,1 +1,0 @@
-<?php $tables = DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public'"); foreach ($tables as $t) { if ($t->tablename !== 'migrations') { DB::statement("ALTER TABLE \"{$t->tablename}\" ENABLE ROW LEVEL SECURITY;"); } } echo "RLS Enabled!";
