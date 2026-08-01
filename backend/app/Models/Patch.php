@@ -14,4 +14,5 @@ class Patch extends Model
     public function agentPatchRatings(): HasMany { return $this->hasMany(AgentPatchRating::class); }
     public function agentMapRatings(): HasMany { return $this->hasMany(AgentMapRating::class); }
     public function pickRateSnapshots(): HasMany { return $this->hasMany(AgentPickRateSnapshot::class); }
+    public function events() { return $this->belongsToMany(Event::class, 'patch_events', 'patch_id', 'event_id'); }
 }

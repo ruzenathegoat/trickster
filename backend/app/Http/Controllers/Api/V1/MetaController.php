@@ -14,8 +14,44 @@ class MetaController extends Controller
     public function getPatches()
     {
         // Get all patches that have map ratings or map pools and cache them
-        $patches = \Illuminate\Support\Facades\Cache::remember('api_meta_patches', 3600, function() {
-            return Patch::orderBy('release_date', 'desc')->pluck('version')->toArray();
+        $patches = \Illuminate\Support\Facades\Cache::remember('api_meta_patches_v2', 3600, function() {
+            $patchesData = Patch::with('events')->orderBy('release_date', 'desc')->get();
+            $result = [];
+            foreach ($patchesData as $p) {
+                $label = 'Patch ' . $p->version;
+                if ($p->events->count() > 0) {
+                    $hasKickoff = false; $hasStage1 = false; $hasStage2 = false; $hasChampions = false; $hasMasters = false;
+                    $mastersName = '';
+                    foreach ($p->events as $event) {
+                        $low = strtolower($event->name);
+                        if (str_contains($low, 'kickoff')) $hasKickoff = true;
+                        if (str_contains($low, 'stage 1')) $hasStage1 = true;
+                        if (str_contains($low, 'stage 2')) $hasStage2 = true;
+                        if (str_contains($low, 'champions')) $hasChampions = true;
+                        if (str_contains($low, 'masters')) {
+                            $hasMasters = true;
+                            // Extract just "Masters [City]" if possible, otherwise use the full name
+                            if (preg_match('/masters\s+(\w+)/i', $event->name, $matches)) {
+                                $mastersName = 'VCT Masters ' . ucfirst($matches[1]);
+                            } else {
+                                $mastersName = 'VCT Masters';
+                            }
+                        }
+                    }
+                    if ($hasChampions) $label = 'VCT Champions (Patch ' . $p->version . ')';
+                    elseif ($hasMasters) $label = $mastersName . ' (Patch ' . $p->version . ')';
+                    elseif ($hasStage2) $label = 'VCT Stage 2 (Patch ' . $p->version . ')';
+                    elseif ($hasStage1) $label = 'VCT Stage 1 (Patch ' . $p->version . ')';
+                    elseif ($hasKickoff) $label = 'VCT Kickoff (Patch ' . $p->version . ')';
+                    else $label = $p->events->first()->name . ' (Patch ' . $p->version . ')';
+                }
+                
+                $result[] = [
+                    'version' => $p->version,
+                    'label' => $label
+                ];
+            }
+            return $result;
         });
         
         return response()->json($patches);
@@ -132,6 +168,92 @@ class MetaController extends Controller
                 ];
             }
 
+            // Determine event_ids for this patch
+            $eventIds = $currentPatch->events()->pluck('events.id')->toArray();
+            
+            // If no events linked, fallback to doing nothing or using a dummy WHERE that allows all (or maybe filter by patch_id directly, but we know it's often null). We'll just allow all if empty for safety, or we could require it. Actually, if empty, we just query without event filter.
+            $eventFilter = "";
+            if (!empty($eventIds)) {
+                $idsString = "'" . implode("','", $eventIds) . "'";
+                $eventFilter = "WHERE m.event_id IN ($idsString)";
+            }
+
+            // Query Top 5 Compositions per Map from Match History
+            $compositionsRaw = DB::select("
+                WITH MatchTeams AS (
+                    SELECT 
+                        pma.match_id, 
+                        p.team_id, 
+                        maps.valorant_map_name as map_name,
+                        m.winner_team_id
+                    FROM player_match_agents pma
+                    JOIN players p ON p.id = pma.player_id
+                    JOIN matches m ON m.id = pma.match_id
+                    JOIN maps ON maps.id = pma.map_id
+                    $eventFilter
+                    GROUP BY pma.match_id, p.team_id, maps.valorant_map_name, m.winner_team_id
+                ),
+                TeamAgents AS (
+                    SELECT 
+                        pma.match_id, 
+                        p.team_id, 
+                        maps.valorant_map_name as map_name,
+                        STRING_AGG(pma.agent_name, ',' ORDER BY pma.agent_name ASC) as composition
+                    FROM player_match_agents pma
+                    JOIN players p ON p.id = pma.player_id
+                    JOIN maps ON maps.id = pma.map_id
+                    GROUP BY pma.match_id, p.team_id, maps.valorant_map_name
+                    HAVING COUNT(pma.agent_name) = 5
+                ),
+                MatchComps AS (
+                    SELECT 
+                        mt.map_name,
+                        ta.composition,
+                        (CASE WHEN mt.winner_team_id = mt.team_id THEN 1 ELSE 0 END) as is_win
+                    FROM MatchTeams mt
+                    JOIN TeamAgents ta ON ta.match_id = mt.match_id AND ta.team_id = mt.team_id AND ta.map_name = mt.map_name
+                )
+                SELECT 
+                    map_name, 
+                    composition, 
+                    COUNT(*) as total_picks, 
+                    SUM(is_win) as total_wins
+                FROM MatchComps
+                GROUP BY map_name, composition
+                HAVING COUNT(*) >= 1
+                ORDER BY map_name, COUNT(*) DESC
+            ");
+
+            $compositionsByMap = [];
+            foreach ($compositionsRaw as $c) {
+                if (!isset($compositionsByMap[$c->map_name])) {
+                    $compositionsByMap[$c->map_name] = [];
+                }
+                
+                // Only take top 5 per map
+                if (count($compositionsByMap[$c->map_name]) < 5) {
+                    $agentNames = explode(',', $c->composition);
+                    $compAgents = [];
+                    foreach ($agentNames as $name) {
+                        $normalizedName = strtolower(preg_replace('/[^a-z0-9]/i', '', $name));
+                        $icon = isset($agentsMeta[$normalizedName]) ? $agentsMeta[$normalizedName]->icon_url : null;
+                        $displayName = isset($agentsMeta[$normalizedName]) ? $agentsMeta[$normalizedName]->name : $name;
+                        $compAgents[] = [
+                            'name' => $displayName,
+                            'icon' => $icon
+                        ];
+                    }
+
+                    $winRate = $c->total_picks > 0 ? round(($c->total_wins / $c->total_picks) * 100, 1) : 0;
+
+                    $compositionsByMap[$c->map_name][] = [
+                        'agents' => $compAgents,
+                        'total_matches' => $c->total_picks,
+                        'win_rate' => $winRate
+                    ];
+                }
+            }
+
             // Build the final response array matching the MOCK_MAP_META structure
             $result = [];
             foreach ($mapPoolNames as $mapName) {
@@ -151,7 +273,8 @@ class MetaController extends Controller
                     'id' => strtolower(str_replace(' ', '-', $mapName)),
                     'name' => $mapName,
                     'image' => $image,
-                    'agents' => $agents
+                    'agents' => $agents,
+                    'compositions' => $compositionsByMap[$mapName] ?? []
                 ];
             }
 

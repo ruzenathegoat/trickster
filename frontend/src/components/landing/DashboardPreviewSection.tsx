@@ -1,111 +1,143 @@
-import { SquaresFour, Users, Flask, TrendUp } from '@phosphor-icons/react';
+import { motion } from 'framer-motion';
+import { TrendUp, Terminal, PlayCircle, Lightning } from '@phosphor-icons/react';
+
+const EMIL_EASE_OUT: [number, number, number, number] = [0.23, 1, 0.32, 1];
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    }
+  }
+};
+
+const nodeVariants = {
+  hidden: { clipPath: 'inset(100% 0 0 0)', opacity: 0, y: 20 },
+  visible: { 
+    clipPath: 'inset(0% 0 0 0)', 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.6, ease: EMIL_EASE_OUT }
+  }
+};
 
 export default function DashboardPreviewSection() {
   return (
-    <section className="w-full bg-[var(--color-background)] py-24 md:py-32 relative z-10 border-b-2 border-[var(--color-on-background)] overflow-hidden">
+    <section className="w-full bg-[#f4f1e1] py-24 md:py-32 relative z-10 overflow-hidden">
       
-      <div className="max-w-[var(--spacing-max-width)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] text-center mb-16 relative z-10">
-        <h2 className="font-['Archivo_Black'] text-[3rem] md:text-[5rem] font-black uppercase tracking-tighter text-[var(--color-on-background)] leading-none mb-4">
-          CLEAN. DENSE. FAST.
-        </h2>
-        <p className="font-['Inter'] text-[1.125rem] text-[var(--color-secondary)] max-w-2xl mx-auto font-medium">
-          Layer 2 of Trickster is pure utility. No marketing fluff—just dense data, lightning-fast navigation, and actionable insights wrapped in a minimalist Vercel-inspired UI.
-        </p>
-      </div>
-
-      <div className="max-w-[var(--spacing-max-width)] mx-auto px-[var(--spacing-margin-mobile)] md:px-8 relative z-10">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10 flex flex-col gap-16">
         
-        {/* The Dashboard Mockup (Browser Window) */}
-        <div className="bg-[var(--color-surface)] border-2 border-[var(--color-on-background)] brutal-shadow-sm rounded-t-xl overflow-hidden max-w-6xl mx-auto">
-          
-          {/* Browser Chrome */}
-          <div className="h-10 bg-[var(--color-surface-variant)] border-b-2 border-[var(--color-on-background)] flex items-center px-4 gap-2">
-            <div className="w-3 h-3 rounded-full bg-[var(--color-error)] border border-black" />
-            <div className="w-3 h-3 rounded-full bg-[var(--color-warning)] border border-black" />
-            <div className="w-3 h-3 rounded-full bg-[var(--color-success)] border border-black" />
-            <div className="ml-4 flex-1 h-6 bg-white border border-gray-300 rounded mx-4 flex items-center justify-center font-['JetBrains_Mono'] text-[0.65rem] text-gray-500">
-              trickster.gg/app/dashboard
+        {/* Header - Editorial Style */}
+        <div className="w-full text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-8 border-b-4 border-black pb-8">
+          <div>
+            <div className="inline-block bg-black text-white px-4 py-1.5 mb-6 font-['JetBrains_Mono'] font-bold text-sm tracking-widest uppercase border-2 border-black">
+              LAYER_02 // UTILITY
             </div>
+            <h2 className="font-['Archivo_Black'] text-5xl md:text-[5.5rem] lg:text-[7.5rem] font-black uppercase leading-[0.85] tracking-tighter text-black break-words">
+              CLEAN.<br/>
+              DENSE.<br/>
+              <span className="text-[var(--color-primary)] bg-black px-2 inline-block -ml-2">FAST.</span>
+            </h2>
           </div>
-
-          {/* App Layout Mockup */}
-          <div className="flex h-[500px]">
-            {/* Sidebar */}
-            <div className="w-64 border-r border-gray-200 p-6 hidden md:block">
-              <div className="flex items-center gap-3 mb-10">
-                <div className="w-8 h-8 bg-black cut-corner flex items-center justify-center">
-                  <span className="text-[var(--color-primary)] font-black text-lg leading-none">T</span>
-                </div>
-                <span className="font-['Archivo_Black'] font-black uppercase tracking-widest text-lg">Trickster</span>
-              </div>
-              
-              <nav className="space-y-4">
-                <div className="font-['Inter'] text-sm font-semibold text-black flex items-center gap-3 bg-gray-100 p-2 rounded">
-                  <SquaresFour weight="bold" size={20} /> Overview
-                </div>
-                <div className="font-['Inter'] text-sm font-medium text-gray-500 flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
-                  <Users weight="bold" size={20} /> Scouting
-                </div>
-                <div className="font-['Inter'] text-sm font-medium text-gray-500 flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
-                  <Flask weight="bold" size={20} /> Simulations
-                </div>
-              </nav>
-            </div>
-
-            {/* Main Content Area */}
-            <div className="flex-1 p-6 md:p-10 bg-[#fafafa] overflow-hidden">
-              <div className="flex justify-between items-center mb-8">
-                <h3 className="font-['Inter'] text-2xl font-bold text-black tracking-tight">Overview</h3>
-                <button className="bg-black text-white px-4 py-2 text-sm font-semibold rounded hover:bg-gray-800 transition-colors">
-                  New Simulation
-                </button>
-              </div>
-
-              {/* Grid Widgets */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                
-                {/* Metric Widget */}
-                <div className="bg-white border border-gray-200 p-5 rounded-lg shadow-sm">
-                  <p className="font-['Inter'] text-xs font-semibold text-gray-500 mb-2 uppercase">Tracked Players</p>
-                  <p className="font-['JetBrains_Mono'] text-3xl font-bold text-black">12,402</p>
-                  <p className="font-['Inter'] text-xs text-green-600 mt-2 font-medium flex items-center gap-1">
-                    <TrendUp weight="bold" size={14} /> +342 this week
-                  </p>
-                </div>
-
-                {/* Metric Widget */}
-                <div className="bg-white border border-gray-200 p-5 rounded-lg shadow-sm">
-                  <p className="font-['Inter'] text-xs font-semibold text-gray-500 mb-2 uppercase">Active Shortlists</p>
-                  <p className="font-['JetBrains_Mono'] text-3xl font-bold text-black">4</p>
-                  <p className="font-['Inter'] text-xs text-gray-500 mt-2 font-medium">Updated 2h ago</p>
-                </div>
-
-                {/* Metric Widget */}
-                <div className="bg-white border border-gray-200 p-5 rounded-lg shadow-sm">
-                  <p className="font-['Inter'] text-xs font-semibold text-gray-500 mb-2 uppercase">API Status</p>
-                  <p className="font-['Inter'] text-xl font-bold text-black flex items-center gap-2 mt-1">
-                    <span className="w-3 h-3 rounded-full bg-green-500"></span> Healthy
-                  </p>
-                  <p className="font-['JetBrains_Mono'] text-xs text-gray-500 mt-3 font-medium">99.9% Uptime</p>
-                </div>
-
-              </div>
-
-              {/* Chart Placeholder */}
-              <div className="mt-6 bg-white border border-gray-200 rounded-lg shadow-sm p-5 h-48 relative overflow-hidden">
-                <p className="font-['Inter'] text-sm font-semibold text-gray-800 mb-4">Meta Trends (Tier 1)</p>
-                {/* Fake Chart Lines */}
-                <svg className="w-full h-24 stroke-blue-500 fill-none" viewBox="0 0 100 40" preserveAspectRatio="none">
-                  <path d="M0,35 Q10,20 20,25 T40,15 T60,20 T80,5 T100,10" strokeWidth="2" />
-                </svg>
-                <div className="absolute bottom-5 left-5 right-5 flex justify-between text-[10px] font-['JetBrains_Mono'] text-gray-400">
-                  <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span>
-                </div>
-              </div>
-
-            </div>
+          
+          <div className="max-w-sm text-center md:text-left pb-2">
+            <p className="font-['Inter'] text-lg text-black font-bold leading-relaxed">
+              No marketing fluff. Just raw telemetry, lightning-fast navigation, and actionable insights wrapped in a high-contrast terminal UI.
+            </p>
           </div>
         </div>
+
+        {/* The Command Center Grid */}
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="w-full grid grid-cols-1 md:grid-cols-12 gap-0 border-4 border-black shadow-[12px_12px_0px_#111111] bg-black"
+        >
+          {/* Main Terminal Window */}
+          <motion.div variants={nodeVariants} className="md:col-span-8 bg-white border-b-4 md:border-b-0 md:border-r-4 border-black p-8 md:p-12 flex flex-col">
+            <div className="flex justify-between items-center mb-8 border-b-4 border-black pb-4">
+              <h3 className="font-['Archivo_Black'] text-3xl uppercase tracking-tighter text-black">Live Telemetry</h3>
+              <div className="flex items-center gap-2 font-['JetBrains_Mono'] font-bold text-xs bg-black text-[var(--color-primary)] px-3 py-1">
+                <span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-pulse"></span>
+                SYSTEM_NOMINAL
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 flex-1">
+              {/* Telemetry Node A */}
+              <div className="group cursor-default">
+                <div className="font-['JetBrains_Mono'] text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                  <PlayCircle size={16} /> Tracked Entities
+                </div>
+                <div className="font-['Archivo_Black'] text-6xl text-black tracking-tighter transition-transform duration-150 group-hover:-translate-y-1">
+                  12,402
+                </div>
+                <div className="font-['JetBrains_Mono'] text-sm text-[var(--color-success)] font-bold mt-2 flex items-center gap-1">
+                  <TrendUp weight="bold" /> +342 delta (7d)
+                </div>
+              </div>
+
+              {/* Telemetry Node B */}
+              <div className="group cursor-default">
+                <div className="font-['JetBrains_Mono'] text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                  <Lightning size={16} /> API Latency
+                </div>
+                <div className="font-['Archivo_Black'] text-6xl text-black tracking-tighter transition-transform duration-150 group-hover:-translate-y-1">
+                  18<span className="text-3xl text-gray-400">ms</span>
+                </div>
+                <div className="font-['JetBrains_Mono'] text-sm text-black font-bold mt-2">
+                  P99 24ms // Global Edge
+                </div>
+              </div>
+            </div>
+
+            {/* Simulated Terminal Log */}
+            <div className="mt-12 bg-[#111111] p-6 text-left relative overflow-hidden group">
+              <div className="absolute top-0 left-0 w-full h-1 bg-[var(--color-primary)] scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100"></div>
+              <div className="font-['JetBrains_Mono'] text-xs text-gray-400 mb-2 flex items-center gap-2">
+                <Terminal size={16} className="text-[var(--color-primary)]" /> stdout // recent_activity.log
+              </div>
+              <ul className="font-['JetBrains_Mono'] text-[11px] sm:text-xs text-gray-300 space-y-1">
+                <li><span className="text-gray-600">[14:02:44]</span> <span className="text-[var(--color-primary)]">INFO</span> Syncing tier_1_matches (142 rows)</li>
+                <li><span className="text-gray-600">[14:02:45]</span> <span className="text-[var(--color-primary)]">INFO</span> Updating player indices... OK</li>
+                <li><span className="text-gray-600">[14:02:47]</span> <span className="text-[var(--color-primary)]">INFO</span> Generating smart_fit for user_id=992</li>
+                <li><span className="text-gray-600">[14:02:48]</span> <span className="text-[var(--color-success)]">SUCCESS</span> Simulation completed in 1432ms</li>
+              </ul>
+            </div>
+          </motion.div>
+
+          {/* Sidebar / Action Nodes */}
+          <motion.div variants={nodeVariants} className="md:col-span-4 bg-[var(--color-primary)] flex flex-col">
+            <div className="p-8 md:p-12 flex-1 flex flex-col justify-center border-b-4 border-black">
+              <div className="font-['JetBrains_Mono'] text-sm text-black font-bold uppercase tracking-widest mb-4">
+                Active Shortlists
+              </div>
+              <div className="font-['Archivo_Black'] text-[6rem] leading-none text-black tracking-tighter mb-4">
+                04
+              </div>
+              <div className="font-['Inter'] text-sm font-bold text-black bg-white inline-block self-start px-3 py-1 border-2 border-black">
+                UPDATED 2H AGO
+              </div>
+            </div>
+            
+            <motion.div 
+              whileTap={{ scale: 0.96 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              className="bg-black text-white p-8 md:p-12 flex items-center justify-between cursor-pointer hover:bg-white hover:text-black transition-colors duration-200"
+            >
+              <span className="font-['Archivo_Black'] uppercase text-2xl tracking-tighter">
+                Enter App
+              </span>
+              <PlayCircle weight="bold" size={32} />
+            </motion.div>
+          </motion.div>
+
+        </motion.div>
+
       </div>
     </section>
   );

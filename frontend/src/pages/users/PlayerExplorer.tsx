@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MagnifyingGlass, CaretLeft, CaretRight, ArrowUp, ArrowDown } from '@phosphor-icons/react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from '../../lib/axios';
 
@@ -21,7 +21,8 @@ export default function PlayerExplorer() {
   const [loading, setLoading] = useState(true);
   
   const [activeRole, setActiveRole] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState('smart');
@@ -29,6 +30,13 @@ export default function PlayerExplorer() {
   
   const roles = ['All', 'Duelist', 'Initiator', 'Controller', 'Sentinel', 'Flex'];
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const query = searchParams.get('search');
+    if (query !== null && query !== searchQuery) {
+      setSearchQuery(query);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     setPage(1);
@@ -114,7 +122,16 @@ export default function PlayerExplorer() {
           <input 
             type="text" 
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              if (e.target.value) {
+                searchParams.set('search', e.target.value);
+                setSearchParams(searchParams, { replace: true });
+              } else {
+                searchParams.delete('search');
+                setSearchParams(searchParams, { replace: true });
+              }
+            }}
             placeholder="Search by player name..." 
             className="w-full pl-14 pr-6 py-5 font-label text-[13px] font-bold uppercase tracking-widest text-black placeholder-gray-400 bg-white focus:outline-none focus:bg-[var(--color-primary)] transition-colors"
           />
@@ -182,11 +199,11 @@ export default function PlayerExplorer() {
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="border-b-4 border-black bg-black text-white font-label text-[11px] font-bold uppercase tracking-widest">
-                <th className="py-4 px-5">IGN</th>
-                <th className="py-4 px-5">Name</th>
-                <th className="py-4 px-5">Team</th>
-                <th className="py-4 px-5">Role</th>
-                <th className="py-4 px-5">Region</th>
+                <th className="py-4 px-3 md:px-5">IGN</th>
+                <th className="py-4 px-3 md:px-5">Name</th>
+                <th className="py-4 px-3 md:px-5">Team</th>
+                <th className="py-4 px-3 md:px-5">Role</th>
+                <th className="py-4 px-3 md:px-5">Region</th>
                 <th className="py-4 px-5 text-right">
                   {sortBy === 'smart' ? 'SMART' : displayNames[sortBy]}
                 </th>
@@ -196,12 +213,12 @@ export default function PlayerExplorer() {
               {loading ? (
                 Array.from({ length: 10 }).map((_, i) => (
                   <tr key={i} className="border-b-2 border-gray-200">
-                    <td className="py-4 px-5"><Skeleton className="h-5 w-24" /></td>
-                    <td className="py-4 px-5"><Skeleton className="h-5 w-32" /></td>
-                    <td className="py-4 px-5"><Skeleton className="h-5 w-32" /></td>
-                    <td className="py-4 px-5"><Skeleton className="h-5 w-20" /></td>
-                    <td className="py-4 px-5"><Skeleton className="h-5 w-16" /></td>
-                    <td className="py-4 px-5 text-right"><Skeleton className="h-5 w-12 ml-auto" /></td>
+                    <td className="py-4 px-3 md:px-5"><Skeleton className="h-5 w-16 md:w-24" /></td>
+                    <td className="py-4 px-3 md:px-5"><Skeleton className="h-5 w-20 md:w-32" /></td>
+                    <td className="py-4 px-3 md:px-5"><Skeleton className="h-5 w-20 md:w-32" /></td>
+                    <td className="py-4 px-3 md:px-5"><Skeleton className="h-5 w-12 md:w-20" /></td>
+                    <td className="py-4 px-3 md:px-5"><Skeleton className="h-5 w-10 md:w-16" /></td>
+                    <td className="py-4 px-3 md:px-5 text-right"><Skeleton className="h-5 w-8 md:w-12 ml-auto" /></td>
                   </tr>
                 ))
               ) : (
@@ -211,33 +228,33 @@ export default function PlayerExplorer() {
                     className="border-b-2 border-gray-200 hover:bg-[var(--color-primary)] transition-colors cursor-pointer group"
                     onClick={() => navigate(`/app/players/${player.id}`)}
                   >
-                    <td className="py-4 px-5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gray-200 border-2 border-black overflow-hidden shrink-0 flex items-center justify-center">
+                    <td className="py-4 px-3 md:px-5 whitespace-nowrap">
+                      <div className="flex items-center gap-2 md:gap-3">
+                        <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-200 border-2 border-black overflow-hidden shrink-0 flex items-center justify-center">
                           {player.photo_url ? (
                             <img src={player.photo_url} alt={player.ign} className="w-full h-full object-cover" />
                           ) : (
                             <span className="font-display text-xs text-gray-400">?</span>
                           )}
                         </div>
-                        <span className="font-display uppercase text-base group-hover:text-black transition-colors">{player.ign}</span>
+                        <span className="font-display uppercase text-sm md:text-base group-hover:text-black transition-colors">{player.ign}</span>
                       </div>
                     </td>
-                    <td className="py-4 px-5 font-label text-gray-500 text-xs uppercase tracking-wider">
+                    <td className="py-4 px-3 md:px-5 font-label text-gray-500 text-[10px] md:text-xs uppercase tracking-wider whitespace-nowrap">
                       {player.name}
                     </td>
-                    <td className="py-4 px-5 font-label font-bold text-black text-xs uppercase tracking-wider">
+                    <td className="py-4 px-3 md:px-5 font-label font-bold text-black text-[10px] md:text-xs uppercase tracking-wider whitespace-nowrap">
                       {player.team}
                     </td>
-                    <td className="py-4 px-5">
-                      <span className="inline-block px-3 py-1 bg-white border-2 border-black text-[11px] font-label font-bold uppercase tracking-wider">
+                    <td className="py-4 px-3 md:px-5 whitespace-nowrap">
+                      <span className="inline-block px-2 py-1 md:px-3 md:py-1 bg-white border-2 border-black text-[9px] md:text-[11px] font-label font-bold uppercase tracking-wider">
                         {player.role}
                       </span>
                     </td>
-                    <td className="py-4 px-5 font-label text-gray-500 text-[11px] uppercase tracking-widest">
+                    <td className="py-4 px-3 md:px-5 font-label text-gray-500 text-[9px] md:text-[11px] uppercase tracking-widest whitespace-nowrap">
                       {player.region}
                     </td>
-                    <td className="py-4 px-5 text-right font-numeric font-bold text-lg tabular-nums bg-black text-[var(--color-primary)] group-hover:bg-gray-900 transition-colors">
+                    <td className="py-4 px-3 md:px-5 text-right font-numeric font-bold text-base md:text-lg tabular-nums bg-black text-[var(--color-primary)] group-hover:bg-gray-900 transition-colors whitespace-nowrap">
                       {player.headlineStat}
                     </td>
                   </tr>

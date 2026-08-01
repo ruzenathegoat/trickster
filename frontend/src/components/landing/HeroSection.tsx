@@ -99,7 +99,7 @@ export default function HeroSection() {
         >
           <motion.h1 
             variants={itemVariants}
-            className="font-display text-[3.5rem] md:text-[5.5rem] font-black uppercase leading-[0.9] tracking-tighter text-black"
+            className="font-display text-5xl sm:text-[3.5rem] md:text-[5.5rem] font-black uppercase leading-[0.9] tracking-tighter text-black break-words"
           >
             VALORANT<br/>
             TALENT<br/>
@@ -210,7 +210,7 @@ export default function HeroSection() {
             {/* Layer 2: Floating SMART Score Badge (Counter-Parallax) */}
             <motion.div 
               style={{ x: useTransform(smoothX, [-0.5, 0.5], [20, -20]), y: useTransform(smoothY, [-0.5, 0.5], [20, -20]) }}
-              className="absolute -top-6 -right-6 md:-top-10 md:-right-10 bg-white border-4 border-black p-6 w-48 md:w-56 shadow-[8px_8px_0px_rgba(0,0,0,1)] z-20"
+              className="absolute -top-6 -right-2 sm:-right-6 md:-top-10 md:-right-10 bg-white border-4 border-black p-4 sm:p-6 w-40 sm:w-48 md:w-56 shadow-[8px_8px_0px_rgba(0,0,0,1)] z-20"
             >
               <div className="flex justify-between items-center mb-4">
                 <span className="font-label text-xs font-bold text-gray-500 uppercase tracking-widest">SMART Score</span>
@@ -232,7 +232,7 @@ export default function HeroSection() {
             {/* Layer 3: Sticker Badge */}
             <motion.div 
               style={{ x: useTransform(smoothX, [-0.5, 0.5], [40, -40]), y: useTransform(smoothY, [-0.5, 0.5], [40, -40]) }}
-              className="absolute -bottom-8 -left-8 w-28 h-28 bg-[var(--color-primary)] rounded-full border-4 border-black flex flex-col items-center justify-center shadow-[4px_4px_0px_rgba(0,0,0,1)] z-30 -rotate-12 cursor-default"
+              className="absolute -bottom-4 -left-4 sm:-bottom-8 sm:-left-8 w-24 h-24 sm:w-28 sm:h-28 bg-[var(--color-primary)] rounded-full border-4 border-black flex flex-col items-center justify-center shadow-[4px_4px_0px_rgba(0,0,0,1)] z-30 -rotate-12 cursor-default"
             >
               <Crosshair weight="bold" size={32} className="text-black mb-1" />
               <span className="font-label text-[9px] font-bold uppercase text-center leading-tight tracking-widest text-black">

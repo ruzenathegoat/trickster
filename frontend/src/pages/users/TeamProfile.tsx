@@ -66,9 +66,9 @@ export default function TeamProfile() {
     return (
       <div className="space-y-8 max-w-7xl mx-auto">
         <Skeleton className="h-8 w-32 border-2 border-black" />
-        <Skeleton className="h-[400px] w-full border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+        <Skeleton className="h-[250px] md:h-[400px] w-full border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Skeleton className="lg:col-span-2 h-96 border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+          <Skeleton className="lg:col-span-2 h-64 md:h-96 border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
           <Skeleton className="h-96 border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
         </div>
       </div>
@@ -175,41 +175,41 @@ export default function TeamProfile() {
         className="border-4 border-black shadow-[12px_12px_0px_rgba(0,0,0,1)] flex flex-col lg:flex-row overflow-hidden"
       >
         {/* Logo Section */}
-        <div className="lg:w-[35%] bg-black flex items-center justify-center p-10 lg:p-12 relative border-b-4 lg:border-b-0 lg:border-r-4 border-black min-h-[280px]">
+        <div className="lg:w-[35%] bg-white flex items-center justify-center p-10 lg:p-12 relative border-b-4 lg:border-b-0 lg:border-r-4 border-black min-h-[280px]">
           {team.logo_url ? (
-            <img src={team.logo_url} alt={team.name} className="w-40 h-40 object-contain relative z-10 drop-shadow-2xl" />
+            <img src={team.logo_url} alt={team.name} className="w-40 h-40 object-contain relative z-10 drop-shadow-xl" />
           ) : (
-            <span className="font-display text-8xl text-white/10">{team.name.charAt(0)}</span>
+            <span className="font-display text-8xl text-black/10">{team.name.charAt(0)}</span>
           )}
         </div>
 
         {/* Identity + Stats */}
-        <div className="lg:w-[65%] bg-[var(--color-primary)] flex flex-col justify-between">
+        <div className="lg:w-[65%] bg-[var(--color-primary)] flex flex-col justify-between overflow-hidden">
           {/* Name + Region */}
-          <div className="p-8 lg:p-10">
-            <h1 className="text-5xl lg:text-7xl font-display uppercase tracking-tighter leading-none text-black mb-2">
+          <div className="p-6 sm:p-8 lg:p-10">
+            <h1 className="text-4xl md:text-5xl lg:text-7xl font-display uppercase tracking-tighter leading-none text-black mb-2 truncate">
               {team.name}
             </h1>
-            <p className="font-label text-sm text-black/50 uppercase tracking-widest">{team.region}</p>
+            <p className="font-label text-sm text-black/50 uppercase tracking-widest truncate">{team.region}</p>
           </div>
 
           {/* Stat row — joined cells */}
-          <div className="flex border-t-4 border-black">
-            <div className="flex-1 p-5 lg:p-6 border-r-4 border-black">
-              <span className="font-label text-[10px] text-black/50 uppercase tracking-widest block mb-1">Win Rate</span>
-              <span className="font-display text-3xl lg:text-4xl text-black">{team.win_rate ? `${team.win_rate}%` : 'N/A'}</span>
+          <div className="grid grid-cols-2 md:grid-cols-4 border-t-4 border-black">
+            <div className="p-4 sm:p-5 lg:p-6 border-r-4 border-b-4 md:border-b-0 border-black overflow-hidden flex flex-col justify-center">
+              <span className="font-label text-[10px] text-black/50 uppercase tracking-widest block mb-1 truncate">Win Rate</span>
+              <span className="font-display text-2xl md:text-xl lg:text-3xl tracking-tighter text-black block whitespace-nowrap">{team.win_rate ? `${team.win_rate}%` : 'N/A'}</span>
             </div>
-            <div className="flex-1 p-5 lg:p-6 border-r-4 border-black">
-              <span className="font-label text-[10px] text-black/50 uppercase tracking-widest block mb-1">Matches</span>
-              <span className="font-numeric text-3xl lg:text-4xl font-bold text-black tabular-nums">{stats.total_matches}</span>
+            <div className="p-4 sm:p-5 lg:p-6 border-b-4 md:border-b-0 md:border-r-4 border-black overflow-hidden flex flex-col justify-center">
+              <span className="font-label text-[10px] text-black/50 uppercase tracking-widest block mb-1 truncate">Matches</span>
+              <span className="font-numeric text-2xl md:text-2xl lg:text-3xl tracking-tighter font-bold text-black tabular-nums block whitespace-nowrap">{stats.total_matches}</span>
             </div>
-            <div className="flex-1 p-5 lg:p-6 border-r-4 border-black">
-              <span className="font-label text-[10px] text-black/50 uppercase tracking-widest block mb-1">Wins</span>
-              <span className="font-numeric text-3xl lg:text-4xl font-bold text-black tabular-nums">{stats.total_wins}</span>
+            <div className="p-4 sm:p-5 lg:p-6 border-r-4 border-black overflow-hidden flex flex-col justify-center">
+              <span className="font-label text-[10px] text-black/50 uppercase tracking-widest block mb-1 truncate">Wins</span>
+              <span className="font-numeric text-2xl md:text-2xl lg:text-3xl tracking-tighter font-bold text-black tabular-nums block whitespace-nowrap">{stats.total_wins}</span>
             </div>
-            <div className="flex-1 p-5 lg:p-6">
-              <span className="font-label text-[10px] text-black/50 uppercase tracking-widest block mb-1">Losses</span>
-              <span className="font-numeric text-3xl lg:text-4xl font-bold text-black tabular-nums">{stats.total_losses}</span>
+            <div className="p-4 sm:p-5 lg:p-6 overflow-hidden flex flex-col justify-center">
+              <span className="font-label text-[10px] text-black/50 uppercase tracking-widest block mb-1 truncate">Losses</span>
+              <span className="font-numeric text-2xl md:text-2xl lg:text-3xl tracking-tighter font-bold text-black tabular-nums block whitespace-nowrap">{stats.total_losses}</span>
             </div>
           </div>
         </div>
@@ -231,9 +231,9 @@ export default function TeamProfile() {
             <div className="border-b-4 border-black px-6 py-4">
               <h2 className="text-2xl font-display uppercase tracking-tight">Tournament Performance</h2>
             </div>
-            <div className="p-6">
+            <div className="p-4 md:p-6">
               {stats.tournaments.length > 0 ? (
-                <div className="h-96">
+                <div className="h-64 md:h-96">
                   <HighchartsReact highcharts={Highcharts} options={chartOptions} />
                 </div>
               ) : (
@@ -295,6 +295,49 @@ export default function TeamProfile() {
                     <div className="flex items-center gap-4 shrink-0">
                       <span className="font-numeric font-bold text-sm tabular-nums">{map.percentage}</span>
                       <span className="font-numeric font-bold text-sm tabular-nums bg-black text-[var(--color-primary)] px-2 py-1 border-2 border-black">WR {map.win_rate}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Recent Matches */}
+          {team.recent_matches && team.recent_matches.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
+              className="border-4 border-black bg-white"
+            >
+              <div className="border-b-4 border-black px-6 py-4 flex justify-between items-center">
+                <h2 className="text-2xl font-display uppercase tracking-tight">Recent Matches</h2>
+              </div>
+              <div className="divide-y-2 divide-gray-200">
+                {team.recent_matches.map((match: any) => (
+                  <div key={match.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 hover:bg-gray-50 transition-colors gap-4">
+                    {/* Event & Date */}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-label text-[10px] text-gray-500 uppercase tracking-widest mb-1">{match.date}</p>
+                      <p className="font-display text-lg uppercase tracking-tight truncate">{match.event_name}</p>
+                    </div>
+
+                    {/* Opponent */}
+                    <div className="flex items-center gap-3 w-full sm:w-auto shrink-0 border-t-2 sm:border-t-0 border-gray-100 pt-3 sm:pt-0 mt-2 sm:mt-0">
+                      <span className="font-label text-[10px] text-gray-400 uppercase tracking-widest">VS</span>
+                      <div className="w-8 h-8 border-2 border-black bg-white shrink-0 overflow-hidden flex items-center justify-center">
+                        {match.opponent_logo ? (
+                          <img src={match.opponent_logo} alt={match.opponent_name} className="w-full h-full object-contain p-1" />
+                        ) : (
+                          <span className="font-display text-xs text-black/30">{match.opponent_name.charAt(0)}</span>
+                        )}
+                      </div>
+                      <span className="font-display uppercase tracking-tight truncate max-w-[120px]">{match.opponent_name}</span>
+                      
+                      {/* Result */}
+                      <span className={`ml-4 font-label text-[11px] font-bold uppercase tracking-widest px-3 py-1 border-2 border-black ${match.is_win ? 'bg-[var(--color-primary)] text-black' : 'bg-red-500 text-white'}`}>
+                        {match.is_win ? 'WIN' : 'LOSS'}
+                      </span>
                     </div>
                   </div>
                 ))}

@@ -49,6 +49,7 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function
     Route::post('/agent-map-ratings/bulk', [AdminCurationController::class, 'storeBulkMapRatings']);
     Route::post('/agent-map-ratings/auto-calc', [AdminCurationController::class, 'autoCalculateMapRatings']);
     Route::put('/agent-map-ratings/{id}/supersede', [AdminCurationController::class, 'supersedeMapRating']);
+    Route::patch('/players/{id}/toggle-igl', [AdminCurationController::class, 'toggleIgl']);
     
     // Users
     Route::apiResource('users', \App\Http\Controllers\Api\V1\AdminUserController::class);
@@ -82,13 +83,16 @@ Route::prefix('v1')->group(function () {
         Route::get('/map-pool/{patchVersion}', [\App\Http\Controllers\Api\V1\MetaController::class, 'getMapMetaByPatch']);
     });
     
+    Route::prefix('simulation')->group(function () {
+        Route::post('/recommendations', [\App\Http\Controllers\Api\V1\SimulationController::class, 'getRecommendations']);
+    });
+    
     // User Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\Api\V1\DashboardController::class, 'index']);
     
     // Leaderboard & Players
     Route::get('/leaderboard/top', [\App\Http\Controllers\Api\V1\LeaderboardController::class, 'index']);
     Route::get('/leaderboard/players', [\App\Http\Controllers\Api\V1\LeaderboardController::class, 'players']);
-    Route::get('/players/{id}', [\App\Http\Controllers\Api\V1\LeaderboardController::class, 'show']);
 
     // Teams
     Route::get('/teams/top', [\App\Http\Controllers\Api\V1\TeamController::class, 'top']);

@@ -6,10 +6,24 @@ use Illuminate\Http\Request;
 use App\Models\AgentPatchRating;
 use App\Models\AgentMapRating;
 use App\Models\StageLabelMapping;
+use App\Models\Player;
 use Illuminate\Support\Facades\DB;
 
 class AdminCurationController extends Controller
 {
+    public function toggleIgl($id)
+    {
+        $player = Player::findOrFail($id);
+        $player->is_igl = !$player->is_igl;
+        $player->save();
+        
+        $this->invalidateCache();
+        
+        return response()->json([
+            'message' => 'Player IGL status toggled',
+            'is_igl' => $player->is_igl
+        ]);
+    }
     private function getCacheKey($name) {
         $version = \Illuminate\Support\Facades\Cache::get('api_admin_cache_version', 1);
         return $name . '_v' . $version;
@@ -237,6 +251,8 @@ class AdminCurationController extends Controller
     {
         $validated = $request->validate([
             'patch_version'    => 'required|string',
+            'event_ids'        => 'nullable|array',
+            'event_ids.*'      => 'string',
             'ratings'          => 'required|array',
             'ratings.*'        => 'array',
             'ratings.*.*.score'             => 'required|numeric|min:1|max:10',
@@ -248,6 +264,10 @@ class AdminCurationController extends Controller
 
         \Illuminate\Support\Facades\DB::beginTransaction();
         try {
+            if (isset($validated['event_ids'])) {
+                $patch->events()->sync($validated['event_ids']);
+            }
+
             $existingCollection = \App\Models\AgentMapRating::where('patch_id', $patch->id)
                 ->whereNull('superseded_by_id')
                 ->get();

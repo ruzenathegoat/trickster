@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { List, ArrowRight } from '@phosphor-icons/react';
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 
 export default function NavBar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -9,64 +10,73 @@ export default function NavBar() {
     <div className="w-full px-4 md:px-8 pt-6 fixed top-0 left-0 right-0 z-50 pointer-events-none">
       <header className="max-w-7xl mx-auto pointer-events-auto relative">
         
-        {/* Main Navbar Container */}
-        {/* Layer 1 signature: cut-corner-top-right, surface-inverse */}
-        <div 
-          className="bg-[#111111] h-20 rounded-l-2xl rounded-br-2xl rounded-tr-none flex items-center justify-between px-6 md:px-10 border-4 border-[#111111]"
-          style={{
-            clipPath: 'polygon(0 0, calc(100% - 32px) 0, 100% 32px, 100% 100%, 0 100%)',
-            boxShadow: '8px 8px 0px 0px rgba(0,0,0,0.2)' // Soft shadow since the bar itself is black
-          }}
-        >
+        {/* Main Navbar Container (Command Bar) */}
+        <div className="bg-[#111111] h-20 flex items-center justify-between px-6 md:px-8 border-4 border-black shadow-[8px_8px_0px_0px_var(--color-primary)]">
+          
           {/* Left: Logo */}
           <div className="flex-1 flex justify-start">
-            <Link to="/" className="text-white font-display text-2xl md:text-3xl tracking-tighter flex items-center gap-3 hover:text-[var(--color-primary)] transition-colors">
+            <Link to="/" className="text-white font-['Archivo_Black'] text-2xl md:text-3xl uppercase tracking-tighter flex items-center gap-3 hover:text-[var(--color-primary)] transition-colors">
               <img src="/logo.png" alt="Trickster Logo" className="w-8 h-8 md:w-10 md:h-10 object-contain invert" />
               <span className="mt-1">TRICKSTER</span>
             </Link>
           </div>
 
-          {/* Center: Nav Links */}
-          <nav className="hidden md:flex items-center gap-10">
-            <a href="#scout" className="text-white font-label text-[12px] font-bold uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Scout</a>
-            <a href="#talent" className="text-white font-label text-[12px] font-bold uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Talent</a>
-            <a href="#leaderboard" className="text-white font-label text-[12px] font-bold uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Leaderboard</a>
+          {/* Center: Nav Links (Terminal Style) */}
+          <nav className="hidden md:flex items-center gap-8">
+            <a href="#leaderboard" className="text-gray-400 font-['JetBrains_Mono'] text-[13px] font-bold uppercase tracking-widest hover:text-white transition-colors">
+              <span className="text-[var(--color-primary)] mr-1">//</span> METRICS
+            </a>
+            <a href="#scout" className="text-gray-400 font-['JetBrains_Mono'] text-[13px] font-bold uppercase tracking-widest hover:text-white transition-colors">
+              <span className="text-[var(--color-primary)] mr-1">//</span> TELEMETRY
+            </a>
+            <a href="#talent" className="text-gray-400 font-['JetBrains_Mono'] text-[13px] font-bold uppercase tracking-widest hover:text-white transition-colors">
+              <span className="text-[var(--color-primary)] mr-1">//</span> ARCHITECTURE
+            </a>
           </nav>
 
-          {/* Right: Mobile Menu Toggle */}
-          <div className="flex-1 flex justify-end md:hidden">
+          {/* Right: Desktop CTA & Mobile Toggle */}
+          <div className="flex-1 flex justify-end items-center gap-4">
+            {/* Desktop CTA */}
+            <Link to="/app/dashboard" className="hidden md:block">
+              <motion.div 
+                whileTap={{ scale: 0.96 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+                className="bg-[var(--color-primary)] border-2 border-[var(--color-primary)] px-6 py-2 flex items-center gap-2 cursor-pointer hover:bg-white hover:border-white transition-colors duration-200"
+              >
+                <span className="font-['Archivo_Black'] text-black text-sm uppercase tracking-widest mt-1">
+                  ENTER_APP
+                </span>
+                <ArrowRight weight="bold" size={16} className="text-black" />
+              </motion.div>
+            </Link>
+
+            {/* Mobile Toggle */}
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-[var(--color-primary)] p-2 active:scale-95 transition-transform"
+              className="md:hidden text-[var(--color-primary)] p-2 active:scale-95 transition-transform"
             >
               <List weight="bold" size={28} />
             </button>
           </div>
         </div>
 
-        {/* Floating Overlap CTA (Layer 1 signature) */}
-        {/* Sits half-in/half-out of navbar's bottom edge */}
-        <div className="hidden md:flex absolute -bottom-6 right-10 z-20 pointer-events-auto">
-          <Link 
-            to="/app/dashboard" 
-            className="flex items-center gap-3 bg-[var(--color-primary)] border-4 border-black px-8 py-3 rounded-full font-display text-lg uppercase tracking-widest text-black shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all active:scale-[0.97]"
-          >
-            Dashboard
-            <ArrowRight weight="bold" size={20} />
-          </Link>
-        </div>
-
-        {/* Mobile Dropdown */}
+        {/* Mobile Dropdown (Brutalist) */}
         {mobileMenuOpen && (
-          <div className="absolute top-24 right-0 w-64 bg-white border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] p-6 flex flex-col gap-6 md:hidden z-30 pointer-events-auto">
-            <a href="#scout" onClick={() => setMobileMenuOpen(false)} className="font-display text-xl uppercase tracking-tighter hover:text-[var(--color-primary)] transition-colors">Scout</a>
-            <a href="#talent" onClick={() => setMobileMenuOpen(false)} className="font-display text-xl uppercase tracking-tighter hover:text-[var(--color-primary)] transition-colors">Talent</a>
-            <a href="#leaderboard" onClick={() => setMobileMenuOpen(false)} className="font-display text-xl uppercase tracking-tighter hover:text-[var(--color-primary)] transition-colors">Leaderboard</a>
+          <div className="absolute top-24 right-4 w-64 bg-[#111111] border-4 border-black shadow-[8px_8px_0px_var(--color-primary)] p-6 flex flex-col gap-6 md:hidden z-30 pointer-events-auto">
+            <a href="#leaderboard" onClick={() => setMobileMenuOpen(false)} className="text-white font-['JetBrains_Mono'] text-sm font-bold uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">
+              <span className="text-[var(--color-primary)] mr-2">//</span> METRICS
+            </a>
+            <a href="#scout" onClick={() => setMobileMenuOpen(false)} className="text-white font-['JetBrains_Mono'] text-sm font-bold uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">
+              <span className="text-[var(--color-primary)] mr-2">//</span> TELEMETRY
+            </a>
+            <a href="#talent" onClick={() => setMobileMenuOpen(false)} className="text-white font-['JetBrains_Mono'] text-sm font-bold uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">
+              <span className="text-[var(--color-primary)] mr-2">//</span> ARCHITECTURE
+            </a>
             <Link 
               to="/app/dashboard"
-              className="mt-4 flex justify-between items-center bg-[var(--color-primary)] border-4 border-black px-6 py-3 font-display text-lg uppercase tracking-tight text-black shadow-[4px_4px_0px_rgba(0,0,0,1)] active:scale-[0.97]"
+              className="mt-4 flex justify-between items-center bg-[var(--color-primary)] px-4 py-3 font-['Archivo_Black'] text-sm uppercase tracking-widest text-black active:scale-[0.97] hover:bg-white transition-colors"
             >
-              Dashboard <ArrowRight weight="bold" />
+              ENTER_APP <ArrowRight weight="bold" />
             </Link>
           </div>
         )}

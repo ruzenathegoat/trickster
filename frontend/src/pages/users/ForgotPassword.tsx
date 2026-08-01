@@ -33,7 +33,7 @@ export default function ForgotPassword() {
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white">
       
       {/* Left Panel: Form */}
-      <div className="w-full lg:w-1/2 min-h-screen flex items-center justify-center p-8 md:p-12 relative z-10">
+      <div className="w-full lg:w-1/2 min-h-screen flex items-center justify-center p-6 md:p-12 relative z-10">
         
         {/* Subtle grid background for the form side */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
@@ -48,7 +48,7 @@ export default function ForgotPassword() {
           </Link>
 
           <div className="mb-8">
-            <h1 className="font-display text-[2.5rem] md:text-[3rem] font-black text-black leading-none uppercase tracking-tighter mb-4">
+            <h1 className="font-display text-[2.5rem] md:text-[3rem] font-black text-black leading-none uppercase tracking-tighter mb-4 break-words">
               Reset<br/>Access
             </h1>
             <div className="w-16 h-2 bg-[var(--color-primary)] border-2 border-black mb-4" />

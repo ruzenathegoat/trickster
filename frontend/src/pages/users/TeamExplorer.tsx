@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from '../../lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CaretLeft, CaretRight, MagnifyingGlass } from '@phosphor-icons/react';
@@ -23,10 +23,18 @@ export default function TeamExplorer() {
   const [loadingTable, setLoadingTable] = useState(true);
   const [topTeams, setTopTeams] = useState<TeamData[]>([]);
   const [tableTeams, setTableTeams] = useState<TeamData[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const query = searchParams.get('search');
+    if (query !== null && query !== searchQuery) {
+      setSearchQuery(query);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     axios.get('/api/v1/teams/top')
@@ -98,7 +106,7 @@ export default function TeamExplorer() {
             animate={{ clipPath: 'inset(0 0% 0 0)' }}
             transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
             onClick={() => navigate(`/app/teams/${rank1.id}`)}
-            className="flex-[2] bg-[var(--color-primary)] border-4 border-black shadow-[12px_12px_0px_rgba(0,0,0,1)] cursor-pointer group relative overflow-hidden min-h-[500px] flex flex-col justify-end"
+            className="flex-[2] bg-[var(--color-primary)] border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] md:shadow-[12px_12px_0px_rgba(0,0,0,1)] cursor-pointer group relative overflow-hidden min-h-[400px] md:min-h-[500px] flex flex-col justify-end"
           >
             {/* Rank tag */}
             <div className="absolute top-6 left-6 bg-black text-[var(--color-primary)] font-display text-4xl px-5 py-2 border-4 border-[var(--color-primary)] z-10">
@@ -111,8 +119,8 @@ export default function TeamExplorer() {
               )}
             </div>
             {/* Content bottom */}
-            <div className="relative z-10 p-8 lg:p-10">
-              <h2 className="text-5xl lg:text-7xl font-display uppercase tracking-tighter leading-none text-black mb-4 group-hover:translate-x-2 transition-transform">
+            <div className="relative z-10 p-6 md:p-8 lg:p-10">
+              <h2 className="text-4xl md:text-5xl lg:text-7xl font-display uppercase tracking-tighter leading-none text-black mb-4 group-hover:translate-x-2 transition-transform">
                 {rank1.name}
               </h2>
               <div className="flex items-end gap-8">
@@ -141,10 +149,10 @@ export default function TeamExplorer() {
                 animate={{ clipPath: 'inset(0 0 0% 0)' }}
                 transition={{ duration: 0.6, delay: 0.2 + i * 0.15, ease: [0.23, 1, 0.32, 1] }}
                 onClick={() => navigate(`/app/teams/${team.id}`)}
-                className="flex-1 bg-white border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] cursor-pointer group flex items-center gap-6 p-6 hover:bg-black hover:text-white transition-colors relative overflow-hidden"
+                className="flex-1 bg-white border-4 border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_rgba(0,0,0,1)] cursor-pointer group flex items-center gap-4 md:gap-6 p-4 md:p-6 hover:bg-black hover:text-white transition-colors relative overflow-hidden"
               >
                 {/* Rank */}
-                <span className="font-display text-5xl text-gray-200 group-hover:text-white/20 transition-colors shrink-0">
+                <span className="font-display text-4xl md:text-5xl text-gray-200 group-hover:text-white/20 transition-colors shrink-0">
                   #{i + 2}
                 </span>
                 {/* Logo */}
@@ -157,7 +165,7 @@ export default function TeamExplorer() {
                 </div>
                 {/* Text */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-display text-2xl uppercase tracking-tighter truncate group-hover:text-[var(--color-primary)] transition-colors">
+                  <h3 className="font-display text-xl md:text-2xl uppercase tracking-tighter truncate group-hover:text-[var(--color-primary)] transition-colors">
                     {team.name}
                   </h3>
                   <div className="flex gap-6 mt-1">
@@ -187,7 +195,16 @@ export default function TeamExplorer() {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                if (e.target.value) {
+                  searchParams.set('search', e.target.value);
+                  setSearchParams(searchParams, { replace: true });
+                } else {
+                  searchParams.delete('search');
+                  setSearchParams(searchParams, { replace: true });
+                }
+              }}
               placeholder="Search teams..."
               className="w-full pl-12 pr-4 py-4 border-4 border-black font-label text-[13px] font-bold uppercase tracking-widest bg-white focus:outline-none focus:bg-[var(--color-primary)] transition-colors"
             />
@@ -198,22 +215,22 @@ export default function TeamExplorer() {
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="border-b-4 border-black bg-black text-white font-label text-[11px] font-bold uppercase tracking-widest">
-                <th className="py-4 px-5 w-[60px]">#</th>
-                <th className="py-4 px-5">Team</th>
-                <th className="py-4 px-5">Region</th>
-                <th className="py-4 px-5 text-center">Record</th>
-                <th className="py-4 px-5 text-right">Win Rate</th>
+                <th className="py-4 px-3 md:px-5 w-[60px]">#</th>
+                <th className="py-4 px-3 md:px-5">Team</th>
+                <th className="py-4 px-3 md:px-5">Region</th>
+                <th className="py-4 px-3 md:px-5 text-center">Record</th>
+                <th className="py-4 px-3 md:px-5 text-right">Win Rate</th>
               </tr>
             </thead>
             <tbody>
               {loadingTable ? (
                 Array.from({ length: 8 }).map((_, i) => (
                   <tr key={i} className="border-b-2 border-gray-200">
-                    <td className="py-4 px-5"><Skeleton className="h-5 w-8" /></td>
-                    <td className="py-4 px-5"><Skeleton className="h-5 w-40" /></td>
-                    <td className="py-4 px-5"><Skeleton className="h-5 w-20" /></td>
-                    <td className="py-4 px-5"><Skeleton className="h-5 w-16 mx-auto" /></td>
-                    <td className="py-4 px-5"><Skeleton className="h-5 w-16 ml-auto" /></td>
+                    <td className="py-4 px-3 md:px-5"><Skeleton className="h-5 w-8" /></td>
+                    <td className="py-4 px-3 md:px-5"><Skeleton className="h-5 w-32 md:w-40" /></td>
+                    <td className="py-4 px-3 md:px-5"><Skeleton className="h-5 w-16 md:w-20" /></td>
+                    <td className="py-4 px-3 md:px-5"><Skeleton className="h-5 w-12 md:w-16 mx-auto" /></td>
+                    <td className="py-4 px-3 md:px-5"><Skeleton className="h-5 w-12 md:w-16 ml-auto" /></td>
                   </tr>
                 ))
               ) : (
@@ -223,10 +240,10 @@ export default function TeamExplorer() {
                     onClick={() => navigate(`/app/teams/${team.id}`)}
                     className="border-b-2 border-gray-200 hover:bg-[var(--color-primary)] transition-colors cursor-pointer group"
                   >
-                    <td className="py-4 px-5 font-numeric font-bold text-gray-300 group-hover:text-black transition-colors">
+                    <td className="py-4 px-3 md:px-5 font-numeric font-bold text-gray-300 group-hover:text-black transition-colors">
                       {((page - 1) * 15) + index + 1}
                     </td>
-                    <td className="py-4 px-5">
+                    <td className="py-4 px-3 md:px-5 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         {team.logo_url ? (
                           <img src={team.logo_url} alt={team.name} className="w-8 h-8 object-contain shrink-0" />
@@ -235,23 +252,23 @@ export default function TeamExplorer() {
                             <span className="font-display text-xs text-gray-300">?</span>
                           </div>
                         )}
-                        <span className="font-display uppercase text-base group-hover:text-black transition-colors truncate">
+                        <span className="font-display uppercase text-base group-hover:text-black transition-colors truncate max-w-[120px] sm:max-w-xs md:max-w-none block">
                           {team.name}
                         </span>
                       </div>
                     </td>
-                    <td className="py-4 px-5 font-label text-gray-500 text-[11px] uppercase tracking-widest">
+                    <td className="py-4 px-3 md:px-5 font-label text-gray-500 text-[10px] md:text-[11px] uppercase tracking-widest whitespace-nowrap">
                       {team.region}
                     </td>
-                    <td className="py-4 px-5 text-center font-numeric text-sm tabular-nums">
+                    <td className="py-4 px-3 md:px-5 text-center font-numeric text-sm tabular-nums whitespace-nowrap">
                       <span className="font-bold">{team.wins}</span>
                       <span className="text-gray-400 mx-1">/</span>
                       <span className="font-bold">{team.losses}</span>
                     </td>
-                    <td className="py-4 px-5 text-right">
+                    <td className="py-4 px-3 md:px-5 text-right whitespace-nowrap">
                       {team.win_rate != null ? (
                         <div className="flex items-center justify-end gap-3">
-                          <div className="w-20 h-2 bg-gray-200 overflow-hidden">
+                          <div className="w-16 md:w-20 h-2 bg-gray-200 overflow-hidden">
                             <motion.div
                               className="h-full bg-black group-hover:bg-black"
                               initial={{ width: 0 }}
@@ -259,7 +276,7 @@ export default function TeamExplorer() {
                               transition={{ duration: 0.6, delay: index * 0.03, ease: [0.23, 1, 0.32, 1] }}
                             />
                           </div>
-                          <span className="font-numeric font-bold text-sm tabular-nums w-14 text-right">
+                          <span className="font-numeric font-bold text-sm tabular-nums w-12 md:w-14 text-right">
                             {team.win_rate}%
                           </span>
                         </div>

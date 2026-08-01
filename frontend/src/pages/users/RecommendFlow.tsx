@@ -116,7 +116,7 @@ export default function RecommendFlow() {
         transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
         className="mb-12 border-b-4 border-black pb-6"
       >
-        <h1 className="text-5xl lg:text-6xl font-display uppercase tracking-tighter leading-none mb-3">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-display uppercase tracking-tighter leading-none mb-3">
           Scouting Engine
         </h1>
         <p className="font-label text-sm text-gray-500 uppercase tracking-widest max-w-xl">
@@ -164,7 +164,7 @@ export default function RecommendFlow() {
                 className="w-full flex items-center justify-between px-8 py-6 bg-white hover:bg-black hover:text-white group transition-colors active:scale-[0.99]"
               >
                 <div className="flex items-center gap-6">
-                  <span className="font-display text-3xl lg:text-4xl uppercase tracking-tighter group-hover:text-[var(--color-primary)] transition-colors">
+                  <span className="font-display text-2xl md:text-3xl lg:text-4xl uppercase tracking-tighter group-hover:text-[var(--color-primary)] transition-colors">
                     {role}
                   </span>
                   <span className="font-label text-[11px] text-gray-400 uppercase tracking-widest group-hover:text-white/50 hidden md:inline transition-colors">
@@ -259,7 +259,7 @@ export default function RecommendFlow() {
             {/* Playstyle Toggle */}
             <div className="p-8 lg:p-10 border-b-4 border-black">
               <label className="font-display text-xl uppercase mb-6 block">Playstyle Preference</label>
-              <div className="flex border-4 border-black">
+              <div className="flex flex-col sm:flex-row border-4 border-black">
                 <button 
                   onClick={() => setPlaystyle('Adaptable')}
                   className={`flex-1 p-5 text-center transition-colors active:scale-[0.98] ${
@@ -273,7 +273,7 @@ export default function RecommendFlow() {
                 </button>
                 <button 
                   onClick={() => setPlaystyle('Specialist')}
-                  className={`flex-1 p-5 border-l-4 border-black text-center transition-colors active:scale-[0.98] ${
+                  className={`flex-1 p-5 border-t-4 sm:border-t-0 sm:border-l-4 border-black text-center transition-colors active:scale-[0.98] ${
                     playstyle === 'Specialist' 
                       ? 'bg-black text-[var(--color-primary)]' 
                       : 'bg-white text-black hover:bg-gray-50'
@@ -391,7 +391,7 @@ export default function RecommendFlow() {
                     {/* Left: Score + Rank */}
                     <div className="md:w-48 bg-black text-[var(--color-primary)] flex flex-col items-center justify-center p-8 border-b-4 md:border-b-0 md:border-r-4 border-black shrink-0">
                       <span className="font-label text-[11px] text-white/40 uppercase tracking-widest mb-2">Rank</span>
-                      <span className="font-display text-7xl leading-none">#1</span>
+                      <span className="font-display text-6xl md:text-7xl leading-none">#1</span>
                     </div>
                     
                     {/* Hero Photo */}
@@ -409,7 +409,7 @@ export default function RecommendFlow() {
                     {/* Right: Player data */}
                     <div className="flex-1 p-8 lg:p-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                       <div>
-                        <h3 className="font-display text-4xl lg:text-5xl uppercase tracking-tighter text-black leading-none mb-2">
+                        <h3 className="font-display text-3xl md:text-4xl lg:text-5xl uppercase tracking-tighter text-black leading-none mb-2">
                           {hero.name}
                         </h3>
                         <div className="flex items-center gap-4 flex-wrap">
@@ -446,7 +446,7 @@ export default function RecommendFlow() {
                     className="border-4 border-black bg-white shadow-[6px_6px_0px_rgba(0,0,0,1)] flex flex-col md:flex-row md:items-center hover:bg-[var(--color-primary)] transition-colors group"
                   >
                     {/* Rank */}
-                    <div className="md:w-24 bg-black text-white font-display text-3xl flex items-center justify-center p-5 border-b-4 md:border-b-0 md:border-r-4 border-black shrink-0">
+                    <div className="md:w-24 bg-black text-white font-display text-2xl md:text-3xl flex items-center justify-center p-5 border-b-4 md:border-b-0 md:border-r-4 border-black shrink-0">
                       #{idx + 2}
                     </div>
                     

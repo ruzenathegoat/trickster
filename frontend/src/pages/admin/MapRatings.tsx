@@ -189,6 +189,7 @@ export default function MapRatings() {
         }),
         axios.post('/api/v1/admin/agent-map-ratings/bulk', {
           patch_version: selectedPatch.version,
+          event_ids: selectedEvents,
           ratings: payload,
         }),
       ]);

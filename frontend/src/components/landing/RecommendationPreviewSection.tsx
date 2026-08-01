@@ -1,100 +1,160 @@
-import { Brain, Check, Warning, PlayCircle } from '@phosphor-icons/react';
+import { motion } from 'framer-motion';
+import { Target, TrendUp, Crosshair, Users, PlayCircle } from '@phosphor-icons/react';
+
+// Emil-style easing (strong ease-out)
+const EMIL_EASE_OUT: [number, number, number, number] = [0.23, 1, 0.32, 1];
 
 export default function RecommendationPreviewSection() {
   return (
-    <section id="leaderboard" className="w-full bg-[var(--color-inverse-surface)] py-24 md:py-32 relative z-10 border-b-2 border-[var(--color-on-background)] overflow-hidden text-[var(--color-inverse-on-surface)]">
+    <section id="leaderboard" className="w-full bg-[var(--color-inverse-surface)] py-24 md:py-32 relative overflow-hidden">
       
-      {/* Dark Texture */}
-      <div className="absolute inset-0 noise-bg opacity-10 pointer-events-none" />
-      <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.2) 1px, transparent 0)', backgroundSize: '24px 24px' }} />
-
-      <div className="max-w-[var(--spacing-max-width)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)]">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10 flex flex-col gap-12 md:gap-16">
         
-        <div className="flex flex-col md:flex-row items-center gap-16 md:gap-24">
-          
-          {/* Left: Copy */}
-          <div className="flex-1 text-center md:text-left z-10">
-            <div className="inline-block border-2 border-[var(--color-primary)] px-3 py-1 mb-6 cut-corner bg-[var(--color-inverse-surface)]">
-               <span className="font-['JetBrains_Mono'] text-[0.75rem] font-bold uppercase tracking-widest text-[var(--color-primary)]">
-                 AI Decision Support
-               </span>
+        {/* Header - Editorial Style */}
+        <div className="w-full text-left flex flex-col md:flex-row md:items-end justify-between gap-8 border-b-4 border-white pb-8">
+          <div>
+            <div className="inline-block bg-[var(--color-primary)] text-black px-4 py-1.5 mb-6 font-['JetBrains_Mono'] font-bold text-sm tracking-widest uppercase border-2 border-white">
+              SMART METRICS ENGINE
             </div>
-            <h2 className="font-['Archivo_Black'] text-[3rem] md:text-[4rem] font-black uppercase leading-none tracking-tighter mb-6 text-white">
-              Smarter<br />
-              <span className="text-[var(--color-primary)]">Recommendations.</span>
+            <h2 className="font-['Archivo_Black'] text-5xl md:text-[5.5rem] lg:text-[7.5rem] font-black uppercase leading-[0.85] tracking-tighter text-white break-words">
+              DATA<br/>
+              DRIVEN<br/>
+              <span className="text-[var(--color-primary)]">SCOUTING.</span>
             </h2>
-            <p className="font-['Inter'] text-[1.125rem] text-gray-400 leading-relaxed max-w-md mx-auto md:mx-0">
-              Trickster doesn't just hand you a spreadsheet. Our AI analyzes roster gaps and generates decision-support cards with confidence levels and a breakdown of exactly <strong>why</strong> a player fits.
+          </div>
+          
+          <div className="max-w-sm text-left pb-2">
+            <p className="font-['Inter'] text-lg text-gray-300 font-medium leading-relaxed">
+              We do not rely on subjective opinions. The system analyzes raw telemetry, role efficiency, and historic gap data to output exact statistical fits.
             </p>
           </div>
-
-          {/* Right: The UI Mockup */}
-          <div className="flex-1 w-full relative z-10 perspective-1000">
-            {/* The Floating Card Mockup */}
-            <div className="bg-[var(--color-surface)] text-[var(--color-on-background)] border-4 border-[var(--color-on-background)] brutal-shadow p-6 md:p-8 cut-corner-lg transform rotate-y-[-10deg] rotate-x-[5deg] hover:rotate-0 transition-transform duration-500 ease-out">
-              
-              {/* Header */}
-              <div className="flex justify-between items-start mb-6 border-b-2 border-[var(--color-on-background)] pb-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="bg-black text-white font-['JetBrains_Mono'] font-bold text-xs px-2 py-0.5">RANK #1</span>
-                    <span className="font-['Inter'] text-xs font-bold text-[var(--color-secondary)] uppercase">Match: 94%</span>
-                  </div>
-                  <h3 className="font-['Archivo_Black'] text-[2.5rem] font-black uppercase leading-none">
-                    Tyson "TenZ" Ngo
-                  </h3>
-                </div>
-                <div className="w-12 h-12 rounded-full border-2 border-[var(--color-on-background)] overflow-hidden shrink-0">
-                  <img src="https://ui-avatars.com/api/?name=TenZ&background=F5D90A&color=111111&bold=true" alt="TenZ" className="w-full h-full object-cover" />
-                </div>
-              </div>
-
-              {/* AI Why Checklist */}
-              <div className="mb-8">
-                <h4 className="font-['JetBrains_Mono'] text-[0.875rem] font-bold uppercase mb-4 flex items-center gap-2">
-                  <Brain weight="bold" className="text-[1.25rem] text-[var(--color-primary)]" />
-                  Why this fit works
-                </h4>
-                <ul className="space-y-3">
-                  <li className="flex items-start gap-3">
-                    <div className="mt-0.5 w-4 h-4 bg-[var(--color-success)] border border-[var(--color-on-background)] rounded-full shrink-0 flex items-center justify-center">
-                      <Check weight="bold" className="text-[10px] text-white" />
-                    </div>
-                    <span className="font-['Inter'] text-[0.875rem] font-medium leading-snug">
-                      Exceptional First-Blood Success Rate (+14% above Tier 1 average).
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="mt-0.5 w-4 h-4 bg-[var(--color-success)] border border-[var(--color-on-background)] rounded-full shrink-0 flex items-center justify-center">
-                      <Check weight="bold" className="text-[10px] text-white" />
-                    </div>
-                    <span className="font-['Inter'] text-[0.875rem] font-medium leading-snug">
-                      Agent pool (Jett/Yoru) perfectly covers your current roster gaps.
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="mt-0.5 w-4 h-4 bg-[var(--color-warning)] border border-[var(--color-on-background)] rounded-full shrink-0 flex items-center justify-center">
-                      <Warning weight="bold" className="text-[10px] text-black" />
-                    </div>
-                    <span className="font-['Inter'] text-[0.875rem] font-medium leading-snug">
-                      High buyout variance; contract ends in 4 months.
-                    </span>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Action */}
-              <button className="w-full bg-[var(--color-primary)] text-black border-2 border-black py-3 font-['JetBrains_Mono'] font-bold text-[0.875rem] uppercase brutal-shadow-sm brutal-hover flex items-center justify-center gap-2">
-                Run Simulation
-                <PlayCircle weight="bold" size={20} />
-              </button>
-
-            </div>
-
-            {/* Decorative Elements */}
-            <div className="absolute -top-12 -right-12 w-32 h-32 bg-[var(--color-primary)] rounded-full border-4 border-black blur-xl opacity-20 -z-10 animate-pulse" />
-          </div>
         </div>
+
+        {/* The Scouting Dossier */}
+        <motion.div 
+          initial={{ clipPath: 'inset(100% 0 0 0)', opacity: 0, y: 40 }}
+          whileInView={{ clipPath: 'inset(0% 0 0 0)', opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.8, ease: EMIL_EASE_OUT }}
+          className="w-full bg-white border-4 border-white shadow-[8px_8px_0px_var(--color-primary)] grid grid-cols-1 lg:grid-cols-12"
+        >
+          {/* Left Column: Player Identity */}
+          <div className="lg:col-span-5 bg-black p-8 md:p-12 border-b-4 lg:border-b-0 lg:border-r-4 border-white flex flex-col justify-between">
+            <div>
+              <div className="flex justify-between items-start mb-16">
+                <span className="font-['JetBrains_Mono'] text-[var(--color-primary)] font-bold text-lg tracking-widest border border-[var(--color-primary)] px-3 py-1">
+                  TARGET_ACQ
+                </span>
+                <Crosshair size={32} className="text-white" />
+              </div>
+              
+              <h3 className="font-['Archivo_Black'] text-5xl sm:text-7xl uppercase text-white leading-none tracking-tighter mb-2 break-words">
+                f0rsakeN
+              </h3>
+              <p className="font-['JetBrains_Mono'] text-xl sm:text-2xl text-gray-400 uppercase tracking-tight">
+                FLEX / DUELIST
+              </p>
+            </div>
+            
+            <div className="mt-16">
+              <div className="font-['JetBrains_Mono'] text-sm text-gray-500 mb-2 uppercase tracking-widest">
+                Overall Smart Fit
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="font-['Archivo_Black'] text-6xl sm:text-7xl text-[var(--color-primary)] tracking-tighter">
+                  98.4
+                </span>
+                <span className="font-['JetBrains_Mono'] text-xl text-white font-bold">%</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Data Breakdown */}
+          <div className="lg:col-span-7 bg-[#111111] flex flex-col">
+            <div className="p-8 md:p-12 flex-1">
+              <h4 className="font-['Archivo_Black'] text-2xl text-white uppercase tracking-tight mb-8">
+                Statistical Breakdown
+              </h4>
+              
+              <div className="flex flex-col gap-8">
+                
+                {/* Metric 1 */}
+                <div className="group flex items-start sm:items-center justify-between border-b-2 border-gray-800 pb-6 transition-colors duration-200 hover:border-white">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                    <div className="w-12 h-12 shrink-0 bg-white flex items-center justify-center text-black">
+                      <Target weight="bold" size={24} />
+                    </div>
+                    <div>
+                      <div className="font-['JetBrains_Mono'] text-white font-bold text-lg uppercase tracking-tight mb-1">
+                        Role Efficiency
+                      </div>
+                      <div className="font-['Inter'] text-sm text-gray-400">
+                        Historical impact on Flex agents (KAY/O, Breach)
+                      </div>
+                    </div>
+                  </div>
+                  <div className="font-['Archivo_Black'] text-3xl sm:text-4xl text-[var(--color-primary)] mt-4 sm:mt-0">
+                    99%
+                  </div>
+                </div>
+
+                {/* Metric 2 */}
+                <div className="group flex items-start sm:items-center justify-between border-b-2 border-gray-800 pb-6 transition-colors duration-200 hover:border-white">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                    <div className="w-12 h-12 shrink-0 bg-white flex items-center justify-center text-black">
+                      <Users weight="bold" size={24} />
+                    </div>
+                    <div>
+                      <div className="font-['JetBrains_Mono'] text-white font-bold text-lg uppercase tracking-tight mb-1">
+                        Roster Synergy
+                      </div>
+                      <div className="font-['Inter'] text-sm text-gray-400">
+                        Playstyle overlap mitigation with something / Jinggg
+                      </div>
+                    </div>
+                  </div>
+                  <div className="font-['Archivo_Black'] text-3xl sm:text-4xl text-[var(--color-primary)] mt-4 sm:mt-0">
+                    96%
+                  </div>
+                </div>
+
+                {/* Metric 3 */}
+                <div className="group flex items-start sm:items-center justify-between border-b-2 border-gray-800 pb-6 transition-colors duration-200 hover:border-white">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                    <div className="w-12 h-12 shrink-0 bg-white flex items-center justify-center text-black">
+                      <TrendUp weight="bold" size={24} />
+                    </div>
+                    <div>
+                      <div className="font-['JetBrains_Mono'] text-white font-bold text-lg uppercase tracking-tight mb-1">
+                        Impact Delta
+                      </div>
+                      <div className="font-['Inter'] text-sm text-gray-400">
+                        Projected team performance increase
+                      </div>
+                    </div>
+                  </div>
+                  <div className="font-['Archivo_Black'] text-3xl sm:text-4xl text-[var(--color-primary)] mt-4 sm:mt-0">
+                    +14%
+                  </div>
+                </div>
+
+              </div>
+            </div>
+            
+            {/* Action Bar (Emil button scaling trick) */}
+            <motion.div 
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              className="bg-[var(--color-primary)] p-6 md:px-12 flex justify-between items-center border-t-4 border-white cursor-pointer hover:bg-white transition-colors duration-200"
+            >
+              <span className="font-['JetBrains_Mono'] font-bold text-black text-lg md:text-xl uppercase tracking-widest">
+                EXECUTE_TRANSFER_SIMULATION
+              </span>
+              <PlayCircle weight="bold" size={28} className="text-black" />
+            </motion.div>
+
+          </div>
+        </motion.div>
 
       </div>
     </section>

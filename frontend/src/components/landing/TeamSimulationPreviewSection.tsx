@@ -22,7 +22,7 @@ export default function TeamSimulationPreviewSection() {
           
           {/* Left: Copy */}
           <div className="flex-1 text-center md:text-left z-10">
-            <h2 className="font-['Archivo_Black'] text-[3rem] md:text-[4rem] font-black uppercase leading-none tracking-tighter mb-6 text-[var(--color-on-background)]">
+            <h2 className="font-['Archivo_Black'] text-5xl md:text-[4rem] font-black uppercase leading-[0.9] tracking-tighter mb-6 text-[var(--color-on-background)] break-words">
               SIMULATE <br />
               <span className="text-[var(--color-primary)] stroke-black" style={{ WebkitTextStroke: '2px black' }}>CHEMISTRY.</span>
             </h2>

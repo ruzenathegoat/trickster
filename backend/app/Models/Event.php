@@ -13,4 +13,5 @@ class Event extends Model
     protected $fillable = ['name', 'tier', 'region', 'season', 'start_date', 'end_date', 'vlr_event_id'];
 
     public function matches(): HasMany { return $this->hasMany(MatchData::class); }
+    public function patches() { return $this->belongsToMany(Patch::class, 'patch_events', 'event_id', 'patch_id'); }
 }

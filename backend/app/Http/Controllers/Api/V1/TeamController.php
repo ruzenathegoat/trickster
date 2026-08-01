@@ -28,7 +28,13 @@ class TeamController extends Controller
                 ]);
 
             if (!empty($q)) {
-                $query->where('name', 'ilike', '%' . $q . '%');
+                $leetspeakMap = ['0' => 'o', '1' => 'i', '3' => 'e', '4' => 'a', '5' => 's', '7' => 't'];
+                $normalizedQ = str_replace(array_keys($leetspeakMap), array_values($leetspeakMap), strtolower($q));
+
+                $query->where(function($qBuilder) use ($q, $normalizedQ) {
+                    $qBuilder->where('name', 'ilike', '%' . $q . '%')
+                             ->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(name), '0', 'o'), '1', 'i'), '3', 'e'), '4', 'a'), '5', 's'), '7', 't') LIKE ?", ['%' . $normalizedQ . '%']);
+                });
             }
 
             if ($region !== 'All') {
@@ -191,6 +197,31 @@ class TeamController extends Controller
                 return $b['count'] <=> $a['count'];
             });
 
+            $recentMatches = \App\Models\MatchData::with(['teamA', 'teamB', 'event'])
+                ->where(function($q) use ($id) {
+                    $q->where('team_a_id', $id)
+                      ->orWhere('team_b_id', $id);
+                })
+                ->whereNotNull('winner_team_id')
+                ->orderBy('match_date', 'desc')
+                ->take(3)
+                ->get()
+                ->map(function($m) use ($team) {
+                    $isTeamA = $m->team_a_id === $team->id;
+                    $opponent = $isTeamA ? $m->teamB : $m->teamA;
+                    $isWin = $m->winner_team_id === $team->id;
+                    
+                    return [
+                        'id' => $m->id,
+                        'date' => $m->match_date,
+                        'opponent_name' => $opponent ? $opponent->name : 'Unknown',
+                        'opponent_logo' => $opponent ? $opponent->logo_url : null,
+                        'opponent_id' => $opponent ? $opponent->id : null,
+                        'event_name' => $m->event ? $m->event->name : 'Unknown Event',
+                        'is_win' => $isWin,
+                    ];
+                })->toArray();
+
             return [
                 'id' => $team->id,
                 'name' => $team->name,
@@ -204,7 +235,8 @@ class TeamController extends Controller
                     'total_losses' => $totalLosses,
                     'tournaments' => $tournaments
                 ],
-                'most_picked_maps' => $mostPickedMaps
+                'most_picked_maps' => $mostPickedMaps,
+                'recent_matches' => $recentMatches
             ];
         });
 

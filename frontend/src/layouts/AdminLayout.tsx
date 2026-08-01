@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
-import { Terminal, ChartLineUp, MapTrifold, ListNumbers, SignOut, Users, WarningCircle, CheckCircle, List } from '@phosphor-icons/react';
+import { Terminal, ChartLineUp, MapTrifold, ListNumbers, SignOut, Users, CheckCircle, List } from '@phosphor-icons/react';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
@@ -9,10 +9,23 @@ export default function AdminLayout() {
   const location = useLocation();
   const { user, isLoading, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   const navLinks = [
     { name: 'Scraper Logs', path: '/admin/scraper', icon: Terminal },
     { name: 'Manage Users', path: '/admin/users', icon: Users },
+    { name: 'Manage Players', path: '/admin/players', icon: Users },
     { name: 'Patch Ratings', path: '/admin/patch-ratings', icon: ChartLineUp },
     { name: 'Map Ratings', path: '/admin/map-ratings', icon: MapTrifold },
     { name: 'Stage Mappings', path: '/admin/stage-mappings', icon: ListNumbers },
@@ -46,6 +59,37 @@ export default function AdminLayout() {
 
   if (!user || user.role !== 'admin') {
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
+  }
+
+  if (isLoggingOut) {
+    return (
+      <div className="min-h-screen bg-[#f4f4f4] flex flex-col font-body">
+        <header className="w-full bg-white border-b-4 border-black p-4 flex justify-between">
+          <div className="w-48 h-8 bg-gray-200 animate-pulse border-2 border-black"></div>
+          <div className="w-32 h-8 bg-gray-200 animate-pulse border-2 border-black"></div>
+        </header>
+        <div className="flex flex-1">
+          <aside className="w-64 border-r-4 border-black bg-white p-4 space-y-4">
+            <div className="w-full h-10 bg-gray-200 animate-pulse border-2 border-black"></div>
+            <div className="w-full h-10 bg-gray-200 animate-pulse border-2 border-black"></div>
+            <div className="w-full h-10 bg-gray-200 animate-pulse border-2 border-black"></div>
+            <div className="w-full h-10 bg-gray-200 animate-pulse border-2 border-black"></div>
+          </aside>
+          <main className="flex-1 p-8 space-y-8">
+            <div className="w-1/3 h-12 bg-gray-200 animate-pulse border-2 border-black"></div>
+            <div className="w-full h-64 bg-gray-200 animate-pulse border-2 border-black"></div>
+            <div className="flex gap-4">
+              <div className="flex-1 h-32 bg-gray-200 animate-pulse border-2 border-black"></div>
+              <div className="flex-1 h-32 bg-gray-200 animate-pulse border-2 border-black"></div>
+              <div className="flex-1 h-32 bg-gray-200 animate-pulse border-2 border-black"></div>
+            </div>
+            <div className="flex justify-center mt-8">
+               <span className="font-display font-black text-2xl uppercase tracking-widest animate-pulse">TERMINATING SESSION...</span>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -98,11 +142,20 @@ export default function AdminLayout() {
             OP: {user.name}
           </div>
           <button 
-            onClick={logout} 
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-4 md:py-0 bg-red-600 hover:bg-red-700 text-white font-display text-sm font-black uppercase tracking-widest transition-colors"
+            onClick={handleLogout} 
+            disabled={isLoggingOut}
+            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-4 md:py-0 font-display text-sm font-black uppercase tracking-widest transition-all ${
+              isLoggingOut 
+                ? "bg-gray-300 text-gray-500 animate-pulse cursor-not-allowed" 
+                : "bg-red-600 hover:bg-red-700 text-white"
+            }`}
           >
-            <SignOut weight="bold" className="text-xl" />
-            <span className="hidden md:inline">Terminate</span>
+            {isLoggingOut ? (
+              <div className="w-5 h-5 rounded-full border-2 border-gray-500 border-t-transparent animate-spin" />
+            ) : (
+              <SignOut weight="bold" className="text-xl" />
+            )}
+            <span className="hidden md:inline">{isLoggingOut ? "TERMINATING..." : "Terminate"}</span>
           </button>
         </div>
 

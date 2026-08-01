@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from '../lib/axios';
 import { 
   SquaresFour, 
@@ -15,22 +15,144 @@ import {
   CaretLeft,
   Bell,
   Globe,
-  SignOut
+  SignOut,
+  X,
+  ClockCounterClockwise,
+  ArrowRight
 } from '@phosphor-icons/react';
 import clsx from 'clsx';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [activePatch, setActivePatch] = useState<string>('...');
+
+  // Search History State
+  const [searchType, setSearchType] = useState<'players' | 'teams'>('players');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchHistory, setSearchHistory] = useState<{type: string, query: string}[]>([]);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchWrapperRef = useRef<HTMLDivElement>(null);
+
+  // Live Search Preview State
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+
+  // Debounced Search Effect
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    const timer = setTimeout(() => {
+      const url = searchType === 'players' 
+        ? `/api/v1/players?q=${encodeURIComponent(searchQuery)}`
+        : `/api/v1/teams?q=${encodeURIComponent(searchQuery)}`;
+      
+      axios.get(url)
+        .then(res => {
+          const data = res.data.data ? res.data.data : res.data;
+          setSearchResults(data.slice(0, 5));
+        })
+        .catch(err => console.error(err))
+        .finally(() => setIsSearching(false));
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, searchType]);
 
   useEffect(() => {
     axios.get('/api/v1/active-patch')
       .then(res => setActivePatch(res.data.version))
       .catch(() => setActivePatch('N/A'));
   }, []);
+
+  // Load history on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('trickster_search_history');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.length > 0 && typeof parsed[0] === 'string') {
+          // Migration from old array of strings
+          setSearchHistory(parsed.map((q: string) => ({ type: 'players', query: q })));
+        } else {
+          setSearchHistory(parsed);
+        }
+      } catch (e) {
+        setSearchHistory([]);
+      }
+    }
+  }, []);
+
+  // Click outside to close search dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchWrapperRef.current && !searchWrapperRef.current.contains(event.target as Node)) {
+        setIsSearchFocused(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && searchQuery.trim() !== '') {
+      const newQuery = searchQuery.trim();
+      const updatedHistory = [{ type: searchType, query: newQuery }, ...searchHistory.filter(item => item.query !== newQuery || item.type !== searchType)].slice(0, 5);
+      setSearchHistory(updatedHistory);
+      localStorage.setItem('trickster_search_history', JSON.stringify(updatedHistory));
+      setIsSearchFocused(false);
+      navigate(`/app/${searchType}?search=${encodeURIComponent(newQuery)}`);
+    }
+  };
+
+  const removeHistoryItem = (itemToRemove: {type: string, query: string}, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updatedHistory = searchHistory.filter(item => item.query !== itemToRemove.query || item.type !== itemToRemove.type);
+    setSearchHistory(updatedHistory);
+    localStorage.setItem('trickster_search_history', JSON.stringify(updatedHistory));
+  };
+
+  const clearAllHistory = () => {
+    setSearchHistory([]);
+    localStorage.removeItem('trickster_search_history');
+  };
+
+  const handleHistoryClick = (item: {type: string, query: string}) => {
+    setSearchQuery(item.query);
+    setSearchType(item.type as 'players' | 'teams');
+    setIsSearchFocused(false);
+    navigate(`/app/${item.type}?search=${encodeURIComponent(item.query)}`);
+  };
+
+  const handleResultClick = (result: any) => {
+    const queryStr = searchType === 'players' ? result.ign : result.name;
+    const updatedHistory = [{ type: searchType, query: queryStr }, ...searchHistory.filter(item => item.query !== queryStr || item.type !== searchType)].slice(0, 5);
+    setSearchHistory(updatedHistory);
+    localStorage.setItem('trickster_search_history', JSON.stringify(updatedHistory));
+    setIsSearchFocused(false);
+    navigate(`/app/${searchType}/${result.id}`);
+  };
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   const navItems = [
     { label: 'Dashboard', icon: SquaresFour, path: '/app/dashboard' },
@@ -40,52 +162,125 @@ export default function AppLayout() {
     { label: 'Recommend', icon: Sparkle, path: '/app/recommend' },
     { label: 'Simulation', icon: Sword, path: '/app/simulation' },
     { label: 'Meta', icon: TrendUp, path: '/app/meta' },
-    { label: 'My Profile', icon: UserCircle, path: '/app/profile' },
   ];
 
+  if (isLoggingOut) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col font-['Inter']">
+        <header className="w-full bg-[var(--color-primary)] border-b-4 border-black p-4 flex justify-between h-[80px]">
+          <div className="w-48 h-8 bg-black/10 animate-pulse border-2 border-black mt-1"></div>
+          <div className="w-32 h-8 bg-black/10 animate-pulse border-2 border-black mt-1"></div>
+        </header>
+        <div className="flex flex-1">
+          <aside className="w-[280px] border-r-4 border-black bg-white p-4 space-y-4">
+            <div className="w-full h-12 bg-gray-200 animate-pulse border-2 border-black"></div>
+            <div className="w-full h-12 bg-gray-200 animate-pulse border-2 border-black"></div>
+            <div className="w-full h-12 bg-gray-200 animate-pulse border-2 border-black"></div>
+            <div className="w-full h-12 bg-gray-200 animate-pulse border-2 border-black"></div>
+            <div className="w-full h-12 bg-gray-200 animate-pulse border-2 border-black"></div>
+          </aside>
+          <main className="flex-1 p-8 space-y-8 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.02)_10px,rgba(0,0,0,0.02)_20px)]">
+            <div className="w-1/3 h-12 bg-gray-200 animate-pulse border-2 border-black"></div>
+            <div className="w-full h-64 bg-gray-200 animate-pulse border-2 border-black"></div>
+            <div className="flex gap-4">
+              <div className="flex-1 h-48 bg-gray-200 animate-pulse border-2 border-black"></div>
+              <div className="flex-1 h-48 bg-gray-200 animate-pulse border-2 border-black"></div>
+            </div>
+            <div className="flex justify-center mt-12">
+               <span className="font-display font-black text-2xl uppercase tracking-widest animate-pulse text-black">LOGGING OUT...</span>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-white flex text-black">
+    <div className="min-h-screen bg-white flex flex-col md:flex-row text-black">
+      
+      {/* Mobile Header (Visible only on small screens) */}
+      <div className="md:hidden flex items-center justify-between p-4 bg-[var(--color-primary)] border-b-4 border-black sticky top-0 z-40">
+        <Link to="/app/dashboard" className="flex items-center gap-3 font-display text-xl uppercase tracking-tighter text-white">
+          <div className="w-8 h-8 flex items-center justify-center shrink-0">
+            <img src="/logo.png" alt="Trickster" className="w-full h-full object-contain filter invert" />
+          </div>
+          TRICKSTER
+        </Link>
+        <button 
+          onClick={() => setMobileMenuOpen(true)}
+          className="p-2 border-2 border-black bg-white active:scale-95 transition-transform"
+        >
+          <List weight="bold" size={24} />
+        </button>
+      </div>
+
+      {/* Mobile Overlay Backdrop */}
+      {mobileMenuOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside 
         className={clsx(
-          "bg-white border-r-4 border-black transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] flex flex-col z-20 sticky top-0 h-screen shrink-0",
+          "bg-white border-r-4 border-black transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] flex flex-col z-50 h-screen shrink-0 fixed md:sticky top-0",
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
           collapsed ? "w-[80px]" : "w-[280px]"
         )}
       >
         {/* Logo Area */}
         <div className="h-[80px] flex items-center justify-between px-5 border-b-4 border-black shrink-0 bg-[var(--color-primary)]">
           {!collapsed && (
-            <Link to="/app/dashboard" className="flex items-center gap-3 font-display text-2xl uppercase tracking-tighter text-black truncate">
+            <Link to="/app/dashboard" className="flex items-center gap-3 font-display text-2xl uppercase tracking-tighter text-white truncate">
               <div className="w-8 h-8 flex items-center justify-center shrink-0">
                 <img src="/logo.png" alt="Trickster" className="w-full h-full object-contain filter invert" />
               </div>
               TRICKSTER
             </Link>
           )}
+          
           <button 
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={() => {
+              if (window.innerWidth < 768) {
+                setMobileMenuOpen(false);
+              } else {
+                setCollapsed(!collapsed);
+              }
+            }}
             className={clsx(
               "p-2 border-2 border-black bg-white hover:bg-black hover:text-white transition-colors active:scale-95",
-              collapsed && "mx-auto"
+              collapsed && "mx-auto hidden md:block" // Hide collapse button on mobile when collapsed is forced
             )}
           >
-            {collapsed ? <List weight="bold" size={20} /> : <CaretLeft weight="bold" size={20} />}
+            {window.innerWidth < 768 ? <CaretLeft weight="bold" size={20} /> : (collapsed ? <List weight="bold" size={20} /> : <CaretLeft weight="bold" size={20} />)}
           </button>
         </div>
 
         {/* Navigation */}
-        <nav data-lenis-prevent="true" className="flex-1 overflow-y-auto py-6 px-4 space-y-2 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.02)_10px,rgba(0,0,0,0.02)_20px)]">
+        <nav data-lenis-prevent="true" className="flex-1 overflow-y-auto py-6 px-4 flex flex-col space-y-2 bg-gray-50/50">
           {navItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path);
             return (
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={() => {
+                  if (window.innerWidth < 768) setMobileMenuOpen(false);
+                }}
                 className={clsx(
-                  "flex items-center gap-4 px-4 py-3 border-2 transition-all duration-200 group font-label uppercase tracking-widest text-[13px] font-bold",
+                  "flex items-center border-2 transition-all duration-200 group font-label uppercase tracking-widest text-[13px] font-bold shrink-0",
+                  collapsed ? "justify-center w-12 h-12 mx-auto p-0" : "gap-4 px-4 py-3",
                   isActive 
-                    ? "bg-black text-[var(--color-primary)] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] translate-x-1" 
-                    : "border-transparent text-gray-500 hover:border-black hover:bg-white hover:text-black hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 hover:translate-x-0.5"
+                    ? clsx(
+                        "bg-black text-[var(--color-primary)] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)]",
+                        !collapsed && "translate-x-1"
+                      )
+                    : clsx(
+                        "border-transparent text-gray-500 hover:border-black hover:bg-white hover:text-black hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5",
+                        !collapsed && "hover:translate-x-0.5"
+                      )
                 )}
                 title={collapsed ? item.label : undefined}
               >
@@ -94,71 +289,203 @@ export default function AppLayout() {
               </Link>
             );
           })}
-        </nav>
 
-        {/* Bottom Account Area */}
-        <div className="p-4 border-t-4 border-black shrink-0 bg-white">
-          <Link 
-            to="/"
-            className={clsx(
-              "flex items-center gap-3 p-3 mb-2 border-2 border-transparent hover:border-black hover:bg-black hover:text-white transition-colors text-black font-label text-[11px] font-bold uppercase tracking-widest group",
-              collapsed && "justify-center"
-            )}
-            title={collapsed ? "Back to Website" : undefined}
-          >
-            <Globe weight="bold" size={20} className="shrink-0 group-hover:text-white" />
-            {!collapsed && <span className="truncate">Back to Website</span>}
-          </Link>
-
-          <button 
-            onClick={logout}
-            className={clsx(
-              "w-full flex items-center gap-3 p-3 mb-4 border-2 border-transparent hover:border-black hover:bg-[#ff3333] hover:text-white transition-colors text-[#ff3333] font-label text-[11px] font-bold uppercase tracking-widest group",
-              collapsed && "justify-center"
-            )}
-            title={collapsed ? "Logout" : undefined}
-          >
-            <SignOut weight="bold" size={20} className="shrink-0 group-hover:text-white" />
-            {!collapsed && <span className="truncate">Logout</span>}
-          </button>
-
-          <Link 
-            to="/app/profile"
-            className={clsx(
-              "flex items-center gap-3 p-3 border-2 border-black bg-[var(--color-primary)] hover:bg-black hover:text-[var(--color-primary)] transition-colors group",
-              collapsed && "justify-center"
-            )}
-          >
-            <div className="w-8 h-8 rounded-full bg-black text-[var(--color-primary)] border-2 border-black overflow-hidden flex items-center justify-center shrink-0 group-hover:bg-[var(--color-primary)] group-hover:text-black transition-colors">
-              {user?.profile_photo_url ? (
-                <img src={user.profile_photo_url} alt={user.name} className="w-full h-full object-cover" />
-              ) : (
-                <UserCircle weight="fill" size={24} />
+          <div className="mt-auto pt-8 shrink-0 flex flex-col space-y-2">
+            <Link 
+              to="/"
+              onClick={() => {
+                if (window.innerWidth < 768) setMobileMenuOpen(false);
+              }}
+              className={clsx(
+                "flex items-center border-2 border-transparent transition-all duration-200 font-label text-[13px] font-bold uppercase tracking-widest group w-full",
+                collapsed ? "justify-center w-12 h-12 mx-auto p-0" : "gap-4 px-4 py-3",
+                "text-gray-500 hover:border-black hover:bg-white hover:text-black hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5"
               )}
-            </div>
-            {!collapsed && (
-              <div className="overflow-hidden flex-1">
-                <p className="font-label text-[12px] font-bold uppercase tracking-widest truncate">{user?.name || 'User'}</p>
-                <p className="font-label text-[9px] font-bold uppercase tracking-widest opacity-60 truncate">{user?.email || 'user@example.com'}</p>
+              title={collapsed ? "Back to Website" : undefined}
+            >
+              <Globe weight="bold" size={20} className="shrink-0 opacity-50 group-hover:opacity-100 transition-colors" />
+              {!collapsed && <span className="truncate">Back to Website</span>}
+            </Link>
+
+            <Link 
+              to="/app/profile"
+              className={clsx(
+                "flex items-center border-2 border-black bg-[var(--color-primary)] hover:bg-black hover:text-[var(--color-primary)] transition-colors group",
+                collapsed ? "justify-center w-12 h-12 mx-auto p-0" : "gap-3 p-3"
+              )}
+              title={collapsed ? "Profile" : undefined}
+            >
+              <div className={clsx(
+                "bg-black text-[var(--color-primary)] border-2 border-black overflow-hidden flex items-center justify-center shrink-0 group-hover:bg-[var(--color-primary)] group-hover:text-black transition-colors",
+                collapsed ? "w-8 h-8 rounded-full" : "w-8 h-8 rounded-full"
+              )}>
+                {user?.profile_photo_url ? (
+                  <img src={user.profile_photo_url} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  <UserCircle weight="fill" size={24} />
+                )}
               </div>
-            )}
-          </Link>
-        </div>
+              {!collapsed && (
+                <div className="overflow-hidden flex-1 text-left">
+                  <p className="font-label text-[12px] font-bold uppercase tracking-widest truncate text-black group-hover:text-[var(--color-primary)] transition-colors">{user?.name || 'User'}</p>
+                  <p className="font-label text-[9px] font-bold uppercase tracking-widest opacity-60 truncate text-black group-hover:text-[var(--color-primary)] transition-colors">{user?.email || 'user@example.com'}</p>
+                </div>
+              )}
+            </Link>
+
+            <button 
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className={clsx(
+                "flex items-center border-2 border-transparent transition-all duration-200 font-label text-[13px] font-bold uppercase tracking-widest group w-full",
+                collapsed ? "justify-center w-12 h-12 mx-auto p-0" : "gap-4 px-4 py-3",
+                isLoggingOut 
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed border-black animate-pulse" 
+                  : "text-[#ff3333] hover:border-black hover:bg-[#ff3333] hover:text-white hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5"
+              )}
+              title={collapsed ? "Logout" : undefined}
+            >
+              {isLoggingOut ? (
+                <div className="w-5 h-5 rounded-full border-2 border-gray-400 border-t-transparent animate-spin shrink-0" />
+              ) : (
+                <SignOut weight="bold" size={20} className="shrink-0 text-[#ff3333] opacity-70 group-hover:text-white group-hover:opacity-100 transition-colors" />
+              )}
+              {!collapsed && <span className="truncate">{isLoggingOut ? "LOGGING OUT..." : "Logout"}</span>}
+            </button>
+          </div>
+        </nav>
       </aside>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Topbar */}
-        <header className="h-[80px] sticky top-0 bg-white border-b-4 border-black flex items-center justify-between px-8 shrink-0 z-40 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiMwMDAwMDAiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')]">
-          <div className="flex-1 max-w-xl">
-            <div className="relative group">
+        <header className="hidden md:flex h-[80px] sticky top-0 bg-white border-b-4 border-black items-center justify-between px-8 shrink-0 z-30 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiMwMDAwMDAiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')]">
+          <div className="flex-1 max-w-xl relative" ref={searchWrapperRef}>
+            <div className="relative group z-20">
               <MagnifyingGlass weight="bold" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-black transition-transform group-focus-within:scale-110" />
               <input 
                 type="text" 
-                placeholder="Search players or teams..." 
-                className="w-full bg-white border-4 border-black pl-12 pr-4 py-3 text-[13px] font-label font-bold uppercase tracking-widest text-black placeholder-gray-400 focus:outline-none focus:shadow-[6px_6px_0px_rgba(0,0,0,1)] transition-all focus:-translate-y-1"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                onKeyDown={handleSearchSubmit}
+                placeholder={`SEARCH ${searchType.toUpperCase()}... [ENTER]`} 
+                className="w-full bg-white border-4 border-black pl-12 pr-28 py-3 text-[13px] font-label font-bold uppercase tracking-widest text-black placeholder-gray-400 focus:outline-none focus:shadow-[6px_6px_0px_rgba(0,0,0,1)] transition-all focus:-translate-y-1"
               />
+              <button
+                onClick={() => setSearchType(t => t === 'players' ? 'teams' : 'players')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black text-[var(--color-primary)] px-2 py-1.5 font-['Archivo_Black'] text-[9px] uppercase tracking-widest hover:bg-gray-800 transition-colors"
+              >
+                {searchType === 'players' ? 'IN: PLAYERS' : 'IN: TEAMS'}
+              </button>
             </div>
+            
+            {/* Search History & Live Preview Dropdown */}
+            {isSearchFocused && (searchQuery.trim() ? true : searchHistory.length > 0) && (
+              <div className="absolute left-0 right-0 top-full mt-2 bg-white border-4 border-black shadow-[6px_6px_0px_rgba(0,0,0,1)] z-10 flex flex-col max-h-[400px] overflow-y-auto">
+                {!searchQuery.trim() ? (
+                  // HISTORY MODE
+                  <>
+                    <div className="px-4 py-2 bg-gray-100 border-b-4 border-black font-['Archivo_Black'] text-xs text-gray-500 uppercase tracking-widest sticky top-0 z-10">
+                      Recent Searches
+                    </div>
+                    {searchHistory.map((item, idx) => (
+                      <div 
+                        key={idx}
+                        onClick={() => handleHistoryClick(item)}
+                        className="flex justify-between items-center px-4 py-3 border-b-2 border-gray-100 hover:bg-[var(--color-primary)] cursor-pointer group transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <ClockCounterClockwise size={16} className="text-gray-400 group-hover:text-black" />
+                          <span className="font-['JetBrains_Mono'] text-sm font-bold text-black">{item.query}</span>
+                          <span className="ml-2 font-['Archivo_Black'] text-[9px] bg-white border-2 border-black px-1.5 py-0.5 uppercase tracking-widest group-hover:bg-black group-hover:text-white transition-colors">{item.type}</span>
+                        </div>
+                        <button 
+                          onClick={(e) => removeHistoryItem(item, e)}
+                          className="p-1 hover:bg-black hover:text-white rounded transition-colors"
+                        >
+                          <X weight="bold" size={16} />
+                        </button>
+                      </div>
+                    ))}
+                    <button 
+                      onClick={clearAllHistory}
+                      className="px-4 py-3 bg-black text-white hover:bg-gray-800 font-['Archivo_Black'] text-xs uppercase tracking-widest text-center transition-colors mt-auto"
+                    >
+                      CLEAR ALL HISTORY
+                    </button>
+                  </>
+                ) : (
+                  // LIVE PREVIEW MODE
+                  <>
+                    <div className="px-4 py-2 bg-gray-100 border-b-4 border-black font-['Archivo_Black'] text-xs text-gray-500 uppercase tracking-widest sticky top-0 z-10 flex justify-between items-center">
+                      <span>Live Results: {searchType.toUpperCase()}</span>
+                      {isSearching && <div className="w-3 h-3 bg-[var(--color-primary)] rounded-full animate-pulse border-2 border-black"></div>}
+                    </div>
+                    
+                    {isSearching ? (
+                      <div className="px-4 py-8 text-center font-['JetBrains_Mono'] text-sm font-bold text-gray-400 animate-pulse">
+                        [ SEARCHING... ]
+                      </div>
+                    ) : searchResults.length === 0 ? (
+                      <div className="px-4 py-8 text-center font-['JetBrains_Mono'] text-sm font-bold text-gray-400">
+                        NO RESULTS FOUND
+                      </div>
+                    ) : (
+                      searchResults.map((result) => (
+                        <div 
+                          key={result.id}
+                          onClick={() => handleResultClick(result)}
+                          className="flex items-center gap-4 px-4 py-3 border-b-2 border-gray-100 hover:bg-[var(--color-primary)] cursor-pointer group transition-colors"
+                        >
+                          {searchType === 'players' ? (
+                            <>
+                              <div className="w-8 h-8 bg-gray-200 border-2 border-black shrink-0 flex items-center justify-center overflow-hidden">
+                                {result.photo_url ? (
+                                  <img src={result.photo_url} alt={result.ign} className="w-full h-full object-cover" />
+                                ) : (
+                                  <span className="font-['Archivo_Black'] text-[10px] text-gray-400">?</span>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-['Archivo_Black'] text-sm uppercase tracking-tighter truncate text-black">{result.ign}</div>
+                                <div className="font-['JetBrains_Mono'] text-[10px] text-gray-500 uppercase tracking-widest truncate">{result.team?.name || 'Free Agent'} • {result.current_role || 'Flex'}</div>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-8 h-8 bg-gray-100 border-2 border-black shrink-0 flex items-center justify-center overflow-hidden">
+                                {result.logo_url ? (
+                                  <img src={result.logo_url} alt={result.name} className="w-6 h-6 object-contain" />
+                                ) : (
+                                  <span className="font-['Archivo_Black'] text-[10px] text-gray-400">?</span>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-['Archivo_Black'] text-sm uppercase tracking-tighter truncate text-black">{result.name}</div>
+                                <div className="font-['JetBrains_Mono'] text-[10px] text-gray-500 uppercase tracking-widest truncate">{result.region}</div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      ))
+                    )}
+                    
+                    {!isSearching && searchResults.length > 0 && (
+                      <button 
+                        onClick={() => {
+                          setIsSearchFocused(false);
+                          navigate(`/app/${searchType}?search=${encodeURIComponent(searchQuery)}`);
+                        }}
+                        className="px-4 py-3 bg-black text-[var(--color-primary)] hover:bg-gray-800 font-['Archivo_Black'] text-xs uppercase tracking-widest text-center transition-colors mt-auto flex items-center justify-center gap-2"
+                      >
+                        SEE ALL RESULTS <ArrowRight weight="bold" size={14} />
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
           </div>
           
           <div className="flex items-center gap-6 ml-4">
@@ -166,6 +493,7 @@ export default function AppLayout() {
               <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)] animate-pulse" />
               <span className="text-[12px] font-bold font-label uppercase tracking-widest">Patch {activePatch}</span>
             </div>
+            
             <button className="p-2.5 border-4 border-black bg-white hover:bg-[var(--color-primary)] hover:scale-110 transition-transform active:scale-95 shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_rgba(0,0,0,1)]">
               <Bell weight="bold" size={20} className="text-black" />
             </button>
@@ -173,7 +501,7 @@ export default function AppLayout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-8 lg:p-12">
+        <main className="flex-1 p-4 md:p-8 lg:p-12">
           <Outlet />
         </main>
       </div>

@@ -65,8 +65,8 @@ export default function Leaderboard() {
     return (
       <div className="space-y-16 max-w-7xl pb-24">
         <div>
-          <Skeleton className="h-12 w-80 mb-4 border-2 border-black" />
-          <Skeleton className="h-5 w-96 border-2 border-black" />
+          <Skeleton className="h-12 w-3/4 md:w-80 mb-4 border-2 border-black" />
+          <Skeleton className="h-5 w-full md:w-96 border-2 border-black" />
         </div>
         <div className="flex flex-col lg:flex-row gap-12 mt-12">
           <Skeleton className="flex-1 min-h-[500px] border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
@@ -245,27 +245,27 @@ export default function Leaderboard() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-[15px] border-collapse">
             <thead>
-              <tr className="border-b-4 border-black text-[12px] font-black text-black uppercase tracking-widest font-['JetBrains_Mono']">
-                <th className="py-4 px-6 w-24">Rank</th>
-                <th className="py-4 px-6">Player</th>
-                <th className="py-4 px-6">Team</th>
-                <th className="py-4 px-6">Role</th>
-                <th className="py-4 px-6 text-right">SMART</th>
-                <th className="py-4 px-6 text-right">ACS</th>
-                <th className="py-4 px-6 text-right">K/D</th>
+              <tr className="border-b-4 border-black text-[10px] md:text-[12px] font-black text-black uppercase tracking-widest font-['JetBrains_Mono']">
+                <th className="py-4 px-3 md:px-6 w-16 md:w-24">Rank</th>
+                <th className="py-4 px-3 md:px-6">Player</th>
+                <th className="py-4 px-3 md:px-6">Team</th>
+                <th className="py-4 px-3 md:px-6">Role</th>
+                <th className="py-4 px-3 md:px-6 text-right">SMART</th>
+                <th className="py-4 px-3 md:px-6 text-right">ACS</th>
+                <th className="py-4 px-3 md:px-6 text-right">K/D</th>
               </tr>
             </thead>
             <tbody className="divide-y-2 divide-gray-100">
               {loadingTable ? (
                 [1, 2, 3, 4, 5].map(i => (
                   <tr key={i}>
-                    <td className="py-6 px-6"><Skeleton className="h-6 w-12 bg-gray-200" /></td>
-                    <td className="py-6 px-6"><Skeleton className="h-6 w-48 bg-gray-200" /></td>
-                    <td className="py-6 px-6"><Skeleton className="h-6 w-32 bg-gray-200" /></td>
-                    <td className="py-6 px-6"><Skeleton className="h-6 w-20 bg-gray-200" /></td>
-                    <td className="py-6 px-6 text-right"><Skeleton className="h-8 w-16 ml-auto bg-gray-200" /></td>
-                    <td className="py-6 px-6 text-right"><Skeleton className="h-6 w-12 ml-auto bg-gray-200" /></td>
-                    <td className="py-6 px-6 text-right"><Skeleton className="h-6 w-12 ml-auto bg-gray-200" /></td>
+                    <td className="py-4 px-3 md:py-6 md:px-6"><Skeleton className="h-6 w-8 md:w-12 bg-gray-200" /></td>
+                    <td className="py-4 px-3 md:py-6 md:px-6"><Skeleton className="h-6 w-32 md:w-48 bg-gray-200" /></td>
+                    <td className="py-4 px-3 md:py-6 md:px-6"><Skeleton className="h-6 w-20 md:w-32 bg-gray-200" /></td>
+                    <td className="py-4 px-3 md:py-6 md:px-6"><Skeleton className="h-6 w-16 md:w-20 bg-gray-200" /></td>
+                    <td className="py-4 px-3 md:py-6 md:px-6 text-right"><Skeleton className="h-8 w-12 md:w-16 ml-auto bg-gray-200" /></td>
+                    <td className="py-4 px-3 md:py-6 md:px-6 text-right"><Skeleton className="h-6 w-10 md:w-12 ml-auto bg-gray-200" /></td>
+                    <td className="py-4 px-3 md:py-6 md:px-6 text-right"><Skeleton className="h-6 w-10 md:w-12 ml-auto bg-gray-200" /></td>
                   </tr>
                 ))
               ) : (
@@ -278,36 +278,36 @@ export default function Leaderboard() {
                     className="hover:bg-[var(--color-primary)] transition-colors cursor-pointer group"
                     onClick={() => navigate(`/app/players/${player.id}`)}
                   >
-                    <td className="py-6 px-6 font-['JetBrains_Mono'] font-black text-black tabular-nums">
+                    <td className="py-4 px-3 md:py-6 md:px-6 font-['JetBrains_Mono'] font-black text-black tabular-nums whitespace-nowrap">
                       #{((page - 1) * 10) + index + 1}
                     </td>
-                    <td className="py-6 px-6 font-['Archivo_Black'] uppercase text-xl text-black">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-white border-2 border-black rounded-full overflow-hidden shrink-0 flex items-center justify-center shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                    <td className="py-4 px-3 md:py-6 md:px-6 font-['Archivo_Black'] uppercase text-lg md:text-xl text-black whitespace-nowrap">
+                      <div className="flex items-center gap-3 md:gap-4">
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-white border-2 border-black rounded-full overflow-hidden shrink-0 flex items-center justify-center shadow-[2px_2px_0px_rgba(0,0,0,1)]">
                           {player.photo_url ? (
                             <img src={player.photo_url} alt={player.ign} className="w-full h-full object-cover grayscale contrast-125 group-hover:grayscale-0" />
                           ) : (
-                            <User weight="fill" size={24} className="text-gray-300" />
+                            <User weight="fill" size={20} className="text-gray-300 md:text-[24px]" />
                           )}
                         </div>
                         {player.ign}
                       </div>
                     </td>
-                    <td className="py-6 px-6 font-bold text-gray-500 group-hover:text-black uppercase text-[13px] tracking-widest transition-colors">
+                    <td className="py-4 px-3 md:py-6 md:px-6 font-bold text-gray-500 group-hover:text-black uppercase text-[11px] md:text-[13px] tracking-widest transition-colors whitespace-nowrap">
                       {player.team_name}
                     </td>
-                    <td className="py-6 px-6">
-                      <span className="inline-block px-3 py-1.5 bg-white border-2 border-black text-[11px] font-black uppercase tracking-widest shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                    <td className="py-4 px-3 md:py-6 md:px-6 whitespace-nowrap">
+                      <span className="inline-block px-2 py-1 md:px-3 md:py-1.5 bg-white border-2 border-black text-[10px] md:text-[11px] font-black uppercase tracking-widest shadow-[2px_2px_0px_rgba(0,0,0,1)]">
                         {player.role}
                       </span>
                     </td>
-                    <td className="py-6 px-6 text-right font-['JetBrains_Mono'] font-black text-black text-2xl tabular-nums">
+                    <td className="py-4 px-3 md:py-6 md:px-6 text-right font-['JetBrains_Mono'] font-black text-black text-xl md:text-2xl tabular-nums whitespace-nowrap">
                       {player.rating}
                     </td>
-                    <td className="py-6 px-6 text-right font-['JetBrains_Mono'] font-bold text-gray-600 group-hover:text-black tabular-nums transition-colors">
+                    <td className="py-4 px-3 md:py-6 md:px-6 text-right font-['JetBrains_Mono'] font-bold text-gray-600 group-hover:text-black tabular-nums transition-colors whitespace-nowrap">
                       {player.acs}
                     </td>
-                    <td className="py-6 px-6 text-right font-['JetBrains_Mono'] font-bold text-gray-600 group-hover:text-black tabular-nums transition-colors">
+                    <td className="py-4 px-3 md:py-6 md:px-6 text-right font-['JetBrains_Mono'] font-bold text-gray-600 group-hover:text-black tabular-nums transition-colors whitespace-nowrap">
                       {player.kd}
                     </td>
                   </motion.tr>

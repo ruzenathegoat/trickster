@@ -32,8 +32,11 @@ class ParseMatchJob implements ShouldQueue
     {
         if (!Storage::exists($this->fileName)) {
             // If data already parsed by a prior job, just mark completed
-            if (MatchData::where("vlr_match_id", $this->queueItem->vlr_match_id)->exists()) {
-                $this->queueItem->update(["status" => "completed"]);
+            $matchDataCheck = MatchData::where("vlr_match_id", $this->queueItem->vlr_match_id)->first();
+            if ($matchDataCheck && $matchDataCheck->winner_team_id) {
+                $this->queueItem->update(["status" => "completed", "error_message" => null]);
+            } elseif ($matchDataCheck) {
+                $this->queueItem->update(["status" => "pending", "error_message" => "Pending: Waiting for match to finish or stats to be available"]);
             } else {
                 $this->queueItem->update(["status" => "failed", "error_message" => "HTML file missing for parsing"]);
             }

@@ -16,8 +16,14 @@ class UserProfileController extends Controller
         $cacheKey = 'api_user_profile_' . $userId;
 
         $data = Cache::remember($cacheKey, 3600, function() use ($request) {
-            $user = $request->user()->load(['favoritePlayers', 'favoriteTeams', 'savedSimulations']);
+            $user = $request->user()->load(['favoritePlayers.team', 'favoriteTeams', 'savedSimulations']);
             
+            $favPlayers = $user->favoritePlayers->map(function ($player) {
+                $arr = $player->toArray();
+                $arr['team_name'] = $player->team ? $player->team->name : null;
+                return $arr;
+            })->values()->toArray();
+
             return [
                 'user' => [
                     'id' => $user->id,
@@ -27,7 +33,7 @@ class UserProfileController extends Controller
                     'theme_color' => $user->theme_color,
                     'favorite_role' => $user->favorite_role,
                     'favorite_agent_id' => $user->favorite_agent_id,
-                    'favorite_players' => $user->favoritePlayers->toArray(),
+                    'favorite_players' => $favPlayers,
                     'favorite_teams' => $user->favoriteTeams->toArray(),
                     'saved_simulations' => $user->savedSimulations->toArray(),
                     'profile_photo_url' => $user->profile_photo_url,

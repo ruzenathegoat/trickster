@@ -133,7 +133,7 @@ export default function PlayerProfilePreviewSection() {
 
           {/* Right: Copy */}
           <div className="flex-[0.8] text-center lg:text-left z-10 mt-12 lg:mt-0">
-            <h2 className="font-display text-[3.5rem] md:text-[4.5rem] font-black uppercase leading-[0.9] tracking-tighter mb-6 text-black">
+            <h2 className="font-display text-5xl md:text-[5rem] lg:text-[6.5rem] font-black uppercase leading-[0.85] tracking-tighter text-black break-words">
               PROFILES THAT<br />
               <span className="text-transparent" style={{ WebkitTextStroke: '2px black' }}>READ LIKE A DOSSIER.</span>
             </h2>

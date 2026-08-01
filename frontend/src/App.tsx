@@ -11,6 +11,7 @@ import TeamExplorer from './pages/users/TeamExplorer';
 import TeamProfile from './pages/users/TeamProfile';
 import MetaExplorer from './pages/users/MetaExplorer';
 import RecommendFlow from './pages/users/RecommendFlow';
+import Simulation from './pages/users/Simulation';
 import Landing from './pages/users/Landing';
 import Login from './pages/users/Login';
 import Register from './pages/users/Register';
@@ -25,6 +26,7 @@ import PatchRatings from './pages/admin/PatchRatings';
 import MapRatings from './pages/admin/MapRatings';
 import StageMappings from './pages/admin/StageMappings';
 import Users from './pages/admin/Users';
+import AdminPlayers from './pages/admin/AdminPlayers';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
@@ -54,7 +56,7 @@ function App() {
             <Route path="teams" element={<TeamExplorer />} />
             <Route path="teams/:teamId" element={<TeamProfile />} />
             <Route path="recommend/*" element={<RecommendFlow />} />
-            <Route path="simulation" element={<div className="p-8">Simulation Coming Soon</div>} />
+            <Route path="simulation" element={<Simulation />} />
             <Route path="meta" element={<MetaExplorer />} />
             <Route path="profile" element={<UserProfile />} />
           </Route>
@@ -65,6 +67,7 @@ function App() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="scraper" element={<ScraperDashboard />} />
           <Route path="users" element={<Users />} />
+          <Route path="players" element={<AdminPlayers />} />
           <Route path="patch-ratings" element={<PatchRatings />} />
           <Route path="map-ratings" element={<MapRatings />} />
           <Route path="stage-mappings" element={<StageMappings />} />

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowUpRight, Crosshair, User, WarningCircle } from '@phosphor-icons/react';
 import axios from '../../lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -84,17 +85,17 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="space-y-16 max-w-7xl">
+      <div className="space-y-8 md:space-y-16 max-w-7xl">
         <div>
-          <Skeleton className="h-12 w-80 mb-4 border-2 border-black" />
-          <Skeleton className="h-5 w-96 border-2 border-black" />
+          <Skeleton className="h-10 md:h-12 w-64 md:w-80 mb-4 border-2 border-black" />
+          <Skeleton className="h-4 md:h-5 w-full md:w-96 border-2 border-black" />
         </div>
-        <Skeleton className="h-[28rem] w-full border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
-        <div className="flex flex-col md:flex-row gap-16">
-          <Skeleton className="h-64 flex-1 border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
-          <Skeleton className="h-48 w-full md:w-[35%] border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+        <Skeleton className="h-80 md:h-[28rem] w-full border-4 border-black shadow-[4px_4px_0px_0px_#111111] md:shadow-[8px_8px_0px_0px_#111111]" />
+        <div className="flex flex-col md:flex-row gap-8 md:gap-16">
+          <Skeleton className="h-64 flex-1 border-4 border-black shadow-[4px_4px_0px_0px_#111111] md:shadow-[8px_8px_0px_0px_#111111]" />
+          <Skeleton className="h-48 w-full md:w-[35%] border-4 border-black shadow-[4px_4px_0px_0px_#111111] md:shadow-[8px_8px_0px_0px_#111111]" />
         </div>
-        <Skeleton className="h-64 w-full border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+        <Skeleton className="h-64 w-full border-4 border-black shadow-[4px_4px_0px_0px_#111111] md:shadow-[8px_8px_0px_0px_#111111]" />
       </div>
     );
   }
@@ -109,10 +110,10 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-16 max-w-7xl pb-24">
+    <div className="space-y-10 md:space-y-16 max-w-7xl pb-24">
       <div>
-        <h1 className="text-4xl font-['Archivo_Black'] uppercase tracking-tight mb-2 text-black">Dashboard</h1>
-        <p className="text-gray-600 font-['JetBrains_Mono'] font-bold text-[15px]">Overview of current meta shifts and your top recommendations.</p>
+        <h1 className="text-3xl md:text-4xl font-['Archivo_Black'] uppercase tracking-tight mb-2 text-black">Dashboard</h1>
+        <p className="text-gray-600 font-['JetBrains_Mono'] font-bold text-[14px] md:text-[15px]">Overview of current meta shifts and your top recommendations.</p>
       </div>
 
       {/* Level 1: Hero KPI (Asymmetric, Editorial) */}
@@ -120,27 +121,27 @@ export default function Dashboard() {
         initial={{ clipPath: 'inset(100% 0 0 0)' }}
         animate={{ clipPath: 'inset(0% 0 0 0)' }}
         transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
-        className="w-full bg-[var(--color-primary)] border-4 border-black p-8 md:p-16 relative overflow-hidden group shadow-[12px_12px_0px_rgba(0,0,0,1)] hover:shadow-[16px_16px_0px_rgba(0,0,0,1)] transition-shadow duration-300"
+        className="w-full bg-[var(--color-primary)] border-4 border-black p-6 sm:p-8 md:p-16 relative overflow-hidden group shadow-[8px_8px_0px_rgba(0,0,0,1)] md:shadow-[12px_12px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_rgba(0,0,0,1)] md:hover:shadow-[16px_16px_0px_rgba(0,0,0,1)] transition-shadow duration-300"
       >
         <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-20 translate-x-1/3 -translate-y-1/3 rounded-full blur-3xl pointer-events-none" />
         
-        <div className="relative z-10 w-full flex flex-col md:flex-row md:items-end justify-between gap-12">
-          <div className="flex-1">
-            <p className="text-black font-['JetBrains_Mono'] font-bold text-[14px] uppercase tracking-widest mb-6 flex items-center gap-3">
+        <div className="relative z-10 w-full flex flex-col md:flex-row md:items-end justify-between gap-8 md:gap-12">
+          <div className="flex-1 order-2 md:order-1">
+            <p className="text-black font-['JetBrains_Mono'] font-bold text-[12px] md:text-[14px] uppercase tracking-widest mb-4 md:mb-6 flex items-center gap-3">
               <span className="w-2 h-2 bg-black inline-block" /> Top Match
             </p>
             {data.hero_kpi ? (
               <>
-                <h2 className="text-5xl md:text-7xl lg:text-[5.5rem] font-['Archivo_Black'] uppercase tracking-tighter text-black leading-[0.9] max-w-3xl mb-8">
+                <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-[5.5rem] font-['Archivo_Black'] uppercase tracking-tighter text-black leading-[0.9] max-w-3xl mb-6 md:mb-8">
                   {data.hero_kpi.name}
                 </h2>
-                <div className="flex flex-wrap items-center gap-6">
-                  <div className="font-['JetBrains_Mono'] text-4xl font-black text-black tabular-nums">
-                    {Number(data.hero_kpi.score).toFixed(1)} <span className="text-lg text-black/60 tracking-widest">SMART</span>
+                <div className="flex flex-wrap items-center gap-4 md:gap-6">
+                  <div className="font-['JetBrains_Mono'] text-3xl md:text-4xl font-black text-black tabular-nums">
+                    {Number(data.hero_kpi.score).toFixed(1)} <span className="text-sm md:text-lg text-black/60 tracking-widest">SMART</span>
                   </div>
-                  <div className="h-10 w-0.5 bg-black/20" />
-                  <p className="text-[15px] text-black/80 font-bold font-['JetBrains_Mono'] uppercase tracking-wide">
-                    {data.hero_kpi.role} <span className="mx-2 opacity-50">&times;</span> {data.hero_kpi.profile_name}
+                  <div className="h-8 md:h-10 w-0.5 bg-black/20" />
+                  <p className="text-[13px] md:text-[15px] text-black/80 font-bold font-['JetBrains_Mono'] uppercase tracking-wide">
+                    {data.hero_kpi.role} <span className="mx-1 md:mx-2 opacity-50">&times;</span> {data.hero_kpi.profile_name}
                   </p>
                 </div>
               </>
@@ -152,7 +153,7 @@ export default function Dashboard() {
           </div>
           
           {data.hero_kpi?.photo_url ? (
-            <div className="w-56 h-56 md:w-80 md:h-80 shrink-0 relative pointer-events-none">
+            <div className="w-40 h-40 sm:w-56 sm:h-56 md:w-80 md:h-80 shrink-0 relative pointer-events-none order-1 md:order-2 ml-auto md:ml-0 -mt-12 md:mt-0 mb-4 md:mb-0">
               <img 
                 src={data.hero_kpi.photo_url} 
                 alt={data.hero_kpi.name} 
@@ -160,22 +161,22 @@ export default function Dashboard() {
               />
             </div>
           ) : (
-            <div className="w-40 h-40 shrink-0 flex items-center justify-center opacity-10">
-              <User weight="fill" size={160} />
+            <div className="w-32 h-32 md:w-40 md:h-40 shrink-0 flex items-center justify-center opacity-10 order-1 md:order-2 ml-auto md:ml-0 mb-4 md:mb-0">
+              <User weight="fill" className="w-full h-full" />
             </div>
           )}
         </div>
       </motion.div>
 
       {/* Level 2: Split Section (No Cards) */}
-      <div className="flex flex-col md:flex-row gap-20 md:gap-16 pt-4">
+      <div className="flex flex-col md:flex-row gap-12 md:gap-16 pt-4">
         
         {/* Left: Meta Shift (Data Viz) */}
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
-          className="flex-1 flex flex-col"
+          className="flex-1 flex flex-col overflow-hidden"
         >
           <div className="flex justify-between items-baseline mb-8 border-b-4 border-black pb-3">
             <h3 className="font-['Archivo_Black'] uppercase text-3xl tracking-tight text-black">Meta Shift</h3>
@@ -209,9 +210,9 @@ export default function Dashboard() {
           )}
           
           {/* Primary Action Button (The only one on the viewport) */}
-          <button className="mt-12 border-2 border-black bg-white hover:bg-black hover:text-[var(--color-primary)] active:scale-95 px-8 py-4 font-black font-['Archivo_Black'] text-[15px] uppercase tracking-widest flex justify-between items-center gap-4 transition-all duration-150 ease-out shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-none w-full md:w-auto">
+          <Link to="/app/meta" className="mt-8 md:mt-12 border-2 border-black bg-white hover:bg-black hover:text-[var(--color-primary)] active:scale-95 px-6 md:px-8 py-3 md:py-4 font-black font-['Archivo_Black'] text-[13px] md:text-[15px] uppercase tracking-widest flex justify-between items-center gap-4 transition-all duration-150 ease-out shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-none w-full md:w-auto">
             Explore Full Meta <ArrowUpRight weight="bold" size={20} />
-          </button>
+          </Link>
         </motion.div>
 
         {/* Right: Consistency (Horizontal/Textual) */}
@@ -229,9 +230,9 @@ export default function Dashboard() {
                Track up to 5 players to monitor their consistency across their last 10 official matches. Real-time form evaluation.
              </p>
              {/* Secondary Ghost Link */}
-             <button className="text-black border-b-2 border-black pb-1 font-['Archivo_Black'] uppercase text-[13px] tracking-widest w-fit hover:text-gray-500 hover:border-gray-500 transition-colors duration-200">
+             <Link to="/app/players" className="text-black border-b-2 border-black pb-1 font-['Archivo_Black'] uppercase text-[13px] tracking-widest w-fit hover:text-gray-500 hover:border-gray-500 transition-colors duration-200">
                Find Players to Track
-             </button>
+             </Link>
           </div>
         </motion.div>
       </div>
@@ -241,11 +242,11 @@ export default function Dashboard() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.4 }}
-        className="pt-12"
+        className="pt-8 md:pt-12"
       >
-        <div className="flex justify-between items-end mb-8 border-b-4 border-black pb-3">
-           <h3 className="font-['Archivo_Black'] uppercase text-3xl tracking-tight text-black">Recent Matches</h3>
-           <span className="text-[12px] font-bold bg-black text-[var(--color-primary)] px-3 py-1 font-['JetBrains_Mono'] uppercase tracking-widest flex items-center gap-2">
+        <div className="flex justify-between items-end mb-6 md:mb-8 border-b-4 border-black pb-3">
+           <h3 className="font-['Archivo_Black'] uppercase text-2xl md:text-3xl tracking-tight text-black">Recent Matches</h3>
+           <span className="text-[10px] md:text-[12px] font-bold bg-black text-[var(--color-primary)] px-2 md:px-3 py-1 font-['JetBrains_Mono'] uppercase tracking-widest flex items-center gap-2">
              <div className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full animate-pulse" />
              Live Sync
            </span>
@@ -270,13 +271,13 @@ export default function Dashboard() {
                     key={i} 
                     className="border-b-2 border-gray-100 hover:border-black group cursor-pointer transition-colors duration-200"
                   >
-                    <td className="py-6 pr-8 font-['JetBrains_Mono'] font-bold text-[14px] tabular-nums text-gray-400 transition-colors group-hover:text-black w-[140px]">
+                    <td className="py-4 md:py-6 pr-4 md:pr-8 font-['JetBrains_Mono'] font-bold text-[12px] md:text-[14px] tabular-nums text-gray-400 transition-colors group-hover:text-black min-w-[100px] md:w-[140px]">
                       {match.date ? new Date(match.date).toISOString().split('T')[0] : 'N/A'}
                     </td>
-                    <td className="py-6 px-8 font-bold font-['Inter'] text-black max-w-[250px] truncate">
+                    <td className="py-4 md:py-6 px-4 md:px-8 font-bold font-['Inter'] text-black text-[13px] md:text-[15px] max-w-[200px] md:max-w-[250px] truncate">
                       {match.event}
                     </td>
-                    <td className="py-6 pl-8 font-['JetBrains_Mono']">
+                    <td className="py-4 md:py-6 pl-4 md:pl-8 font-['JetBrains_Mono']">
                       <div className="flex items-center gap-6">
                         <span className={`flex items-center gap-3 w-[220px] justify-end ${match.winner_id === match.team_a_id ? "font-black text-black" : "text-gray-400 font-bold"}`}>
                           {match.winner_id === match.team_a_id && <span className="text-[10px] font-black bg-[var(--color-primary)] text-black border-2 border-black px-1.5 py-0.5 uppercase tracking-widest leading-none shadow-[2px_2px_0px_rgba(0,0,0,1)]">WIN</span>}
