@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Star, Plus } from '@phosphor-icons/react';
+import { useDraggable } from '@dnd-kit/core';
 
 interface Player {
   id: string;
@@ -14,26 +15,33 @@ interface Player {
 
 interface DraggablePlayerCardProps {
   player: Player;
-  onDragStart: (player: Player) => void;
-  onDragEnd: (player: Player, info: any) => void;
   reason?: string;
   synergyScore?: number;
   onAdd?: (player: Player) => void;
   onDoubleClick?: () => void;
+  isOverlay?: boolean;
 }
 
-export default function DraggablePlayerCard({ player, onDragStart, onDragEnd, reason, synergyScore, onAdd, onDoubleClick }: DraggablePlayerCardProps) {
+export default function DraggablePlayerCard({ player, reason, synergyScore, onAdd, onDoubleClick, isOverlay }: DraggablePlayerCardProps) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: player.id,
+    data: { player },
+    disabled: isOverlay
+  });
   return (
     <motion.div
-      drag
-      dragSnapToOrigin
-      whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing', boxShadow: '8px 8px 0px 0px #000' }}
-      whileHover={{ scale: 1.02, y: -2, boxShadow: '6px 6px 0px 0px #000' }}
-      whileTap={{ scale: 0.98, y: 0, boxShadow: '2px 2px 0px 0px #000' }}
-      onDragStart={() => onDragStart(player)}
-      onDragEnd={(e, info) => onDragEnd(player, info)}
+      ref={isOverlay ? undefined : setNodeRef}
+      {...(isOverlay ? {} : listeners)}
+      {...(isOverlay ? {} : attributes)}
+      whileHover={!isDragging && !isOverlay ? { scale: 1.02, y: -4, boxShadow: '8px 8px 0px 0px rgba(0,0,0,1)' } : undefined}
+      whileTap={!isDragging && !isOverlay ? { scale: 0.98, y: 0, boxShadow: '2px 2px 0px 0px rgba(0,0,0,1)' } : undefined}
       onDoubleClick={onDoubleClick}
-      className="bg-white border-4 border-black p-4 shadow-[4px_4px_0px_0px_#000] transition-all cursor-grab relative touch-none group"
+      className={`bg-white border-4 border-black p-4 transition-all relative group ${
+        isOverlay ? 'shadow-[16px_16px_0px_rgba(0,0,0,1)] scale-105 cursor-grabbing z-50' : 
+        isDragging ? 'opacity-50 shadow-[2px_2px_0px_rgba(0,0,0,1)]' : 
+        'shadow-[4px_4px_0px_rgba(0,0,0,1)] cursor-grab'
+      }`}
+      style={isOverlay ? { touchAction: 'none' } : undefined}
     >
       <div className="flex items-center gap-4">
         <div className="relative w-14 h-14 border-2 border-black bg-black shadow-[2px_2px_0px_#000] shrink-0">
@@ -58,6 +66,7 @@ export default function DraggablePlayerCard({ player, onDragStart, onDragEnd, re
                     e.stopPropagation();
                     onAdd(player);
                   }}
+                  onPointerDown={(e) => e.stopPropagation()}
                   className="bg-[var(--color-primary)] text-black border-2 border-black p-0.5 shadow-[2px_2px_0px_#000] hover:bg-yellow-400 hover:shadow-[1px_1px_0px_#000] hover:translate-y-px transition-all"
                 >
                   <Plus weight="bold" size={14} />

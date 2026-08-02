@@ -30,7 +30,7 @@ export default function FAQSection() {
   };
 
   return (
-    <section className="w-full bg-[#f4f1e1] py-24 md:py-32 relative z-10 border-b-4 border-black overflow-hidden">
+    <section className="w-full bg-white py-24 md:py-32 relative z-10 border-b-4 border-black overflow-hidden">
       
       {/* Halftone background */}
       <div className="absolute inset-0 opacity-[0.05] pointer-events-none" 

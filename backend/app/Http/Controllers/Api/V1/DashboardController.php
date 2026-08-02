@@ -15,7 +15,7 @@ class DashboardController extends Controller
     /**
      * Get data for the user dashboard overview.
      */
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
         $dashboardData = \Illuminate\Support\Facades\Cache::remember('api_dashboard', 3600, function() {
             // 1. Hero KPI - Top Match (Player) using JOIN
@@ -127,6 +127,22 @@ class DashboardController extends Controller
                 'recent_matches' => $recentMatches
             ];
         });
+
+        // Add user-specific tracked players
+        $user = $request->user();
+        if ($user) {
+            $favPlayers = $user->favoritePlayers()->with('team')->take(5)->get()->map(function ($player) {
+                return [
+                    'id' => $player->id,
+                    'ign' => $player->ign,
+                    'photo_url' => $player->photo_url,
+                    'team_name' => $player->team ? $player->team->name : null,
+                ];
+            })->toArray();
+            $dashboardData['tracked_players'] = $favPlayers;
+        } else {
+            $dashboardData['tracked_players'] = [];
+        }
 
         return response()->json($dashboardData);
     }

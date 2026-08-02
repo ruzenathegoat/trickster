@@ -3,7 +3,7 @@
 @theme {
   --color-primary: #f5d90a;
   --color-primary-hover: #e5c908;
-  --color-background: #f4f1e1;
+  --color-background: #ffffff;
   --color-surface: #ffffff;
   --color-surface-hover: #f9f9f9;
   --color-warning: #f59e0b;
@@ -15,7 +15,7 @@
   --color-on-background: #111111;
   --color-secondary: #555555;
   --color-text-muted: #888888;
-  --color-surface-variant: #e5e2d8;
+  --color-surface-variant: #f4f4f5;
   --color-primary-container: #e5f876;
   
   --font-display: "Archivo Black", sans-serif;

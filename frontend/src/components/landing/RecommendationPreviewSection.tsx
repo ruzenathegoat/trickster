@@ -32,9 +32,9 @@ export default function RecommendationPreviewSection() {
 
         {/* The Scouting Dossier */}
         <motion.div 
-          initial={{ clipPath: 'inset(100% 0 0 0)', opacity: 0, y: 40 }}
-          whileInView={{ clipPath: 'inset(0% 0 0 0)', opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "0px" }}
           transition={{ duration: 0.8, ease: EMIL_EASE_OUT }}
           className="w-full bg-white border-4 border-white shadow-[8px_8px_0px_var(--color-primary)] grid grid-cols-1 lg:grid-cols-12"
         >

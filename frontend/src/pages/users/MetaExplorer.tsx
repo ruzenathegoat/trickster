@@ -160,7 +160,10 @@ export default function MetaExplorer() {
           </button>
           
           {dropdownOpen && (
-            <div className="absolute top-full right-0 mt-2 w-full min-w-[200px] bg-white border-4 border-black shadow-[6px_6px_0px_rgba(0,0,0,1)] z-50 max-h-[300px] overflow-y-auto">
+            <div 
+              className="absolute top-full right-0 mt-2 w-full min-w-[200px] bg-white border-4 border-black shadow-[6px_6px_0px_rgba(0,0,0,1)] z-50 max-h-[300px] overflow-y-auto"
+              data-lenis-prevent="true"
+            >
               {patches.map((patch) => (
                 <button
                   key={patch.version}

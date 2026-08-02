@@ -25,7 +25,7 @@ const nodeVariants = {
 
 export default function DashboardPreviewSection() {
   return (
-    <section className="w-full bg-[#f4f1e1] py-24 md:py-32 relative z-10 overflow-hidden">
+    <section className="w-full bg-white py-24 md:py-32 relative z-10 overflow-hidden">
       
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10 flex flex-col gap-16">
         

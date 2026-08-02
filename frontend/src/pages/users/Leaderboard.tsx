@@ -117,7 +117,7 @@ export default function Leaderboard() {
                         <img 
                           src={topPlayers[0].photo_url} 
                           alt={topPlayers[0].ign}
-                          className="w-full h-full object-cover object-top filter grayscale contrast-125 group-hover:grayscale-0 transition-all duration-500 scale-100 group-hover:scale-105"
+                          className="w-full h-full object-cover object-top filter contrast-125 transition-all duration-500 scale-100 group-hover:scale-105"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.05)_10px,rgba(0,0,0,0.05)_20px)]">
@@ -173,7 +173,7 @@ export default function Leaderboard() {
                           <img 
                             src={player.photo_url} 
                             alt={player.ign}
-                            className="w-full h-full object-cover object-top filter grayscale contrast-125 group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
+                            className="w-full h-full object-cover object-top filter contrast-125 transition-all duration-500 group-hover:scale-105"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.05)_10px,rgba(0,0,0,0.05)_20px)]">
@@ -285,7 +285,7 @@ export default function Leaderboard() {
                       <div className="flex items-center gap-3 md:gap-4">
                         <div className="w-10 h-10 md:w-12 md:h-12 bg-white border-2 border-black rounded-full overflow-hidden shrink-0 flex items-center justify-center shadow-[2px_2px_0px_rgba(0,0,0,1)]">
                           {player.photo_url ? (
-                            <img src={player.photo_url} alt={player.ign} className="w-full h-full object-cover grayscale contrast-125 group-hover:grayscale-0" />
+                            <img src={player.photo_url} alt={player.ign} className="w-full h-full object-cover contrast-125" />
                           ) : (
                             <User weight="fill" size={20} className="text-gray-300 md:text-[24px]" />
                           )}

@@ -1,86 +1,232 @@
-import { DotsSixVertical, EyeClosed, Fire, Shield, Crosshair } from '@phosphor-icons/react';
+import { useState, useEffect } from 'react';
+import { DotsSixVertical, EyeClosed, Fire, Shield, Crosshair, Target, CursorClick } from '@phosphor-icons/react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Custom easings per emil-design-eng
+const easeOut = [0.23, 1, 0.32, 1] as const;
 
 export default function TeamSimulationPreviewSection() {
+  const [isSimulating, setIsSimulating] = useState(false);
+
+  // Auto loop the simulation state to make it feel alive without requiring interaction
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsSimulating(prev => !prev);
+    }, 4500); // 4.5 seconds loop
+    return () => clearInterval(interval);
+  }, []);
+
   const roster = [
-    { name: "Boaster", role: "Controller", acs: 185, delta: null },
-    { name: "Derke", role: "Duelist", acs: 265, delta: null },
-    { name: "Alfajer", role: "Sentinel", acs: 240, delta: null },
-    { name: "Chronicle", role: "Initiator", acs: 230, delta: null },
-    // The "Simulated Swap" slot
-    { name: "Leo", role: "Initiator", acs: 215, delta: { acs: "+12", kast: "+4%", winrate: "+1.2%" }, isSwap: true },
+    { name: "Boaster", role: "Controller", acs: 185 },
+    { name: "Derke", role: "Duelist", acs: 265 },
+    { name: "Alfajer", role: "Sentinel", acs: 240 },
+    { name: "Chronicle", role: "Initiator", acs: 230 },
   ];
 
+  const incomingPlayer = { 
+    name: "Leo", 
+    role: "Initiator", 
+    acs: 215, 
+    delta: { acs: "+12", kast: "+4%", winrate: "+1.2%" } 
+  };
+
   return (
-    <section className="w-full bg-[var(--color-surface-variant)] py-24 md:py-32 relative z-10 border-b-2 border-[var(--color-on-background)] overflow-hidden">
+    <section className="w-full bg-[var(--color-surface-variant)] py-24 md:py-32 relative z-10 border-b-4 border-[var(--color-on-background)] overflow-hidden flex flex-col items-center">
       
-      {/* Structural Pattern */}
-      <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'linear-gradient(90deg, var(--color-on-background) 1px, transparent 0), linear-gradient(180deg, var(--color-on-background) 1px, transparent 0)', backgroundSize: '64px 64px' }} />
+      {/* Structural Pattern - Brutalist grid */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'linear-gradient(90deg, var(--color-on-background) 2px, transparent 0), linear-gradient(180deg, var(--color-on-background) 2px, transparent 0)', backgroundSize: '128px 128px' }} />
 
-      <div className="max-w-[var(--spacing-max-width)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)]">
+      {/* Massive Background Typography - Breaks out of container */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none overflow-hidden select-none">
+        <h2 className="font-['Archivo_Black'] text-[20vw] leading-none whitespace-nowrap text-[var(--color-on-background)]">
+          CHEMISTRY
+        </h2>
+      </div>
+
+      <div className="max-w-[1200px] w-full px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] relative z-10 flex flex-col items-center">
         
-        <div className="flex flex-col md:flex-row items-center gap-16 md:gap-24">
-          
-          {/* Left: Copy */}
-          <div className="flex-1 text-center md:text-left z-10">
-            <h2 className="font-['Archivo_Black'] text-5xl md:text-[4rem] font-black uppercase leading-[0.9] tracking-tighter mb-6 text-[var(--color-on-background)] break-words">
-              SIMULATE <br />
-              <span className="text-[var(--color-primary)] stroke-black" style={{ WebkitTextStroke: '2px black' }}>CHEMISTRY.</span>
-            </h2>
-            <p className="font-['Inter'] text-[1.125rem] text-[var(--color-secondary)] leading-relaxed max-w-md mx-auto md:mx-0 font-medium mb-8">
-              Don't guess how a roster change will play out. Drag a scouted player into your team and let our AI calculate the predicted synergy, pacing overlaps, and statistical deltas.
-            </p>
-            <div className="inline-flex items-center gap-4 bg-[var(--color-surface)] border-2 border-[var(--color-on-background)] brutal-shadow-sm px-6 py-4 cut-corner">
-               <DotsSixVertical weight="bold" className="text-[2rem] text-[var(--color-primary)]" />
-               <span className="font-['JetBrains_Mono'] font-bold uppercase text-[0.875rem]">Drag & Drop Interface</span>
-            </div>
-          </div>
+        {/* Header content centered - Departs from AI generic 2-col */}
+        <div className="text-center mb-16 relative w-full max-w-3xl">
+           <motion.div 
+             initial={{ y: 20, opacity: 0 }}
+             whileInView={{ y: 0, opacity: 1 }}
+             viewport={{ once: true, margin: "-50px" }}
+             transition={{ duration: 0.5, ease: easeOut }}
+             className="inline-flex items-center gap-2 bg-[var(--color-primary)] text-black border-2 border-[var(--color-on-background)] px-4 py-2 mb-8 brutal-shadow-sm font-['JetBrains_Mono'] font-bold text-sm uppercase"
+           >
+             <CursorClick weight="bold" className="text-lg" />
+             Interactive Prediction
+           </motion.div>
 
-          {/* Right: The UI Mockup (Simulation Delta) */}
-          <div className="flex-1 w-full relative z-10">
-            <div className="bg-[var(--color-background)] border-4 border-[var(--color-on-background)] brutal-shadow p-6 relative">
-              
-              <div className="flex justify-between items-end mb-6 border-b-2 border-[var(--color-on-background)] pb-2">
-                <h3 className="font-['JetBrains_Mono'] font-bold uppercase tracking-widest text-[var(--color-secondary)]">Predicted Roster Output</h3>
-                <span className="bg-[var(--color-primary)] text-black font-['JetBrains_Mono'] font-bold px-2 py-1 text-xs">AI SIMULATION</span>
-              </div>
+           <motion.h2 
+             initial={{ y: 20, opacity: 0 }}
+             whileInView={{ y: 0, opacity: 1 }}
+             viewport={{ once: true, margin: "-50px" }}
+             transition={{ duration: 0.5, delay: 0.1, ease: easeOut }}
+             className="font-['Archivo_Black'] text-5xl md:text-7xl font-black uppercase leading-[0.95] tracking-tighter text-[var(--color-on-background)] mb-6"
+           >
+             SIMULATE <br />
+             <span className="text-transparent" style={{ WebkitTextStroke: '2px var(--color-on-background)' }}>THE IMPACT.</span>
+           </motion.h2>
 
-              <div className="flex flex-col gap-3">
-                {roster.map((player, idx) => (
-                  <div 
-                    key={idx} 
-                    className={`flex items-center justify-between p-3 border-2 ${player.isSwap ? 'border-[var(--color-primary)] bg-[var(--color-primary-container)] brutal-shadow-sm transform -translate-y-1' : 'border-[var(--color-on-background)] bg-[var(--color-surface)]'}`}
-                  >
-                    <div className="flex items-center gap-4">
-                       {/* Role Icon Placeholder */}
-                       <div className="w-8 h-8 bg-gray-200 border border-black flex items-center justify-center">
-                          {player.role === 'Controller' ? <EyeClosed weight="bold" /> : player.role === 'Duelist' ? <Fire weight="bold" /> : player.role === 'Sentinel' ? <Shield weight="bold" /> : <Crosshair weight="bold" />}
-                       </div>
-                       <div>
-                         <p className="font-['Archivo_Black'] font-bold text-lg leading-none uppercase">{player.name}</p>
-                         <p className="font-['JetBrains_Mono'] text-[0.6rem] text-[var(--color-secondary)] uppercase">{player.role}</p>
-                       </div>
-                    </div>
-
-                    <div className="text-right flex items-center gap-4">
-                      {player.isSwap && player.delta && (
-                        <div className="flex gap-2 mr-2">
-                           <span className="bg-[var(--color-success)] text-white font-['JetBrains_Mono'] font-bold text-[0.6rem] px-1 py-0.5 animate-pulse">ACS {player.delta.acs}</span>
-                           <span className="bg-[var(--color-success)] text-white font-['JetBrains_Mono'] font-bold text-[0.6rem] px-1 py-0.5 animate-pulse">WR {player.delta.winrate}</span>
-                        </div>
-                      )}
-                      <div>
-                        <p className="font-['JetBrains_Mono'] text-[1.25rem] font-black">{player.acs}</p>
-                        <p className="font-['JetBrains_Mono'] text-[0.6rem] text-[var(--color-secondary)] uppercase">Est. ACS</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-            </div>
-          </div>
-
+           <motion.p 
+             initial={{ y: 20, opacity: 0 }}
+             whileInView={{ y: 0, opacity: 1 }}
+             viewport={{ once: true, margin: "-50px" }}
+             transition={{ duration: 0.5, delay: 0.2, ease: easeOut }}
+             className="font-['Inter'] text-lg md:text-xl text-[var(--color-secondary)] mx-auto font-medium"
+           >
+             Don't guess how a roster change will play out. Drag a scouted player into your team and let our AI calculate the predicted synergy, pacing overlaps, and statistical deltas in real-time.
+           </motion.p>
         </div>
+
+        {/* The Interactive Terminal */}
+        <motion.div 
+          initial={{ y: 40, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.6, delay: 0.3, ease: easeOut }}
+          className="w-full max-w-4xl bg-[var(--color-background)] border-4 border-[var(--color-on-background)] brutal-shadow-lg relative"
+        >
+          {/* Terminal Header */}
+          <div className="flex justify-between items-center bg-[var(--color-surface)] border-b-4 border-[var(--color-on-background)] px-4 py-3">
+             <div className="flex gap-2">
+                <div className="w-4 h-4 rounded-full bg-red-500 border-2 border-[var(--color-on-background)]" />
+                <div className="w-4 h-4 rounded-full bg-yellow-400 border-2 border-[var(--color-on-background)]" />
+                <div className="w-4 h-4 rounded-full bg-green-500 border-2 border-[var(--color-on-background)]" />
+             </div>
+             <span className="font-['JetBrains_Mono'] font-bold text-xs md:text-sm uppercase tracking-widest text-[var(--color-on-background)] opacity-70">
+                AI_ROSTER_ENGINE.EXE
+             </span>
+          </div>
+
+          <div className="p-4 md:p-8 flex flex-col gap-4 relative overflow-hidden">
+             {/* Base Roster */}
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {roster.map((player, i) => (
+                   <motion.div 
+                     key={player.name}
+                     initial={{ opacity: 0, x: -20 }}
+                     whileInView={{ opacity: 1, x: 0 }}
+                     viewport={{ once: true }}
+                     transition={{ duration: 0.4, delay: 0.4 + (i * 0.05), ease: easeOut }} // Stagger entrance
+                     className="flex items-center justify-between p-4 bg-[var(--color-surface)] border-2 border-[var(--color-on-background)]"
+                   >
+                     <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-[var(--color-surface-variant)] border-2 border-[var(--color-on-background)] flex items-center justify-center text-[var(--color-on-background)]">
+                          {player.role === 'Controller' ? <EyeClosed weight="bold" size={20} /> : player.role === 'Duelist' ? <Fire weight="bold" size={20} /> : player.role === 'Sentinel' ? <Shield weight="bold" size={20} /> : <Crosshair weight="bold" size={20} />}
+                        </div>
+                        <div>
+                          <p className="font-['Archivo_Black'] font-bold text-lg md:text-xl leading-none uppercase text-[var(--color-on-background)]">{player.name}</p>
+                          <p className="font-['JetBrains_Mono'] text-[0.7rem] text-[var(--color-secondary)] uppercase mt-1">{player.role}</p>
+                        </div>
+                     </div>
+                     <div className="text-right">
+                        <p className="font-['JetBrains_Mono'] text-lg md:text-xl font-black text-[var(--color-on-background)]">{player.acs}</p>
+                        <p className="font-['JetBrains_Mono'] text-[0.6rem] text-[var(--color-secondary)] uppercase">ACS</p>
+                     </div>
+                   </motion.div>
+                ))}
+             </div>
+
+             {/* The Empty Slot / Target Area */}
+             <div className="mt-2 md:mt-4 relative h-[88px] border-4 border-dashed border-[var(--color-on-background)] bg-[var(--color-surface-variant)] flex items-center justify-center">
+                <AnimatePresence mode="wait">
+                  {!isSimulating ? (
+                    <motion.div 
+                      key="empty"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="text-[var(--color-secondary)] font-['JetBrains_Mono'] text-sm md:text-base font-bold uppercase tracking-widest flex items-center gap-2"
+                    >
+                      <Target className="text-xl" /> Drop Player Here
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="filled"
+                      initial={{ scale: 0.95, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ type: "spring", duration: 0.5, bounce: 0.2 }}
+                      className="absolute inset-[-4px] bg-[var(--color-primary-container)] border-4 border-[var(--color-primary)] flex items-center justify-between p-4 z-10"
+                    >
+                       <div className="flex items-center gap-3 md:gap-4">
+                          <div className="w-10 h-10 bg-[var(--color-primary)] text-black border-2 border-[var(--color-on-background)] flex items-center justify-center shrink-0">
+                            <Crosshair weight="bold" size={20} />
+                          </div>
+                          <div>
+                            <p className="font-['Archivo_Black'] font-bold text-lg md:text-xl leading-none uppercase text-black">{incomingPlayer.name}</p>
+                            <p className="font-['JetBrains_Mono'] text-[0.7rem] text-black/70 uppercase mt-1">{incomingPlayer.role}</p>
+                          </div>
+                       </div>
+                       
+                       <div className="flex items-center gap-2 md:gap-4">
+                          <div className="flex flex-col md:flex-row gap-1 md:gap-2 mr-2 md:mr-4">
+                             <motion.span 
+                               initial={{ opacity: 0, x: -10 }}
+                               animate={{ opacity: 1, x: 0 }}
+                               transition={{ delay: 0.2, ease: easeOut, duration: 0.4 }}
+                               className="bg-black text-[var(--color-primary)] font-['JetBrains_Mono'] font-bold text-[0.6rem] md:text-[0.7rem] px-2 py-1"
+                             >
+                               ACS {incomingPlayer.delta.acs}
+                             </motion.span>
+                             <motion.span 
+                               initial={{ opacity: 0, x: -10 }}
+                               animate={{ opacity: 1, x: 0 }}
+                               transition={{ delay: 0.3, ease: easeOut, duration: 0.4 }}
+                               className="bg-black text-[var(--color-primary)] font-['JetBrains_Mono'] font-bold text-[0.6rem] md:text-[0.7rem] px-2 py-1"
+                             >
+                               WR {incomingPlayer.delta.winrate}
+                             </motion.span>
+                          </div>
+                          <div className="text-right text-black shrink-0">
+                            <p className="font-['JetBrains_Mono'] text-lg md:text-xl font-black">{incomingPlayer.acs}</p>
+                            <p className="font-['JetBrains_Mono'] text-[0.6rem] text-black/70 uppercase">Est. ACS</p>
+                          </div>
+                       </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+             </div>
+
+             {/* The Floating Incoming Player simulating a drag */}
+             <AnimatePresence>
+                {!isSimulating && (
+                   <motion.div
+                     initial={{ y: 30, opacity: 0 }}
+                     animate={{ 
+                       y: [30, 15, 30], 
+                       opacity: 1,
+                       rotate: [-2, 1, -2]
+                     }}
+                     exit={{ 
+                        y: -50, 
+                        x: -50,
+                        scale: 0.8, 
+                        opacity: 0,
+                        rotate: 0,
+                        filter: "blur(4px)",
+                        transition: { duration: 0.3, ease: easeOut }
+                     }}
+                     transition={{ 
+                       y: { repeat: Infinity, duration: 4, ease: "easeInOut" },
+                       rotate: { repeat: Infinity, duration: 5, ease: "easeInOut" }
+                     }}
+                     className="absolute bottom-[-10px] right-2 md:right-10 z-20 brutal-shadow-lg cursor-grab active:cursor-grabbing border-4 border-[var(--color-on-background)] bg-[var(--color-surface)] p-3 flex items-center gap-3 w-56 md:w-64 rotate-[-3deg]"
+                   >
+                     <DotsSixVertical className="text-2xl text-[var(--color-secondary)]" />
+                     <div>
+                       <p className="font-['Archivo_Black'] font-bold text-lg uppercase text-[var(--color-on-background)]">{incomingPlayer.name}</p>
+                       <p className="font-['JetBrains_Mono'] text-[0.6rem] text-[var(--color-secondary)] uppercase">Drag to simulate</p>
+                     </div>
+                   </motion.div>
+                )}
+             </AnimatePresence>
+
+          </div>
+        </motion.div>
 
       </div>
     </section>

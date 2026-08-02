@@ -32,6 +32,13 @@ interface HeroKpi {
   photo_url?: string | null;
 }
 
+interface TrackedPlayer {
+  id: string;
+  ign: string;
+  photo_url?: string | null;
+  team_name?: string | null;
+}
+
 interface DashboardData {
   hero_kpi: HeroKpi | null;
   meta_shift: {
@@ -39,6 +46,7 @@ interface DashboardData {
     top_agents: TopAgent[];
   };
   recent_matches: RecentMatch[];
+  tracked_players?: TrackedPlayer[];
 }
 
 export default function Dashboard() {
@@ -126,13 +134,13 @@ export default function Dashboard() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-20 translate-x-1/3 -translate-y-1/3 rounded-full blur-3xl pointer-events-none" />
         
         <div className="relative z-10 w-full flex flex-col md:flex-row md:items-end justify-between gap-8 md:gap-12">
-          <div className="flex-1 order-2 md:order-1">
+          <div className="flex-1 order-1 relative z-20">
             <p className="text-black font-['JetBrains_Mono'] font-bold text-[12px] md:text-[14px] uppercase tracking-widest mb-4 md:mb-6 flex items-center gap-3">
               <span className="w-2 h-2 bg-black inline-block" /> Top Match
             </p>
             {data.hero_kpi ? (
               <>
-                <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-[5.5rem] font-['Archivo_Black'] uppercase tracking-tighter text-black leading-[0.9] max-w-3xl mb-6 md:mb-8">
+                <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-['Archivo_Black'] uppercase tracking-tighter text-black leading-[0.9] max-w-3xl mb-6 md:mb-8">
                   {data.hero_kpi.name}
                 </h2>
                 <div className="flex flex-wrap items-center gap-4 md:gap-6">
@@ -153,7 +161,7 @@ export default function Dashboard() {
           </div>
           
           {data.hero_kpi?.photo_url ? (
-            <div className="w-40 h-40 sm:w-56 sm:h-56 md:w-80 md:h-80 shrink-0 relative pointer-events-none order-1 md:order-2 ml-auto md:ml-0 -mt-12 md:mt-0 mb-4 md:mb-0">
+            <div className="w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 shrink-0 relative pointer-events-none order-2 self-end -mt-24 sm:-mt-32 md:mt-0 z-10 opacity-75 md:opacity-100">
               <img 
                 src={data.hero_kpi.photo_url} 
                 alt={data.hero_kpi.name} 
@@ -161,7 +169,7 @@ export default function Dashboard() {
               />
             </div>
           ) : (
-            <div className="w-32 h-32 md:w-40 md:h-40 shrink-0 flex items-center justify-center opacity-10 order-1 md:order-2 ml-auto md:ml-0 mb-4 md:mb-0">
+            <div className="w-32 h-32 md:w-40 md:h-40 shrink-0 flex items-center justify-center opacity-10 order-2 self-end md:self-auto z-10">
               <User weight="fill" className="w-full h-full" />
             </div>
           )}
@@ -224,13 +232,40 @@ export default function Dashboard() {
         >
           <h3 className="font-['Archivo_Black'] uppercase text-3xl tracking-tight mb-8 border-b-4 border-black pb-3 text-black">Consistency Tracker</h3>
           <div className="flex-1 flex flex-col pt-4">
-             <Crosshair weight="bold" size={40} className="text-black mb-6" />
-             <p className="font-['Archivo_Black'] text-2xl uppercase text-black mb-4 leading-tight tracking-tight">You are not following any players.</p>
-             <p className="font-['JetBrains_Mono'] text-[15px] text-gray-500 mb-12 leading-relaxed">
-               Track up to 5 players to monitor their consistency across their last 10 official matches. Real-time form evaluation.
-             </p>
+             {data.tracked_players && data.tracked_players.length > 0 ? (
+               <div className="flex flex-col gap-4 mb-8">
+                 {data.tracked_players.map(player => (
+                   <Link to={`/app/players/${player.id}`} key={player.id} className="flex items-center gap-4 group border-b-2 border-transparent hover:border-black transition-colors pb-2">
+                     <div className="w-12 h-12 bg-gray-100 border-2 border-black overflow-hidden flex items-center justify-center shrink-0">
+                       {player.photo_url ? (
+                         <img src={player.photo_url} alt={player.ign} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
+                       ) : (
+                         <User weight="fill" className="text-gray-400" size={24} />
+                       )}
+                     </div>
+                     <div>
+                       <div className="font-['Archivo_Black'] text-lg text-black uppercase tracking-tight">{player.ign}</div>
+                       <div className="font-['JetBrains_Mono'] text-[11px] font-bold text-gray-500 uppercase tracking-widest">{player.team_name || 'Free Agent'}</div>
+                     </div>
+                     <div className="ml-auto">
+                       <div className="text-[10px] font-['JetBrains_Mono'] font-bold uppercase tracking-widest text-black bg-[var(--color-primary)] px-2 py-1 shadow-[2px_2px_0px_rgba(0,0,0,1)] group-hover:-translate-y-0.5 group-hover:-translate-x-0.5 transition-transform">
+                         Active
+                       </div>
+                     </div>
+                   </Link>
+                 ))}
+               </div>
+             ) : (
+               <>
+                 <Crosshair weight="bold" size={40} className="text-black mb-6" />
+                 <p className="font-['Archivo_Black'] text-2xl uppercase text-black mb-4 leading-tight tracking-tight">You are not following any players.</p>
+                 <p className="font-['JetBrains_Mono'] text-[15px] text-gray-500 mb-12 leading-relaxed">
+                   Track up to 5 players to monitor their consistency across their last 10 official matches. Real-time form evaluation.
+                 </p>
+               </>
+             )}
              {/* Secondary Ghost Link */}
-             <Link to="/app/players" className="text-black border-b-2 border-black pb-1 font-['Archivo_Black'] uppercase text-[13px] tracking-widest w-fit hover:text-gray-500 hover:border-gray-500 transition-colors duration-200">
+             <Link to="/app/players" className="text-black border-b-2 border-black pb-1 font-['Archivo_Black'] uppercase text-[13px] tracking-widest w-fit hover:text-gray-500 hover:border-gray-500 transition-colors duration-200 mt-auto">
                Find Players to Track
              </Link>
           </div>

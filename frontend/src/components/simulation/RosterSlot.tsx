@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { X, Star } from '@phosphor-icons/react';
+import { useDroppable } from '@dnd-kit/core';
 
 interface Player {
   id: string;
@@ -19,14 +20,24 @@ interface RosterSlotProps {
 }
 
 export default function RosterSlot({ player, onRemove, index }: RosterSlotProps) {
-  const ref = useRef<HTMLDivElement>(null);
+  const { isOver, setNodeRef, active } = useDroppable({
+    id: `roster-slot-${index}`,
+    data: { index }
+  });
+
+  const draggedPlayer = active?.data.current?.player as Player | undefined;
+  const isHoveredWithPlayer = isOver && draggedPlayer && !player;
 
   return (
     <div 
-      ref={ref}
+      ref={setNodeRef}
       id={`roster-slot-${index}`}
-      className={`relative w-full flex items-center border-4 border-dashed rounded-none transition-colors duration-300 shadow-[4px_4px_0px_#000] min-h-[100px] ${
-        player ? 'border-black bg-white' : 'border-gray-400 bg-gray-100/50'
+      className={`relative w-full flex items-center border-4 rounded-none transition-all duration-200 min-h-[100px] ${
+        player 
+          ? 'border-black border-solid bg-white shadow-[8px_8px_0px_rgba(0,0,0,1)]' 
+          : isHoveredWithPlayer
+            ? 'border-[var(--color-primary)] border-dashed bg-yellow-50 shadow-[4px_4px_0px_var(--color-primary)] scale-[1.02] z-10'
+            : 'border-gray-400 border-dashed bg-gray-100/50 shadow-none'
       }`}
     >
       {player ? (
@@ -68,6 +79,30 @@ export default function RosterSlot({ player, onRemove, index }: RosterSlotProps)
                   <Star weight="fill" size={10} /> IGL
                 </span>
               )}
+            </div>
+          </div>
+        </motion.div>
+      ) : isHoveredWithPlayer ? (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 0.6, scale: 1 }}
+          className="w-full h-full p-3 relative flex items-center gap-4 pointer-events-none"
+        >
+          <div className="relative w-16 h-16 border-2 border-[var(--color-primary)] bg-black shadow-[2px_2px_0px_var(--color-primary)] shrink-0 grayscale">
+            <img 
+              src={draggedPlayer.photo_url || `https://ui-avatars.com/api/?name=${draggedPlayer.ign}&background=random`} 
+              alt={draggedPlayer.ign} 
+              className="w-full h-full object-cover transition-all duration-300"
+            />
+          </div>
+          <div className="flex-1 min-w-0 pr-8 flex flex-col justify-center">
+            <div className="flex items-center gap-3">
+              <h3 className="font-display font-black text-xl uppercase truncate leading-none text-[var(--color-primary)]">{draggedPlayer.ign}</h3>
+            </div>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <span className="font-label text-[10px] font-black uppercase tracking-widest border-2 border-[var(--color-primary)] text-[var(--color-primary)] px-2 py-0.5 bg-transparent">
+                {draggedPlayer.current_role}
+              </span>
             </div>
           </div>
         </motion.div>
