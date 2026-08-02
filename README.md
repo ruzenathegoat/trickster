@@ -58,4 +58,4 @@ npm run dev
 - **Core**: Laravel 11, React 18
 - **Styling**: Tailwind CSS v4
 - **Motion**: Framer Motion, Lenis (smooth scroll)
-- **Database**: SQLite / MySQL
+- **Database**: Supabase/PostGRESSQL
