@@ -232,7 +232,7 @@ export default function PlayerExplorer() {
                       <div className="flex items-center gap-2 md:gap-3">
                         <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-200 border-2 border-black overflow-hidden shrink-0 flex items-center justify-center">
                           {player.photo_url ? (
-                            <img src={player.photo_url} alt={player.ign} className="w-full h-full object-cover" />
+                            <img src={player.photo_url} alt={player.ign} loading="lazy" className="w-full h-full object-cover" />
                           ) : (
                             <span className="font-display text-xs text-gray-400">?</span>
                           )}

@@ -82,8 +82,9 @@ class UserProfileController extends Controller
     {
         $user = $request->user();
         $user->favoritePlayers()->toggle($playerId);
-        
+
         Cache::forget('api_user_profile_' . $user->id);
+        Cache::forget('api_dashboard_favorites_' . $user->id);
 
         return response()->json([
             'message' => 'Favorite player toggled',

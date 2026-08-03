@@ -142,10 +142,15 @@ class PlayerController extends Controller
                 
             $totalMatches = $player->total_matches > 0 ? $player->total_matches : 1;
 
-            $mostPickedAgents = $agents->map(function($a) use ($totalMatches) {
-                $agentDef = \Illuminate\Support\Facades\DB::table('valorant_agents')
-                    ->whereRaw("REPLACE(name, '/', '') ILIKE ?", [str_replace('/', '', $a->agent_name)])
-                    ->first();
+            // Preload all agent definitions once, keyed by normalized name
+            // (lowercase, slashes removed) to avoid an N+1 query per agent.
+            $agentDefs = \Illuminate\Support\Facades\DB::table('valorant_agents')
+                ->select('name', 'icon_url')
+                ->get()
+                ->keyBy(fn($agent) => strtolower(str_replace('/', '', $agent->name)));
+
+            $mostPickedAgents = $agents->map(function($a) use ($totalMatches, $agentDefs) {
+                $agentDef = $agentDefs->get(strtolower(str_replace('/', '', $a->agent_name)));
                 return [
                     'name' => $a->agent_name,
                     'count' => $a->count,

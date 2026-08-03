@@ -18,11 +18,13 @@ class SimulationController extends Controller
         
         // If roster is empty, just return the top players overall
         if (empty($rosterIds)) {
-            $players = Player::orderBy('avg_rating', 'desc')
-                ->with('team')
-                ->limit(20)
-                ->get();
-            
+            $players = \Illuminate\Support\Facades\Cache::remember('api_simulation_top_players', 300, function () {
+                return Player::orderBy('avg_rating', 'desc')
+                    ->with('team')
+                    ->limit(20)
+                    ->get();
+            });
+
             $results = $players->map(function ($player) {
                 return [
                     'player' => $player,
@@ -57,11 +59,14 @@ class SimulationController extends Controller
         arsort($regions);
         $dominantRegion = key($regions);
 
-        // Fetch candidates (exclude already in roster)
-        $candidates = Player::whereNotIn('id', $rosterIds)
-            ->with('team')
-            ->where('avg_rating', '>', 0.9)
-            ->get();
+        // Fetch candidate pool once (cached), then exclude roster in PHP.
+        // Caching the full high-rated pool keeps the key stable across rosters.
+        $candidatePool = \Illuminate\Support\Facades\Cache::remember('api_simulation_candidates', 300, function () {
+            return Player::where('avg_rating', '>', 0.9)
+                ->with('team')
+                ->get();
+        });
+        $candidates = $candidatePool->whereNotIn('id', $rosterIds)->values();
 
         $recommendations = [];
 

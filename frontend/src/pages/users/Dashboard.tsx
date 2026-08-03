@@ -238,7 +238,7 @@ export default function Dashboard() {
                    <Link to={`/app/players/${player.id}`} key={player.id} className="flex items-center gap-4 group border-b-2 border-transparent hover:border-black transition-colors pb-2">
                      <div className="w-12 h-12 bg-gray-100 border-2 border-black overflow-hidden flex items-center justify-center shrink-0">
                        {player.photo_url ? (
-                         <img src={player.photo_url} alt={player.ign} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
+                         <img src={player.photo_url} alt={player.ign} loading="lazy" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
                        ) : (
                          <User weight="fill" className="text-gray-400" size={24} />
                        )}
@@ -318,13 +318,13 @@ export default function Dashboard() {
                           {match.winner_id === match.team_a_id && <span className="text-[10px] font-black bg-[var(--color-primary)] text-black border-2 border-black px-1.5 py-0.5 uppercase tracking-widest leading-none shadow-[2px_2px_0px_rgba(0,0,0,1)]">WIN</span>}
                           <span className="truncate">{match.team_a}</span>
                           {match.team_a_logo && (
-                             <img src={match.team_a_logo} alt={match.team_a} className="w-6 h-6 object-contain shrink-0" />
+                             <img src={match.team_a_logo} alt={match.team_a} loading="lazy" className="w-6 h-6 object-contain shrink-0" />
                           )}
                         </span>
                         <span className="text-gray-300 font-black text-[11px] uppercase tracking-widest shrink-0">VS</span>
                         <span className={`flex items-center gap-3 w-[220px] ${match.winner_id === match.team_b_id ? "font-black text-black" : "text-gray-400 font-bold"}`}>
                           {match.team_b_logo && (
-                             <img src={match.team_b_logo} alt={match.team_b} className="w-6 h-6 object-contain shrink-0" />
+                             <img src={match.team_b_logo} alt={match.team_b} loading="lazy" className="w-6 h-6 object-contain shrink-0" />
                           )}
                           <span className="truncate">{match.team_b}</span>
                           {match.winner_id === match.team_b_id && <span className="text-[10px] font-black bg-[var(--color-primary)] text-black border-2 border-black px-1.5 py-0.5 uppercase tracking-widest leading-none shadow-[2px_2px_0px_rgba(0,0,0,1)]">WIN</span>}

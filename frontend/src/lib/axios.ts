@@ -1,7 +1,10 @@
 import Axios from 'axios';
 
 const axios = Axios.create({
-    baseURL: 'http://localhost:8000',
+    // Relative base URL: the Vite dev proxy (see vite.config.ts) forwards
+    // /api, /sanctum, /login, etc. to the backend, keeping requests same-origin
+    // and eliminating the CORS preflight round trip.
+    baseURL: '',
     headers: {
         'X-Requested-With': 'XMLHttpRequest',
         'Accept': 'application/json',

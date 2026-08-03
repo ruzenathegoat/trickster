@@ -107,7 +107,10 @@ Route::prefix('v1')->group(function () {
 
     // Active Patch (System)
     Route::get('/active-patch', function () {
-        $patch = \App\Models\Patch::orderBy('release_date', 'desc')->first();
-        return response()->json(['version' => $patch ? $patch->version : 'N/A']);
+        $version = \Illuminate\Support\Facades\Cache::remember('api_active_patch', 3600, function () {
+            $patch = \App\Models\Patch::orderBy('release_date', 'desc')->first();
+            return $patch ? $patch->version : 'N/A';
+        });
+        return response()->json(['version' => $version]);
     });
 });

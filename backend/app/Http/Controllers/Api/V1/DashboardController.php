@@ -17,7 +17,7 @@ class DashboardController extends Controller
      */
     public function index(\Illuminate\Http\Request $request)
     {
-        $dashboardData = \Illuminate\Support\Facades\Cache::remember('api_dashboard', 3600, function() {
+        $dashboardData = \Illuminate\Support\Facades\Cache::remember('api_dashboard', 300, function() {
             // 1. Hero KPI - Top Match (Player) using JOIN
             $topPlayerResult = \Illuminate\Support\Facades\DB::table('player_smart_results')
                 ->join('players', 'players.id', '=', 'player_smart_results.player_id')
@@ -103,7 +103,7 @@ class DashboardController extends Controller
                     'teamB.logo_url as team_b_logo',
                     'events.name as event_name'
                 )
-                ->take(5)
+                ->take(10)
                 ->get();
 
             $recentMatches = [];
@@ -128,18 +128,23 @@ class DashboardController extends Controller
             ];
         });
 
-        // Add user-specific tracked players
+        // Add user-specific tracked players (cached per user, short TTL)
         $user = $request->user();
         if ($user) {
-            $favPlayers = $user->favoritePlayers()->with('team')->take(5)->get()->map(function ($player) {
-                return [
-                    'id' => $player->id,
-                    'ign' => $player->ign,
-                    'photo_url' => $player->photo_url,
-                    'team_name' => $player->team ? $player->team->name : null,
-                ];
-            })->toArray();
-            $dashboardData['tracked_players'] = $favPlayers;
+            $dashboardData['tracked_players'] = \Illuminate\Support\Facades\Cache::remember(
+                'api_dashboard_favorites_' . $user->id,
+                120,
+                function () use ($user) {
+                    return $user->favoritePlayers()->with('team')->take(5)->get()->map(function ($player) {
+                        return [
+                            'id' => $player->id,
+                            'ign' => $player->ign,
+                            'photo_url' => $player->photo_url,
+                            'team_name' => $player->team ? $player->team->name : null,
+                        ];
+                    })->toArray();
+                }
+            );
         } else {
             $dashboardData['tracked_players'] = [];
         }
