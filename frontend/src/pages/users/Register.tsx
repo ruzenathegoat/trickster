@@ -46,7 +46,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white">
+    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-theme-bg">
       
       {/* Left Panel: Form */}
       <div className="w-full lg:w-1/2 min-h-screen flex items-center justify-center p-6 md:p-12 relative z-10">
@@ -58,16 +58,16 @@ export default function Register() {
         <div className="w-full max-w-md relative z-10">
           
           <Link to="/" className="inline-block mb-12 group">
-            <div className="w-12 h-12 bg-black text-white flex items-center justify-center font-display text-2xl font-black group-hover:bg-[var(--color-primary)] group-hover:text-black transition-colors border-4 border-black shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+            <div className="w-12 h-12 bg-black text-white flex items-center justify-center font-display text-2xl font-black group-hover:bg-[var(--color-primary)] group-hover:text-black transition-colors border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
               T
             </div>
           </Link>
 
           <div className="mb-8">
-            <h1 className="font-display text-[2.5rem] md:text-[3rem] font-black text-black leading-none uppercase tracking-tighter mb-4 break-words">
+            <h1 className="font-display text-[2.5rem] md:text-[3rem] font-black text-theme-text leading-none uppercase tracking-tighter mb-4 break-words">
               Join the<br/>Ranks
             </h1>
-            <div className="w-16 h-2 bg-[var(--color-primary)] border-2 border-black mb-4" />
+            <div className="w-16 h-2 bg-[var(--color-primary)] border-2 border-theme-border mb-4" />
             <p className="font-body text-gray-600 font-medium text-lg">
               Create your scouting profile and enter the data engine.
             </p>
@@ -77,11 +77,11 @@ export default function Register() {
             
             {/* Full Name Input */}
             <div className="space-y-2">
-              <label className="block font-label text-[0.75rem] font-bold uppercase tracking-widest text-black" htmlFor="name">
+              <label className="block font-label text-[0.75rem] font-bold uppercase tracking-widest text-theme-text" htmlFor="name">
                 Full Name
               </label>
               <div className="relative group">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 group-focus-within:text-black transition-colors pointer-events-none">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 group-focus-within:text-theme-text transition-colors pointer-events-none">
                   <User weight="bold" className="text-xl" />
                 </span>
                 <input 
@@ -92,18 +92,18 @@ export default function Register() {
                   required 
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-[#f4f4f4] border-4 border-black py-3 pl-12 pr-4 font-body text-base text-black focus:outline-none focus:bg-white shadow-[4px_4px_0px_rgba(0,0,0,1)] focus:shadow-[6px_6px_0px_var(--color-primary)] transition-all duration-200"
+                  className="w-full bg-[#f4f4f4] border-4 border-theme-border py-3 pl-12 pr-4 font-body text-base text-theme-text focus:outline-none focus:bg-theme-bg shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] focus:shadow-[6px_6px_0px_var(--color-primary)] transition-all duration-200"
                 />
               </div>
             </div>
 
             {/* Email Input */}
             <div className="space-y-2">
-              <label className="block font-label text-[0.75rem] font-bold uppercase tracking-widest text-black" htmlFor="email">
+              <label className="block font-label text-[0.75rem] font-bold uppercase tracking-widest text-theme-text" htmlFor="email">
                 Work Email
               </label>
               <div className="relative group">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 group-focus-within:text-black transition-colors pointer-events-none">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 group-focus-within:text-theme-text transition-colors pointer-events-none">
                   <Envelope weight="bold" className="text-xl" />
                 </span>
                 <input 
@@ -114,18 +114,18 @@ export default function Register() {
                   required 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-[#f4f4f4] border-4 border-black py-3 pl-12 pr-4 font-body text-base text-black focus:outline-none focus:bg-white shadow-[4px_4px_0px_rgba(0,0,0,1)] focus:shadow-[6px_6px_0px_var(--color-primary)] transition-all duration-200"
+                  className="w-full bg-[#f4f4f4] border-4 border-theme-border py-3 pl-12 pr-4 font-body text-base text-theme-text focus:outline-none focus:bg-theme-bg shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] focus:shadow-[6px_6px_0px_var(--color-primary)] transition-all duration-200"
                 />
               </div>
             </div>
             
             {/* Password Input */}
             <div className="space-y-2">
-              <label className="block font-label text-[0.75rem] font-bold uppercase tracking-widest text-black" htmlFor="password">
+              <label className="block font-label text-[0.75rem] font-bold uppercase tracking-widest text-theme-text" htmlFor="password">
                 Password
               </label>
               <div className="relative group">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 group-focus-within:text-black transition-colors pointer-events-none">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 group-focus-within:text-theme-text transition-colors pointer-events-none">
                   <Lock weight="bold" className="text-xl" />
                 </span>
                 <input 
@@ -136,18 +136,18 @@ export default function Register() {
                   required 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-[#f4f4f4] border-4 border-black py-3 pl-12 pr-4 font-body text-base text-black focus:outline-none focus:bg-white shadow-[4px_4px_0px_rgba(0,0,0,1)] focus:shadow-[6px_6px_0px_var(--color-primary)] transition-all duration-200"
+                  className="w-full bg-[#f4f4f4] border-4 border-theme-border py-3 pl-12 pr-4 font-body text-base text-theme-text focus:outline-none focus:bg-theme-bg shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] focus:shadow-[6px_6px_0px_var(--color-primary)] transition-all duration-200"
                 />
               </div>
             </div>
 
             {/* Confirm Password Input */}
             <div className="space-y-2">
-              <label className="block font-label text-[0.75rem] font-bold uppercase tracking-widest text-black" htmlFor="password_confirmation">
+              <label className="block font-label text-[0.75rem] font-bold uppercase tracking-widest text-theme-text" htmlFor="password_confirmation">
                 Confirm Password
               </label>
               <div className="relative group">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 group-focus-within:text-black transition-colors pointer-events-none">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 group-focus-within:text-theme-text transition-colors pointer-events-none">
                   <LockKey weight="bold" className="text-xl" />
                 </span>
                 <input 
@@ -158,7 +158,7 @@ export default function Register() {
                   required 
                   value={passwordConfirmation}
                   onChange={(e) => setPasswordConfirmation(e.target.value)}
-                  className="w-full bg-[#f4f4f4] border-4 border-black py-3 pl-12 pr-4 font-body text-base text-black focus:outline-none focus:bg-white shadow-[4px_4px_0px_rgba(0,0,0,1)] focus:shadow-[6px_6px_0px_var(--color-primary)] transition-all duration-200"
+                  className="w-full bg-[#f4f4f4] border-4 border-theme-border py-3 pl-12 pr-4 font-body text-base text-theme-text focus:outline-none focus:bg-theme-bg shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] focus:shadow-[6px_6px_0px_var(--color-primary)] transition-all duration-200"
                 />
               </div>
             </div>
@@ -169,10 +169,10 @@ export default function Register() {
               whileTap={{ scale: 0.98 }}
               type="submit" 
               disabled={isSubmitting}
-              className="w-full bg-[var(--color-primary)] text-black border-4 border-black py-4 px-6 font-display text-lg font-black uppercase shadow-[6px_6px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2 mt-8 disabled:opacity-50 disabled:cursor-not-allowed transition-shadow"
+              className="w-full bg-[var(--color-primary)] text-black border-4 border-theme-border py-4 px-6 font-display text-lg font-black uppercase shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] flex items-center justify-center gap-2 mt-8 disabled:opacity-50 disabled:cursor-not-allowed transition-shadow"
             >
               {isSubmitting ? (
-                <div className="w-6 h-6 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-6 h-6 border-4 border-theme-border border-t-transparent rounded-full animate-spin"></div>
               ) : (
                 <>
                   Create Account
@@ -193,7 +193,7 @@ export default function Register() {
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.98 }}
             type="button" 
-            className="w-full bg-[#f4f4f4] text-black border-4 border-black py-3 px-6 font-label text-sm font-bold uppercase shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_rgba(0,0,0,1)] hover:bg-black hover:text-white flex items-center justify-center gap-3 transition-all"
+            className="w-full bg-[#f4f4f4] text-theme-text border-4 border-theme-border py-3 px-6 font-label text-sm font-bold uppercase shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:bg-black hover:text-white flex items-center justify-center gap-3 transition-all"
           >
             <DiscordLogo weight="fill" className="text-2xl" />
             Sign up with Discord
@@ -201,7 +201,7 @@ export default function Register() {
 
           <div className="mt-12 text-center">
             <p className="font-body text-[0.875rem] text-gray-500 font-medium">
-              Already have an account? <Link to="/login" className="text-black font-bold hover:text-[var(--color-primary)] hover:underline decoration-4 underline-offset-4 transition-colors ml-1">Sign in</Link>
+              Already have an account? <Link to="/login" className="text-theme-text font-bold hover:text-[var(--color-primary)] hover:underline decoration-4 underline-offset-4 transition-colors ml-1">Sign in</Link>
             </p>
           </div>
 
@@ -209,7 +209,7 @@ export default function Register() {
       </div>
 
       {/* Right Panel: Brand Visual */}
-      <div className="hidden lg:flex lg:w-1/2 min-h-screen bg-black border-l-4 border-black flex-col items-center justify-center p-12 relative overflow-hidden text-white">
+      <div className="hidden lg:flex lg:w-1/2 min-h-screen bg-black border-l-4 border-theme-border flex-col items-center justify-center p-12 relative overflow-hidden text-white">
         
         {/* Halftone pattern background */}
         <div className="absolute inset-0 opacity-[0.1]" 

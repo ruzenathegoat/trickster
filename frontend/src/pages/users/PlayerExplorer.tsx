@@ -114,11 +114,11 @@ export default function PlayerExplorer() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
-        className="border-4 border-black flex flex-col lg:flex-row"
+        className="border-4 border-theme-border flex flex-col lg:flex-row"
       >
         {/* Search */}
-        <div className="relative flex-1 border-b-4 lg:border-b-0 lg:border-r-4 border-black">
-          <MagnifyingGlass weight="bold" size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-black" />
+        <div className="relative flex-1 border-b-4 lg:border-b-0 lg:border-r-4 border-theme-border">
+          <MagnifyingGlass weight="bold" size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-theme-text" />
           <input 
             type="text" 
             value={searchQuery}
@@ -133,7 +133,7 @@ export default function PlayerExplorer() {
               }
             }}
             placeholder="Search by player name..." 
-            className="w-full pl-14 pr-6 py-5 font-label text-[13px] font-bold uppercase tracking-widest text-black placeholder-gray-400 bg-white focus:outline-none focus:bg-[var(--color-primary)] transition-colors"
+            className="w-full pl-14 pr-6 py-5 font-label text-[13px] font-bold uppercase tracking-widest text-black placeholder-gray-400 bg-theme-bg focus:outline-none focus:bg-[var(--color-primary)] transition-colors"
           />
         </div>
         
@@ -144,11 +144,11 @@ export default function PlayerExplorer() {
               key={r}
               onClick={() => setActiveRole(r)}
               className={`px-5 py-5 font-label text-[12px] font-bold uppercase tracking-widest whitespace-nowrap transition-colors ${
-                i > 0 ? 'border-l-2 border-black' : ''
+                i > 0 ? 'border-l-2 border-theme-border' : ''
               } ${
                 activeRole === r 
                   ? 'bg-black text-[var(--color-primary)]' 
-                  : 'bg-white text-gray-500 hover:bg-black hover:text-white'
+                  : 'bg-theme-bg text-gray-500 hover:bg-black hover:text-white'
               }`}
             >
               {r}
@@ -174,10 +174,10 @@ export default function PlayerExplorer() {
                   setSortDir('desc');
                 }
               }}
-              className={`flex items-center gap-1.5 px-4 py-2 border-2 border-black font-label text-[11px] font-bold uppercase tracking-widest transition-all active:scale-95 ${
+              className={`flex items-center gap-1.5 px-4 py-2 border-2 border-theme-border font-label text-[11px] font-bold uppercase tracking-widest transition-all active:scale-95 ${
                 isActive 
                   ? 'bg-black text-white shadow-[4px_4px_0px_var(--color-primary)]' 
-                  : 'bg-white text-black hover:bg-black hover:text-white'
+                  : 'bg-theme-bg text-theme-text hover:bg-black hover:text-white'
               }`}
             >
               {displayNames[stat]}
@@ -195,10 +195,10 @@ export default function PlayerExplorer() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
       >
-        <div className="overflow-x-auto border-4 border-black">
+        <div className="overflow-x-auto border-4 border-theme-border">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
-              <tr className="border-b-4 border-black bg-black text-white font-label text-[11px] font-bold uppercase tracking-widest">
+              <tr className="border-b-4 border-theme-border bg-black text-white font-label text-[11px] font-bold uppercase tracking-widest">
                 <th className="py-4 px-3 md:px-5">IGN</th>
                 <th className="py-4 px-3 md:px-5">Name</th>
                 <th className="py-4 px-3 md:px-5">Team</th>
@@ -230,24 +230,24 @@ export default function PlayerExplorer() {
                   >
                     <td className="py-4 px-3 md:px-5 whitespace-nowrap">
                       <div className="flex items-center gap-2 md:gap-3">
-                        <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-200 border-2 border-black overflow-hidden shrink-0 flex items-center justify-center">
+                        <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-200 border-2 border-theme-border overflow-hidden shrink-0 flex items-center justify-center">
                           {player.photo_url ? (
                             <img src={player.photo_url} alt={player.ign} loading="lazy" className="w-full h-full object-cover" />
                           ) : (
                             <span className="font-display text-xs text-gray-400">?</span>
                           )}
                         </div>
-                        <span className="font-display uppercase text-sm md:text-base group-hover:text-black transition-colors">{player.ign}</span>
+                        <span className="font-display uppercase text-sm md:text-base group-hover:text-theme-text transition-colors">{player.ign}</span>
                       </div>
                     </td>
                     <td className="py-4 px-3 md:px-5 font-label text-gray-500 text-[10px] md:text-xs uppercase tracking-wider whitespace-nowrap">
                       {player.name}
                     </td>
-                    <td className="py-4 px-3 md:px-5 font-label font-bold text-black text-[10px] md:text-xs uppercase tracking-wider whitespace-nowrap">
+                    <td className="py-4 px-3 md:px-5 font-label font-bold text-theme-text text-[10px] md:text-xs uppercase tracking-wider whitespace-nowrap">
                       {player.team}
                     </td>
                     <td className="py-4 px-3 md:px-5 whitespace-nowrap">
-                      <span className="inline-block px-2 py-1 md:px-3 md:py-1 bg-white border-2 border-black text-[9px] md:text-[11px] font-label font-bold uppercase tracking-wider">
+                      <span className="inline-block px-2 py-1 md:px-3 md:py-1 bg-theme-bg border-2 border-theme-border text-[9px] md:text-[11px] font-label font-bold uppercase tracking-wider">
                         {player.role}
                       </span>
                     </td>
@@ -279,14 +279,14 @@ export default function PlayerExplorer() {
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1 || loading}
-              className="p-3 border-4 border-black bg-white hover:bg-black hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-black transition-colors active:scale-95"
+              className="p-3 border-4 border-theme-border bg-theme-bg hover:bg-black hover:text-white disabled:opacity-30 disabled:hover:bg-theme-bg disabled:hover:text-theme-text transition-colors active:scale-95"
             >
               <CaretLeft size={20} weight="bold" />
             </button>
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages || loading}
-              className="p-3 border-4 border-black bg-white hover:bg-black hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-black transition-colors active:scale-95"
+              className="p-3 border-4 border-theme-border bg-theme-bg hover:bg-black hover:text-white disabled:opacity-30 disabled:hover:bg-theme-bg disabled:hover:text-theme-text transition-colors active:scale-95"
             >
               <CaretRight size={20} weight="bold" />
             </button>

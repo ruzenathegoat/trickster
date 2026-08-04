@@ -1,8 +1,16 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-primary: #f5d90a;
+  --color-primary: var(--color-primary, #f5d90a);
   --color-primary-hover: #e5c908;
+  --color-theme-bg: var(--theme-bg);
+  --color-theme-text: var(--theme-text);
+  --color-theme-border: var(--theme-border);
+  --color-theme-shadow: var(--theme-shadow);
+  --color-theme-surface: var(--theme-surface);
+  --color-theme-muted: var(--theme-muted);
+  --color-theme-divider: var(--theme-divider);
+  
   --color-background: #ffffff;
   --color-surface: #ffffff;
   --color-surface-hover: #f9f9f9;
@@ -40,6 +48,37 @@
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@layer base {
+  :root {
+    --theme-bg: #ffffff;
+    --theme-text: #000000;
+    --theme-border: #000000;
+    --theme-shadow: #111111;
+    --theme-surface: #ffffff;
+    /* Adaptive helpers: subtle inset panels + hairline dividers */
+    --theme-muted: #f4f4f5;
+    --theme-divider: #e5e7eb;
+  }
+  .dark {
+    --theme-bg: #111111;
+    --theme-text: #ffffff;
+    --theme-border: #ffffff;
+    --theme-shadow: #ffffff;
+    --theme-surface: #18181b;
+    --theme-muted: #1c1c1f;
+    --theme-divider: #2f2f33;
+    --color-background: #09090b;
+    --color-surface: #18181b;
+    --color-surface-hover: #27272a;
+    --color-inverse-surface: #ffffff;
+    --color-inverse-on-surface: #000000;
+    --color-on-background: #fafafa;
+    --color-secondary: #a1a1aa;
+    --color-text-muted: #71717a;
+    --color-surface-variant: #27272a;
+  }
 }
 
 @layer base {

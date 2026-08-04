@@ -22,7 +22,7 @@ import {
 } from '@phosphor-icons/react';
 import clsx from 'clsx';
 import { useAuth } from '../contexts/AuthContext';
-
+import { ThemeToggle } from '../components/ThemeToggle';
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -166,28 +166,28 @@ export default function AppLayout() {
 
   if (isLoggingOut) {
     return (
-      <div className="min-h-screen bg-white flex flex-col font-['Inter']">
-        <header className="w-full bg-[var(--color-primary)] border-b-4 border-black p-4 flex justify-between h-[80px]">
-          <div className="w-48 h-8 bg-black/10 animate-pulse border-2 border-black mt-1"></div>
-          <div className="w-32 h-8 bg-black/10 animate-pulse border-2 border-black mt-1"></div>
+      <div className="min-h-screen bg-theme-bg flex flex-col font-['Inter']">
+        <header className="w-full bg-[var(--color-primary)] border-b-4 border-theme-border p-4 flex justify-between h-[80px]">
+          <div className="w-48 h-8 bg-black/10 animate-pulse border-2 border-theme-border mt-1"></div>
+          <div className="w-32 h-8 bg-black/10 animate-pulse border-2 border-theme-border mt-1"></div>
         </header>
         <div className="flex flex-1">
-          <aside className="w-[280px] border-r-4 border-black bg-white p-4 space-y-4">
-            <div className="w-full h-12 bg-gray-200 animate-pulse border-2 border-black"></div>
-            <div className="w-full h-12 bg-gray-200 animate-pulse border-2 border-black"></div>
-            <div className="w-full h-12 bg-gray-200 animate-pulse border-2 border-black"></div>
-            <div className="w-full h-12 bg-gray-200 animate-pulse border-2 border-black"></div>
-            <div className="w-full h-12 bg-gray-200 animate-pulse border-2 border-black"></div>
+          <aside className="w-[280px] border-r-4 border-theme-border bg-theme-bg p-4 space-y-4">
+            <div className="w-full h-12 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
+            <div className="w-full h-12 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
+            <div className="w-full h-12 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
+            <div className="w-full h-12 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
+            <div className="w-full h-12 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
           </aside>
           <main className="flex-1 p-8 space-y-8 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.02)_10px,rgba(0,0,0,0.02)_20px)]">
-            <div className="w-1/3 h-12 bg-gray-200 animate-pulse border-2 border-black"></div>
-            <div className="w-full h-64 bg-gray-200 animate-pulse border-2 border-black"></div>
+            <div className="w-1/3 h-12 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
+            <div className="w-full h-64 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
             <div className="flex gap-4">
-              <div className="flex-1 h-48 bg-gray-200 animate-pulse border-2 border-black"></div>
-              <div className="flex-1 h-48 bg-gray-200 animate-pulse border-2 border-black"></div>
+              <div className="flex-1 h-48 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
+              <div className="flex-1 h-48 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
             </div>
             <div className="flex justify-center mt-12">
-               <span className="font-display font-black text-2xl uppercase tracking-widest animate-pulse text-black">LOGGING OUT...</span>
+               <span className="font-display font-black text-2xl uppercase tracking-widest animate-pulse text-theme-text">LOGGING OUT...</span>
             </div>
           </main>
         </div>
@@ -196,10 +196,10 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col md:flex-row text-black">
+    <div className="min-h-screen bg-theme-bg flex flex-col md:flex-row text-theme-text">
       
       {/* Mobile Header (Visible only on small screens) */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-[var(--color-primary)] border-b-4 border-black sticky top-0 z-40">
+      <div className="md:hidden flex items-center justify-between p-4 bg-[var(--color-primary)] border-b-4 border-theme-border sticky top-0 z-40">
         <Link to="/app/dashboard" className="flex items-center gap-3 font-display text-xl uppercase tracking-tighter text-white">
           <div className="w-8 h-8 flex items-center justify-center shrink-0">
             <img src="/logo.png" alt="Trickster" className="w-full h-full object-contain filter invert" />
@@ -208,7 +208,7 @@ export default function AppLayout() {
         </Link>
         <button 
           onClick={() => setMobileMenuOpen(true)}
-          className="p-2 border-2 border-black bg-white active:scale-95 transition-transform"
+          className="p-2 border-2 border-theme-border bg-theme-bg active:scale-95 transition-transform"
         >
           <List weight="bold" size={24} />
         </button>
@@ -225,13 +225,13 @@ export default function AppLayout() {
       {/* Sidebar */}
       <aside 
         className={clsx(
-          "bg-white border-r-4 border-black transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] flex flex-col z-50 h-screen shrink-0 fixed md:sticky top-0",
+          "bg-theme-bg border-r-4 border-theme-border transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] flex flex-col z-50 h-screen shrink-0 fixed md:sticky top-0",
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
           collapsed ? "w-[80px]" : "w-[280px]"
         )}
       >
         {/* Logo Area */}
-        <div className="h-[80px] flex items-center justify-between px-5 border-b-4 border-black shrink-0 bg-[var(--color-primary)]">
+        <div className="h-[80px] flex items-center justify-between px-5 border-b-4 border-theme-border shrink-0 bg-[var(--color-primary)]">
           {!collapsed && (
             <Link to="/app/dashboard" className="flex items-center gap-3 font-display text-2xl uppercase tracking-tighter text-white truncate">
               <div className="w-8 h-8 flex items-center justify-center shrink-0">
@@ -250,7 +250,7 @@ export default function AppLayout() {
               }
             }}
             className={clsx(
-              "p-2 border-2 border-black bg-white hover:bg-black hover:text-white transition-colors active:scale-95",
+              "p-2 border-2 border-theme-border bg-theme-bg hover:bg-black hover:text-white transition-colors active:scale-95",
               collapsed && "mx-auto hidden md:block" // Hide collapse button on mobile when collapsed is forced
             )}
           >
@@ -259,7 +259,7 @@ export default function AppLayout() {
         </div>
 
         {/* Navigation */}
-        <nav data-lenis-prevent="true" className="flex-1 overflow-y-auto py-6 px-4 flex flex-col space-y-2 bg-gray-50/50">
+        <nav data-lenis-prevent="true" className="flex-1 overflow-y-auto py-6 px-4 flex flex-col space-y-2 bg-[var(--color-theme-muted)]">
           {navItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path);
             return (
@@ -274,17 +274,17 @@ export default function AppLayout() {
                   collapsed ? "justify-center w-12 h-12 mx-auto p-0" : "gap-4 px-4 py-3",
                   isActive 
                     ? clsx(
-                        "bg-black text-[var(--color-primary)] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)]",
+                        "bg-black text-[var(--color-primary)] border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]",
                         !collapsed && "translate-x-1"
                       )
                     : clsx(
-                        "border-transparent text-gray-500 hover:border-black hover:bg-white hover:text-black hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5",
+                        "border-transparent text-gray-500 hover:border-theme-border hover:bg-theme-bg hover:text-theme-text hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:-translate-y-0.5",
                         !collapsed && "hover:translate-x-0.5"
                       )
                 )}
                 title={collapsed ? item.label : undefined}
               >
-                <item.icon weight={isActive ? "fill" : "bold"} size={20} className={clsx("shrink-0", isActive ? "text-[var(--color-primary)]" : "text-black opacity-50 group-hover:opacity-100")} />
+                <item.icon weight={isActive ? "fill" : "bold"} size={20} className={clsx("shrink-0", isActive ? "text-[var(--color-primary)]" : "text-theme-text opacity-50 group-hover:opacity-100")} />
                 {!collapsed && <span className="truncate">{item.label}</span>}
               </Link>
             );
@@ -299,7 +299,7 @@ export default function AppLayout() {
               className={clsx(
                 "flex items-center border-2 border-transparent transition-all duration-200 font-label text-[13px] font-bold uppercase tracking-widest group w-full",
                 collapsed ? "justify-center w-12 h-12 mx-auto p-0" : "gap-4 px-4 py-3",
-                "text-gray-500 hover:border-black hover:bg-white hover:text-black hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5"
+                "text-gray-500 hover:border-theme-border hover:bg-theme-bg hover:text-theme-text hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:-translate-y-0.5"
               )}
               title={collapsed ? "Back to Website" : undefined}
             >
@@ -310,13 +310,13 @@ export default function AppLayout() {
             <Link 
               to="/app/profile"
               className={clsx(
-                "flex items-center border-2 border-black bg-[var(--color-primary)] hover:bg-black hover:text-[var(--color-primary)] transition-colors group",
+                "flex items-center border-2 border-theme-border bg-[var(--color-primary)] hover:bg-black hover:text-[var(--color-primary)] transition-colors group",
                 collapsed ? "justify-center w-12 h-12 mx-auto p-0" : "gap-3 p-3"
               )}
               title={collapsed ? "Profile" : undefined}
             >
               <div className={clsx(
-                "bg-black text-[var(--color-primary)] border-2 border-black overflow-hidden flex items-center justify-center shrink-0 group-hover:bg-[var(--color-primary)] group-hover:text-black transition-colors",
+                "bg-black text-[var(--color-primary)] border-2 border-theme-border overflow-hidden flex items-center justify-center shrink-0 group-hover:bg-[var(--color-primary)] group-hover:text-black transition-colors",
                 collapsed ? "w-8 h-8 rounded-full" : "w-8 h-8 rounded-full"
               )}>
                 {user?.profile_photo_url ? (
@@ -340,8 +340,8 @@ export default function AppLayout() {
                 "flex items-center border-2 border-transparent transition-all duration-200 font-label text-[13px] font-bold uppercase tracking-widest group w-full",
                 collapsed ? "justify-center w-12 h-12 mx-auto p-0" : "gap-4 px-4 py-3",
                 isLoggingOut 
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed border-black animate-pulse" 
-                  : "text-[#ff3333] hover:border-black hover:bg-[#ff3333] hover:text-white hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5"
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed border-theme-border animate-pulse" 
+                  : "text-[#ff3333] hover:border-theme-border hover:bg-[#ff3333] hover:text-white hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:-translate-y-0.5"
               )}
               title={collapsed ? "Logout" : undefined}
             >
@@ -359,10 +359,10 @@ export default function AppLayout() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Topbar */}
-        <header className="hidden md:flex h-[80px] sticky top-0 bg-white border-b-4 border-black items-center justify-between px-8 shrink-0 z-30 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiMwMDAwMDAiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')]">
+        <header className="hidden md:flex h-[80px] sticky top-0 bg-theme-bg border-b-4 border-theme-border items-center justify-between px-8 shrink-0 z-30 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiMwMDAwMDAiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')]">
           <div className="flex-1 max-w-xl relative" ref={searchWrapperRef}>
             <div className="relative group z-20">
-              <MagnifyingGlass weight="bold" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-black transition-transform group-focus-within:scale-110" />
+              <MagnifyingGlass weight="bold" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-theme-text transition-transform group-focus-within:scale-110" />
               <input 
                 type="text" 
                 value={searchQuery}
@@ -370,7 +370,7 @@ export default function AppLayout() {
                 onFocus={() => setIsSearchFocused(true)}
                 onKeyDown={handleSearchSubmit}
                 placeholder={`SEARCH ${searchType.toUpperCase()}... [ENTER]`} 
-                className="w-full bg-white border-4 border-black pl-12 pr-28 py-3 text-[13px] font-label font-bold uppercase tracking-widest text-black placeholder-gray-400 focus:outline-none focus:shadow-[6px_6px_0px_rgba(0,0,0,1)] transition-all focus:-translate-y-1"
+                className="w-full bg-theme-bg border-4 border-theme-border pl-12 pr-28 py-3 text-[13px] font-label font-bold uppercase tracking-widest text-theme-text placeholder-gray-400 focus:outline-none focus:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] transition-all focus:-translate-y-1"
               />
               <button
                 onClick={() => setSearchType(t => t === 'players' ? 'teams' : 'players')}
@@ -382,23 +382,23 @@ export default function AppLayout() {
             
             {/* Search History & Live Preview Dropdown */}
             {isSearchFocused && (searchQuery.trim() ? true : searchHistory.length > 0) && (
-              <div className="absolute left-0 right-0 top-full mt-2 bg-white border-4 border-black shadow-[6px_6px_0px_rgba(0,0,0,1)] z-10 flex flex-col max-h-[400px] overflow-y-auto">
+              <div className="absolute left-0 right-0 top-full mt-2 bg-theme-bg border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] z-10 flex flex-col max-h-[400px] overflow-y-auto">
                 {!searchQuery.trim() ? (
                   // HISTORY MODE
                   <>
-                    <div className="px-4 py-2 bg-gray-100 border-b-4 border-black font-['Archivo_Black'] text-xs text-gray-500 uppercase tracking-widest sticky top-0 z-10">
+                    <div className="px-4 py-2 bg-[var(--color-theme-muted)] border-b-4 border-theme-border font-['Archivo_Black'] text-xs text-gray-500 uppercase tracking-widest sticky top-0 z-10">
                       Recent Searches
                     </div>
                     {searchHistory.map((item, idx) => (
                       <div 
                         key={idx}
                         onClick={() => handleHistoryClick(item)}
-                        className="flex justify-between items-center px-4 py-3 border-b-2 border-gray-100 hover:bg-[var(--color-primary)] cursor-pointer group transition-colors"
+                        className="flex justify-between items-center px-4 py-3 border-b-2 border-[var(--color-theme-divider)] hover:bg-[var(--color-primary)] cursor-pointer group transition-colors"
                       >
                         <div className="flex items-center gap-3">
                           <ClockCounterClockwise size={16} className="text-gray-400 group-hover:text-black" />
-                          <span className="font-['JetBrains_Mono'] text-sm font-bold text-black">{item.query}</span>
-                          <span className="ml-2 font-['Archivo_Black'] text-[9px] bg-white border-2 border-black px-1.5 py-0.5 uppercase tracking-widest group-hover:bg-black group-hover:text-white transition-colors">{item.type}</span>
+                          <span className="font-['JetBrains_Mono'] text-sm font-bold text-theme-text group-hover:text-black">{item.query}</span>
+                          <span className="ml-2 font-['Archivo_Black'] text-[9px] bg-theme-bg border-2 border-theme-border px-1.5 py-0.5 uppercase tracking-widest group-hover:bg-black group-hover:text-white transition-colors">{item.type}</span>
                         </div>
                         <button 
                           onClick={(e) => removeHistoryItem(item, e)}
@@ -418,9 +418,9 @@ export default function AppLayout() {
                 ) : (
                   // LIVE PREVIEW MODE
                   <>
-                    <div className="px-4 py-2 bg-gray-100 border-b-4 border-black font-['Archivo_Black'] text-xs text-gray-500 uppercase tracking-widest sticky top-0 z-10 flex justify-between items-center">
+                    <div className="px-4 py-2 bg-[var(--color-theme-muted)] border-b-4 border-theme-border font-['Archivo_Black'] text-xs text-gray-500 uppercase tracking-widest sticky top-0 z-10 flex justify-between items-center">
                       <span>Live Results: {searchType.toUpperCase()}</span>
-                      {isSearching && <div className="w-3 h-3 bg-[var(--color-primary)] rounded-full animate-pulse border-2 border-black"></div>}
+                      {isSearching && <div className="w-3 h-3 bg-[var(--color-primary)] rounded-full animate-pulse border-2 border-theme-border"></div>}
                     </div>
                     
                     {isSearching ? (
@@ -436,11 +436,11 @@ export default function AppLayout() {
                         <div 
                           key={result.id}
                           onClick={() => handleResultClick(result)}
-                          className="flex items-center gap-4 px-4 py-3 border-b-2 border-gray-100 hover:bg-[var(--color-primary)] cursor-pointer group transition-colors"
+                          className="flex items-center gap-4 px-4 py-3 border-b-2 border-[var(--color-theme-divider)] hover:bg-[var(--color-primary)] cursor-pointer group transition-colors"
                         >
                           {searchType === 'players' ? (
                             <>
-                              <div className="w-8 h-8 bg-gray-200 border-2 border-black shrink-0 flex items-center justify-center overflow-hidden">
+                              <div className="w-8 h-8 bg-[var(--color-theme-muted)] border-2 border-theme-border shrink-0 flex items-center justify-center overflow-hidden">
                                 {result.photo_url ? (
                                   <img src={result.photo_url} alt={result.ign} className="w-full h-full object-cover" />
                                 ) : (
@@ -448,13 +448,13 @@ export default function AppLayout() {
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div className="font-['Archivo_Black'] text-sm uppercase tracking-tighter truncate text-black">{result.ign}</div>
-                                <div className="font-['JetBrains_Mono'] text-[10px] text-gray-500 uppercase tracking-widest truncate">{result.team?.name || 'Free Agent'} • {result.current_role || 'Flex'}</div>
+                                <div className="font-['Archivo_Black'] text-sm uppercase tracking-tighter truncate text-theme-text group-hover:text-black">{result.ign}</div>
+                                <div className="font-['JetBrains_Mono'] text-[10px] text-gray-500 uppercase tracking-widest truncate group-hover:text-black/70">{result.team?.name || 'Free Agent'} • {result.current_role || 'Flex'}</div>
                               </div>
                             </>
                           ) : (
                             <>
-                              <div className="w-8 h-8 bg-gray-100 border-2 border-black shrink-0 flex items-center justify-center overflow-hidden">
+                              <div className="w-8 h-8 bg-[var(--color-theme-muted)] border-2 border-theme-border shrink-0 flex items-center justify-center overflow-hidden">
                                 {result.logo_url ? (
                                   <img src={result.logo_url} alt={result.name} className="w-6 h-6 object-contain" />
                                 ) : (
@@ -462,8 +462,8 @@ export default function AppLayout() {
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div className="font-['Archivo_Black'] text-sm uppercase tracking-tighter truncate text-black">{result.name}</div>
-                                <div className="font-['JetBrains_Mono'] text-[10px] text-gray-500 uppercase tracking-widest truncate">{result.region}</div>
+                                <div className="font-['Archivo_Black'] text-sm uppercase tracking-tighter truncate text-theme-text group-hover:text-black">{result.name}</div>
+                                <div className="font-['JetBrains_Mono'] text-[10px] text-gray-500 uppercase tracking-widest truncate group-hover:text-black/70">{result.region}</div>
                               </div>
                             </>
                           )}
@@ -489,13 +489,14 @@ export default function AppLayout() {
           </div>
           
           <div className="flex items-center gap-6 ml-4">
-            <div className="flex items-center gap-3 bg-black text-[var(--color-primary)] px-4 py-2 border-2 border-black">
+            <ThemeToggle />
+            <div className="flex items-center gap-3 bg-black text-[var(--color-primary)] px-4 py-2 border-2 border-theme-border">
               <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)] animate-pulse" />
               <span className="text-[12px] font-bold font-label uppercase tracking-widest">Patch {activePatch}</span>
             </div>
             
-            <button className="p-2.5 border-4 border-black bg-white hover:bg-[var(--color-primary)] hover:scale-110 transition-transform active:scale-95 shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_rgba(0,0,0,1)]">
-              <Bell weight="bold" size={20} className="text-black" />
+            <button className="p-2.5 border-4 border-theme-border bg-theme-bg hover:bg-[var(--color-primary)] hover:scale-110 transition-transform active:scale-95 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
+              <Bell weight="bold" size={20} className="text-theme-text" />
             </button>
           </div>
         </header>

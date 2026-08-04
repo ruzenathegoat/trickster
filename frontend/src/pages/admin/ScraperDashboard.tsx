@@ -105,8 +105,8 @@ export default function ScraperDashboard() {
         cell: info => {
           const status = info.getValue();
           return (
-            <div className={`inline-flex items-center justify-center font-label text-[10px] font-black uppercase tracking-widest px-3 py-1 border-2 border-black shadow-[2px_2px_0px_#000] ${
-              status === 'success' ? 'bg-[#10b981] text-black' : 
+            <div className={`inline-flex items-center justify-center font-label text-[10px] font-black uppercase tracking-widest px-3 py-1 border-2 border-theme-border shadow-[2px_2px_0px_#000] ${
+              status === 'success' ? 'bg-[#10b981] text-theme-text' : 
               status === 'failed' ? 'bg-[#ef4444] text-white' : 'bg-[var(--color-primary)] text-black animate-pulse'
             }`}>
               {status}
@@ -137,7 +137,7 @@ export default function ScraperDashboard() {
       }),
       alertColumnHelper.accessor('alert_type', {
         header: 'TYPE',
-        cell: info => <span className="font-label text-[10px] font-black uppercase tracking-widest bg-yellow-400 text-black px-2 py-1 border-2 border-black shadow-[2px_2px_0px_#000]">{info.getValue()}</span>
+        cell: info => <span className="font-label text-[10px] font-black uppercase tracking-widest bg-yellow-400 text-theme-text px-2 py-1 border-2 border-theme-border shadow-[2px_2px_0px_#000]">{info.getValue()}</span>
       }),
       alertColumnHelper.accessor('message', {
         header: 'DIAGNOSTIC_MSG',
@@ -152,7 +152,7 @@ export default function ScraperDashboard() {
         cell: info => {
           const resolved = info.getValue();
           return (
-            <span className={`inline-flex font-label text-[10px] font-black uppercase tracking-widest border-2 border-black px-2 py-1 shadow-[2px_2px_0px_#000] ${resolved ? 'bg-[#10b981] text-black' : 'bg-[#ef4444] text-white animate-pulse'}`}>
+            <span className={`inline-flex font-label text-[10px] font-black uppercase tracking-widest border-2 border-theme-border px-2 py-1 shadow-[2px_2px_0px_#000] ${resolved ? 'bg-[#10b981] text-theme-text' : 'bg-[#ef4444] text-white animate-pulse'}`}>
               {resolved ? 'CLEAR' : 'INVESTIGATE'}
             </span>
           );
@@ -175,13 +175,13 @@ export default function ScraperDashboard() {
     <div className="w-full relative z-10 space-y-12">
       
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b-8 border-black pb-6 gap-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b-8 border-theme-border pb-6 gap-6">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 bg-black text-[var(--color-primary)] px-3 py-1 font-label text-xs font-black uppercase tracking-widest">
             <Terminal weight="bold" size={16} />
             <span>sys.log // root access</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter text-black leading-none">
+          <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter text-theme-text leading-none">
             Ingestion Pipeline
           </h2>
           <p className="font-label text-sm font-bold text-gray-700 uppercase tracking-widest max-w-xl">
@@ -194,7 +194,7 @@ export default function ScraperDashboard() {
           whileTap={{ scale: 0.98, y: 2, boxShadow: "2px 2px 0px 0px #111111" }}
           onClick={fetchEvents} 
           disabled={loading}
-          className="flex items-center justify-center gap-3 bg-[var(--color-primary)] text-black border-4 border-black px-8 py-4 shadow-[6px_6px_0px_0px_#111111] disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto"
+          className="flex items-center justify-center gap-3 bg-[var(--color-primary)] text-black border-4 border-theme-border px-8 py-4 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto"
         >
           <Lightning weight="fill" size={24} className={loading ? 'animate-pulse' : ''} />
           <span className="font-display text-lg font-black uppercase tracking-tight">
@@ -205,38 +205,38 @@ export default function ScraperDashboard() {
 
       {/* Queue Stats Widget */}
       <div className="space-y-4">
-        <div className="inline-block bg-black text-white px-4 py-2 border-4 border-black">
+        <div className="inline-block bg-black text-white px-4 py-2 border-4 border-theme-border">
           <h3 className="font-label text-sm font-black uppercase tracking-widest">
             Job_Queue.db
           </h3>
         </div>
         
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          <motion.div variants={statVariants} whileHover="hover" whileTap="tap" className="bg-white border-4 border-black p-6 flex flex-col justify-between shadow-[6px_6px_0px_0px_#111111]">
+          <motion.div variants={statVariants} whileHover="hover" whileTap="tap" className="bg-theme-bg border-4 border-theme-border p-6 flex flex-col justify-between shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
             <div className="flex justify-between items-start mb-6">
               <span className="font-label text-xs font-black text-gray-500 uppercase tracking-widest">Pending</span>
-              <Clock size={32} className="text-black" weight="bold" />
+              <Clock size={32} className="text-theme-text" weight="bold" />
             </div>
             <span className="font-display text-6xl font-black leading-none tracking-tighter">{queueStats ? queueStats.pending : '-'}</span>
           </motion.div>
           
-          <motion.div variants={statVariants} whileHover="hover" whileTap="tap" className="bg-[var(--color-primary)] border-4 border-black p-6 flex flex-col justify-between shadow-[6px_6px_0px_0px_#111111]">
+          <motion.div variants={statVariants} whileHover="hover" whileTap="tap" className="bg-[var(--color-primary)] border-4 border-theme-border p-6 flex flex-col justify-between shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
             <div className="flex justify-between items-start mb-6">
-              <span className="font-label text-xs font-black text-black uppercase tracking-widest">Processing</span>
-              <SpinnerGap size={32} className="text-black animate-spin" weight="bold" />
+              <span className="font-label text-xs font-black text-theme-text uppercase tracking-widest">Processing</span>
+              <SpinnerGap size={32} className="text-theme-text animate-spin" weight="bold" />
             </div>
             <span className="font-display text-6xl font-black leading-none tracking-tighter">{queueStats ? queueStats.processing : '-'}</span>
           </motion.div>
 
-          <motion.div variants={statVariants} whileHover="hover" whileTap="tap" className="bg-[#10b981] border-4 border-black p-6 flex flex-col justify-between shadow-[6px_6px_0px_0px_#111111] text-black">
+          <motion.div variants={statVariants} whileHover="hover" whileTap="tap" className="bg-[#10b981] border-4 border-theme-border p-6 flex flex-col justify-between shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] text-theme-text">
             <div className="flex justify-between items-start mb-6">
               <span className="font-label text-xs font-black uppercase tracking-widest">Completed</span>
-              <CheckCircle size={32} className="text-black" weight="fill" />
+              <CheckCircle size={32} className="text-theme-text" weight="fill" />
             </div>
             <span className="font-display text-6xl font-black leading-none tracking-tighter">{queueStats ? queueStats.completed : '-'}</span>
           </motion.div>
 
-          <motion.div variants={statVariants} whileHover="hover" whileTap="tap" className="bg-[#ef4444] border-4 border-black p-6 flex flex-col justify-between shadow-[6px_6px_0px_0px_#111111] text-white">
+          <motion.div variants={statVariants} whileHover="hover" whileTap="tap" className="bg-[#ef4444] border-4 border-theme-border p-6 flex flex-col justify-between shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] text-white">
             <div className="flex justify-between items-start mb-6">
               <span className="font-label text-xs font-black text-white uppercase tracking-widest">Failed</span>
               <XCircle size={32} className="text-white" weight="fill" />
@@ -248,20 +248,20 @@ export default function ScraperDashboard() {
 
       {/* System Alerts Table (Redesign) */}
       <div className="space-y-4">
-        <div className="inline-flex items-center gap-2 bg-[#ef4444] text-white px-4 py-2 border-4 border-black shadow-[4px_4px_0px_#000]">
+        <div className="inline-flex items-center gap-2 bg-[#ef4444] text-white px-4 py-2 border-4 border-theme-border shadow-[4px_4px_0px_#000]">
           <Warning weight="bold" size={20} className="animate-pulse" />
           <h3 className="font-label text-sm font-black uppercase tracking-widest">
             Critical_Alerts.sys
           </h3>
         </div>
         
-        <div className="bg-black border-4 border-black shadow-[6px_6px_0px_0px_#111111] overflow-x-auto">
+        <div className="bg-black border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] overflow-x-auto">
           <Table>
-            <TableHeader className="bg-[#111] border-b-4 border-black">
+            <TableHeader className="bg-[#111] border-b-4 border-theme-border">
               {alertsTable.getHeaderGroups().map(headerGroup => (
                 <TableRow key={headerGroup.id} className="border-none hover:bg-transparent">
                   {headerGroup.headers.map(header => (
-                    <TableHead key={header.id} className="h-14 px-6 font-display text-sm font-black text-gray-400 uppercase tracking-widest border-r-4 border-black last:border-r-0">
+                    <TableHead key={header.id} className="h-14 px-6 font-display text-sm font-black text-gray-400 uppercase tracking-widest border-r-4 border-theme-border last:border-r-0">
                       {flexRender(header.column.columnDef.header, header.getContext())}
                     </TableHead>
                   ))}
@@ -271,19 +271,19 @@ export default function ScraperDashboard() {
             <TableBody>
               {initialFetch ? (
                 Array.from({ length: 2 }).map((_, i) => (
-                  <TableRow key={i} className="border-b-4 border-black last:border-b-0 hover:bg-[#222]">
-                    <TableCell className="p-6 border-r-4 border-black last:border-r-0"><Skeleton className="h-4 w-24 bg-gray-800 rounded-none" /></TableCell>
-                    <TableCell className="p-6 border-r-4 border-black last:border-r-0"><Skeleton className="h-4 w-16 bg-gray-800 rounded-none" /></TableCell>
-                    <TableCell className="p-6 border-r-4 border-black last:border-r-0"><Skeleton className="h-4 w-full bg-gray-800 rounded-none" /></TableCell>
-                    <TableCell className="p-6 border-r-4 border-black last:border-r-0"><Skeleton className="h-4 w-32 bg-gray-800 rounded-none" /></TableCell>
-                    <TableCell className="p-6 border-r-4 border-black last:border-r-0"><Skeleton className="h-5 w-12 bg-gray-800 rounded-none" /></TableCell>
+                  <TableRow key={i} className="border-b-4 border-theme-border last:border-b-0 hover:bg-[#222]">
+                    <TableCell className="p-6 border-r-4 border-theme-border last:border-r-0"><Skeleton className="h-4 w-24 bg-gray-800 rounded-none" /></TableCell>
+                    <TableCell className="p-6 border-r-4 border-theme-border last:border-r-0"><Skeleton className="h-4 w-16 bg-gray-800 rounded-none" /></TableCell>
+                    <TableCell className="p-6 border-r-4 border-theme-border last:border-r-0"><Skeleton className="h-4 w-full bg-gray-800 rounded-none" /></TableCell>
+                    <TableCell className="p-6 border-r-4 border-theme-border last:border-r-0"><Skeleton className="h-4 w-32 bg-gray-800 rounded-none" /></TableCell>
+                    <TableCell className="p-6 border-r-4 border-theme-border last:border-r-0"><Skeleton className="h-5 w-12 bg-gray-800 rounded-none" /></TableCell>
                   </TableRow>
                 ))
               ) : alertsTable.getRowModel().rows.length > 0 ? (
                 alertsTable.getRowModel().rows.map(row => (
-                  <TableRow key={row.id} className="border-b-4 border-black last:border-b-0 hover:bg-[#1a1a1a] transition-colors">
+                  <TableRow key={row.id} className="border-b-4 border-theme-border last:border-b-0 hover:bg-[#1a1a1a] transition-colors">
                     {row.getVisibleCells().map(cell => (
-                      <TableCell key={cell.id} className="px-6 py-4 border-r-4 border-black last:border-r-0">
+                      <TableCell key={cell.id} className="px-6 py-4 border-r-4 border-theme-border last:border-r-0">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
@@ -303,19 +303,19 @@ export default function ScraperDashboard() {
 
       {/* Logs Table (Redesign) */}
       <div className="space-y-4">
-        <div className="inline-block bg-white text-black px-4 py-2 border-4 border-black">
+        <div className="inline-block bg-theme-bg text-theme-text px-4 py-2 border-4 border-theme-border">
           <h3 className="font-label text-sm font-black uppercase tracking-widest">
             Execution_Log.txt
           </h3>
         </div>
         
-        <div className="bg-white border-4 border-black shadow-[6px_6px_0px_0px_#111111] overflow-x-auto">
+        <div className="bg-theme-bg border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] overflow-x-auto">
           <Table>
-            <TableHeader className="bg-gray-100 border-b-4 border-black">
+            <TableHeader className="bg-gray-100 border-b-4 border-theme-border">
               {logsTable.getHeaderGroups().map(headerGroup => (
                 <TableRow key={headerGroup.id} className="border-none hover:bg-transparent">
                   {headerGroup.headers.map(header => (
-                    <TableHead key={header.id} className="h-14 px-6 font-display text-sm font-black text-black uppercase tracking-widest border-r-4 border-black last:border-r-0">
+                    <TableHead key={header.id} className="h-14 px-6 font-display text-sm font-black text-theme-text uppercase tracking-widest border-r-4 border-theme-border last:border-r-0">
                       {flexRender(header.column.columnDef.header, header.getContext())}
                     </TableHead>
                   ))}
@@ -325,18 +325,18 @@ export default function ScraperDashboard() {
             <TableBody>
               {initialFetch ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i} className="border-b-4 border-black last:border-b-0 hover:bg-gray-50">
-                    <TableCell className="p-6 border-r-4 border-black last:border-r-0"><Skeleton className="h-4 w-24 bg-gray-200 rounded-none" /></TableCell>
-                    <TableCell className="p-6 border-r-4 border-black last:border-r-0"><Skeleton className="h-5 w-20 bg-gray-200 rounded-none" /></TableCell>
-                    <TableCell className="p-6 border-r-4 border-black last:border-r-0"><Skeleton className="h-4 w-12 bg-gray-200 rounded-none" /></TableCell>
-                    <TableCell className="p-6 border-r-4 border-black last:border-r-0"><Skeleton className="h-4 w-32 bg-gray-200 rounded-none" /></TableCell>
+                  <TableRow key={i} className="border-b-4 border-theme-border last:border-b-0 hover:bg-gray-50">
+                    <TableCell className="p-6 border-r-4 border-theme-border last:border-r-0"><Skeleton className="h-4 w-24 bg-gray-200 rounded-none" /></TableCell>
+                    <TableCell className="p-6 border-r-4 border-theme-border last:border-r-0"><Skeleton className="h-5 w-20 bg-gray-200 rounded-none" /></TableCell>
+                    <TableCell className="p-6 border-r-4 border-theme-border last:border-r-0"><Skeleton className="h-4 w-12 bg-gray-200 rounded-none" /></TableCell>
+                    <TableCell className="p-6 border-r-4 border-theme-border last:border-r-0"><Skeleton className="h-4 w-32 bg-gray-200 rounded-none" /></TableCell>
                   </TableRow>
                 ))
               ) : logsTable.getRowModel().rows.length > 0 ? (
                 logsTable.getRowModel().rows.map(row => (
-                  <TableRow key={row.id} className="border-b-4 border-black last:border-b-0 hover:bg-[var(--color-primary)] transition-colors group">
+                  <TableRow key={row.id} className="border-b-4 border-theme-border last:border-b-0 hover:bg-[var(--color-primary)] transition-colors group">
                     {row.getVisibleCells().map(cell => (
-                      <TableCell key={cell.id} className="px-6 py-4 border-r-4 border-black last:border-r-0 group-hover:text-black">
+                      <TableCell key={cell.id} className="px-6 py-4 border-r-4 border-theme-border last:border-r-0 group-hover:text-theme-text">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}

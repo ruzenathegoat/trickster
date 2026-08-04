@@ -128,13 +128,13 @@ export default function PlayerProfile() {
   if (loading) {
     return (
       <div className="space-y-8 max-w-7xl pb-24">
-        <Skeleton className="h-6 w-48 border-2 border-black" />
+        <Skeleton className="h-6 w-48 border-2 border-theme-border" />
         <div className="flex flex-col lg:flex-row gap-12">
-          <Skeleton className="w-full lg:w-[400px] h-[500px] md:h-[800px] border-4 border-black shadow-[12px_12px_0px_0px_#111111] shrink-0" />
+          <Skeleton className="w-full lg:w-[400px] h-[500px] md:h-[800px] border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] shrink-0" />
           <div className="flex-1 space-y-12">
-            <Skeleton className="h-96 w-full border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
-            <Skeleton className="h-48 w-full border-t-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
-            <Skeleton className="h-48 w-full border-t-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+            <Skeleton className="h-96 w-full border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]" />
+            <Skeleton className="h-48 w-full border-t-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]" />
+            <Skeleton className="h-48 w-full border-t-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]" />
           </div>
         </div>
       </div>
@@ -143,8 +143,8 @@ export default function PlayerProfile() {
 
   if (!player) {
     return (
-      <div className="py-32 flex justify-center border-4 border-black bg-white">
-        <p className="font-label font-bold text-xl uppercase tracking-widest text-black">Player not found.</p>
+      <div className="py-32 flex justify-center border-4 border-theme-border bg-theme-bg">
+        <p className="font-label font-bold text-xl uppercase tracking-widest text-theme-text">Player not found.</p>
       </div>
     );
   }
@@ -290,7 +290,7 @@ export default function PlayerProfile() {
       <div className="flex justify-between items-center mb-12">
         <button 
           onClick={() => navigate(-1)}
-          className="flex items-center gap-3 font-label text-[13px] font-black uppercase tracking-widest text-black/50 hover:text-black transition-colors"
+          className="flex items-center gap-3 font-label text-[13px] font-black uppercase tracking-widest text-theme-text/50 hover:text-theme-text transition-colors"
         >
           <ArrowLeft size={20} weight="bold" />
           Back to Leaderboard
@@ -299,7 +299,7 @@ export default function PlayerProfile() {
         {user && (
           <button 
             onClick={toggleFavorite}
-            className={`flex items-center gap-2 font-label text-[13px] font-black uppercase tracking-widest px-4 py-2 border-2 transition-all ${isFavorite ? 'bg-[var(--color-primary)] border-black shadow-[4px_4px_0px_0px_#111111] text-black hover:translate-y-1 hover:shadow-none' : 'bg-white border-gray-300 text-gray-500 hover:border-black hover:text-black'}`}
+            className={`flex items-center gap-2 font-label text-[13px] font-black uppercase tracking-widest px-4 py-2 border-2 transition-all ${isFavorite ? 'bg-[var(--color-primary)] border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] text-black hover:translate-y-1 hover:shadow-none' : 'bg-theme-bg border-gray-300 text-gray-500 hover:border-theme-border hover:text-black'}`}
           >
             <Star size={20} weight={isFavorite ? 'fill' : 'regular'} />
             {isFavorite ? 'Favorited' : 'Add to Favorites'}
@@ -316,14 +316,14 @@ export default function PlayerProfile() {
           transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
           className="w-full lg:w-[420px] shrink-0"
         >
-          <div className="bg-[var(--color-primary)] border-4 border-black overflow-hidden relative shadow-[8px_8px_0px_rgba(0,0,0,1)] md:shadow-[12px_12px_0px_rgba(0,0,0,1)] flex flex-col min-h-[500px] md:min-h-[700px]">
+          <div className="bg-[var(--color-primary)] border-4 border-theme-border overflow-hidden relative shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] md:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] flex flex-col min-h-[500px] md:min-h-[700px]">
             {/* Massive Role Badge absolute */}
             <div className="absolute top-6 -right-6 bg-black text-[var(--color-primary)] font-black px-6 py-2 border-4 border-[var(--color-primary)] text-lg uppercase tracking-widest rotate-6 z-20">
               {player.role}
             </div>
 
             {/* Photo section */}
-            <div className="relative flex-1 bg-white border-b-4 border-black overflow-hidden min-h-[300px] md:min-h-[400px]">
+            <div className="relative flex-1 bg-theme-bg border-b-4 border-theme-border overflow-hidden min-h-[300px] md:min-h-[400px]">
               {player.photo_url ? (
                 <img 
                   src={player.photo_url} 
@@ -341,50 +341,50 @@ export default function PlayerProfile() {
             <div className="p-8 md:p-10 z-10 bg-[var(--color-primary)] relative">
               <div className="flex items-center gap-4 mb-4">
                 {player.team_logo ? (
-                  <div className="w-10 h-10 bg-white border-2 border-black rounded-full p-1.5 flex items-center justify-center shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                  <div className="w-10 h-10 bg-theme-bg border-2 border-theme-border rounded-full p-1.5 flex items-center justify-center shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
                     <img src={player.team_logo} alt="Team" className="w-full h-full object-contain" />
                   </div>
                 ) : (
                   <div className="w-3 h-3 bg-black rounded-full" />
                 )}
-                <span className="font-label text-sm font-bold uppercase tracking-widest text-black">
+                <span className="font-label text-sm font-bold uppercase tracking-widest text-theme-text">
                   {player.team_name}
                 </span>
               </div>
 
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-display uppercase tracking-tighter leading-none mb-2 text-black break-words">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-display uppercase tracking-tighter leading-none mb-2 text-theme-text break-words">
                 {player.ign}
               </h1>
-              <p className="text-black/60 font-label text-[15px] font-bold uppercase tracking-widest mb-10">
+              <p className="text-theme-text/60 font-label text-[15px] font-bold uppercase tracking-widest mb-10">
                 {player.name}
               </p>
               
               <div className="space-y-6">
-                <div className="flex justify-between items-end border-b-2 border-black/20 pb-2">
-                  <span className="text-[11px] font-black text-black/50 uppercase tracking-widest">Country</span>
+                <div className="flex justify-between items-end border-b-2 border-theme-border/20 pb-2">
+                  <span className="text-[11px] font-black text-theme-text/50 uppercase tracking-widest">Country</span>
                   {player.country ? (
                     <img 
                       src={`https://flagcdn.com/w40/${player.country.toLowerCase()}.png`}
                       alt={player.country}
-                      className="h-[18px] object-cover border border-black/20 shadow-[2px_2px_0px_rgba(0,0,0,1)]"
+                      className="h-[18px] object-cover border border-theme-border/20 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]"
                       title={player.country.toUpperCase()}
                     />
                   ) : (
-                    <span className="font-label font-bold text-[15px] text-black uppercase">Unknown</span>
+                    <span className="font-label font-bold text-[15px] text-theme-text uppercase">Unknown</span>
                   )}
                 </div>
-                <div className="flex justify-between items-end border-b-2 border-black/20 pb-2">
-                  <span className="text-[11px] font-black text-black/50 uppercase tracking-widest">Matches (2026)</span>
-                  <span className="font-numeric font-black text-[15px] text-black tabular-nums">{player.raw_stats.matches}</span>
+                <div className="flex justify-between items-end border-b-2 border-theme-border/20 pb-2">
+                  <span className="text-[11px] font-black text-theme-text/50 uppercase tracking-widest">Matches (2026)</span>
+                  <span className="font-numeric font-black text-[15px] text-theme-text tabular-nums">{player.raw_stats.matches}</span>
                 </div>
-                <div className="flex justify-between items-end border-b-2 border-black/20 pb-2">
-                  <span className="text-[11px] font-black text-black/50 uppercase tracking-widest">Win Rate</span>
-                  <span className="font-numeric font-black text-[15px] text-black tabular-nums">{player.raw_stats.win_rate}</span>
+                <div className="flex justify-between items-end border-b-2 border-theme-border/20 pb-2">
+                  <span className="text-[11px] font-black text-theme-text/50 uppercase tracking-widest">Win Rate</span>
+                  <span className="font-numeric font-black text-[15px] text-theme-text tabular-nums">{player.raw_stats.win_rate}</span>
                 </div>
                 <div className="flex justify-between items-end pt-2">
-                  <span className="text-[11px] font-black text-black uppercase tracking-widest">SMART Rank</span>
+                  <span className="text-[11px] font-black text-theme-text uppercase tracking-widest">SMART Rank</span>
                   <div className="flex items-baseline gap-2">
-                    <span className="font-display text-black text-4xl leading-none">
+                    <span className="font-display text-theme-text text-4xl leading-none">
                       {player.smart_rank ? `#${player.smart_rank}` : 'N/A'}
                     </span>
                     {player.rank_shift && player.rank_shift !== '0' && (
@@ -408,25 +408,25 @@ export default function PlayerProfile() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
           >
-            <h2 className="text-2xl md:text-3xl font-display uppercase tracking-tight text-black border-b-4 border-black pb-4 mb-6">
+            <h2 className="text-2xl md:text-3xl font-display uppercase tracking-tight text-theme-text border-b-4 border-theme-border pb-4 mb-6">
               Performance Metrics
             </h2>
             <div className="flex flex-wrap gap-6 md:gap-8 lg:gap-12">
-              <div className="flex-1 min-w-[110px] flex flex-col border-l-4 border-black pl-3 md:pl-4 justify-between">
-                <span className="text-[10px] md:text-[11px] font-black text-black/60 uppercase tracking-widest mb-2 whitespace-nowrap">Rating</span>
-                <span className="text-3xl sm:text-4xl lg:text-5xl font-display text-black tracking-tight leading-none">{player.raw_stats.rating}</span>
+              <div className="flex-1 min-w-[110px] flex flex-col border-l-4 border-theme-border pl-3 md:pl-4 justify-between">
+                <span className="text-[10px] md:text-[11px] font-black text-theme-text/60 uppercase tracking-widest mb-2 whitespace-nowrap">Rating</span>
+                <span className="text-3xl sm:text-4xl lg:text-5xl font-display text-theme-text tracking-tight leading-none">{player.raw_stats.rating}</span>
               </div>
-              <div className="flex-1 min-w-[110px] flex flex-col border-l-4 border-black pl-3 md:pl-4 justify-between">
-                <span className="text-[10px] md:text-[11px] font-black text-black/60 uppercase tracking-widest mb-2 whitespace-nowrap">ACS</span>
-                <span className="text-3xl sm:text-4xl lg:text-5xl font-display text-black tracking-tight leading-none">{player.raw_stats.acs}</span>
+              <div className="flex-1 min-w-[110px] flex flex-col border-l-4 border-theme-border pl-3 md:pl-4 justify-between">
+                <span className="text-[10px] md:text-[11px] font-black text-theme-text/60 uppercase tracking-widest mb-2 whitespace-nowrap">ACS</span>
+                <span className="text-3xl sm:text-4xl lg:text-5xl font-display text-theme-text tracking-tight leading-none">{player.raw_stats.acs}</span>
               </div>
-              <div className="flex-1 min-w-[110px] flex flex-col border-l-4 border-black pl-3 md:pl-4 justify-between">
-                <span className="text-[10px] md:text-[11px] font-black text-black/60 uppercase tracking-widest mb-2 whitespace-nowrap">K/D Ratio</span>
-                <span className="text-3xl sm:text-4xl lg:text-5xl font-display text-black tracking-tight leading-none">{player.raw_stats.kd}</span>
+              <div className="flex-1 min-w-[110px] flex flex-col border-l-4 border-theme-border pl-3 md:pl-4 justify-between">
+                <span className="text-[10px] md:text-[11px] font-black text-theme-text/60 uppercase tracking-widest mb-2 whitespace-nowrap">K/D Ratio</span>
+                <span className="text-3xl sm:text-4xl lg:text-5xl font-display text-theme-text tracking-tight leading-none">{player.raw_stats.kd}</span>
               </div>
-              <div className="flex-1 min-w-[110px] flex flex-col border-l-4 border-black pl-3 md:pl-4 justify-between">
-                <span className="text-[10px] md:text-[11px] font-black text-black/60 uppercase tracking-widest mb-2 whitespace-nowrap">ADR</span>
-                <span className="text-3xl sm:text-4xl lg:text-5xl font-display text-black tracking-tight leading-none">{player.raw_stats.adr}</span>
+              <div className="flex-1 min-w-[110px] flex flex-col border-l-4 border-theme-border pl-3 md:pl-4 justify-between">
+                <span className="text-[10px] md:text-[11px] font-black text-theme-text/60 uppercase tracking-widest mb-2 whitespace-nowrap">ADR</span>
+                <span className="text-3xl sm:text-4xl lg:text-5xl font-display text-theme-text tracking-tight leading-none">{player.raw_stats.adr}</span>
               </div>
             </div>
           </motion.div>
@@ -438,10 +438,10 @@ export default function PlayerProfile() {
             transition={{ duration: 0.6, delay: 0.3, ease: [0.23, 1, 0.32, 1] }}
             className="flex flex-col"
           >
-            <h2 className="text-2xl md:text-3xl font-display uppercase tracking-tight text-black border-b-4 border-black pb-4 mb-8">
+            <h2 className="text-2xl md:text-3xl font-display uppercase tracking-tight text-theme-text border-b-4 border-theme-border pb-4 mb-8">
               SMART Radar (2026)
             </h2>
-            <div className="w-full h-[350px] md:h-[500px] relative bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.02)_10px,rgba(0,0,0,0.02)_20px)] border-4 border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+            <div className="w-full h-[350px] md:h-[500px] relative bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.02)_10px,rgba(0,0,0,0.02)_20px)] border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] md:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
                 <div className="absolute inset-0 p-4">
                     <HighchartsReact highcharts={Highcharts} options={radarOptions} containerProps={{ style: { height: '100%' } }} />
                 </div>
@@ -456,10 +456,10 @@ export default function PlayerProfile() {
               transition={{ duration: 0.6, delay: 0.35, ease: [0.23, 1, 0.32, 1] }}
               className="flex flex-col"
             >
-              <h2 className="text-2xl md:text-3xl font-display uppercase tracking-tight text-black border-b-4 border-black pb-4 mb-8">
+              <h2 className="text-2xl md:text-3xl font-display uppercase tracking-tight text-theme-text border-b-4 border-theme-border pb-4 mb-8">
                 Growth (30 Days)
               </h2>
-              <div className="w-full h-[250px] md:h-[350px] relative bg-white border-4 border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+              <div className="w-full h-[250px] md:h-[350px] relative bg-theme-bg border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] md:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
                   <div className="absolute inset-0 p-4">
                       <HighchartsReact highcharts={Highcharts} options={growthOptions} containerProps={{ style: { height: '100%' } }} />
                   </div>
@@ -475,8 +475,8 @@ export default function PlayerProfile() {
               transition={{ duration: 0.6, delay: 0.4, ease: [0.23, 1, 0.32, 1] }}
               className="flex flex-col"
             >
-              <div className="flex justify-between items-end border-b-4 border-black pb-4 mb-6">
-                <h2 className="text-2xl md:text-3xl font-display uppercase tracking-tight text-black">
+              <div className="flex justify-between items-end border-b-4 border-theme-border pb-4 mb-6">
+                <h2 className="text-2xl md:text-3xl font-display uppercase tracking-tight text-theme-text">
                   Agent Pool
                 </h2>
                 {player.most_picked_agents.length > 4 && (
@@ -496,13 +496,13 @@ export default function PlayerProfile() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.4, delay: 0.5 + index * 0.05, ease: [0.23, 1, 0.32, 1] }}
                     key={agent.name} 
-                    className="flex items-center gap-4 border-2 border-black p-3 pr-6 bg-white hover:bg-black hover:text-white group transition-colors duration-200 shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-none translate-y-0 hover:translate-y-1 hover:translate-x-1"
+                    className="flex items-center gap-4 border-2 border-theme-border p-3 pr-6 bg-theme-bg hover:bg-black hover:text-white group transition-colors duration-200 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:shadow-none translate-y-0 hover:translate-y-1 hover:translate-x-1"
                   >
-                    <div className="w-16 h-16 bg-[var(--color-primary)] border-2 border-black rounded-full overflow-hidden flex items-center justify-center shrink-0">
+                    <div className="w-16 h-16 bg-[var(--color-primary)] border-2 border-theme-border rounded-full overflow-hidden flex items-center justify-center shrink-0">
                       {agent.icon_url ? (
                         <img src={agent.icon_url} alt={agent.name} className="w-full h-full object-cover scale-110 filter grayscale group-hover:grayscale-0 transition-all duration-300" />
                       ) : (
-                        <span className="font-display text-xl text-black">?</span>
+                        <span className="font-display text-xl text-theme-text">?</span>
                       )}
                     </div>
                     <div className="flex flex-col justify-center min-w-[80px]">
@@ -510,7 +510,7 @@ export default function PlayerProfile() {
                         {agent.name}
                       </span>
                       <div className="flex items-center gap-3 mt-1">
-                        <span className="font-numeric font-black text-black group-hover:text-white transition-colors text-sm tabular-nums">
+                        <span className="font-numeric font-black text-theme-text group-hover:text-white transition-colors text-sm tabular-nums">
                           {agent.percentage}
                         </span>
                         <div className="w-1 h-1 rounded-full bg-gray-300 group-hover:bg-gray-600" />

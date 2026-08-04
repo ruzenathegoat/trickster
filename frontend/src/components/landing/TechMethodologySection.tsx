@@ -23,7 +23,7 @@ const itemVariants = {
 
 export default function TechMethodologySection() {
   return (
-    <section id="compare" className="w-full bg-black py-24 md:py-32 relative z-10 border-b-4 border-black overflow-hidden">
+    <section id="compare" className="w-full bg-black py-24 md:py-32 relative z-10 border-b-4 border-theme-border overflow-hidden">
       
       {/* Dark Halftone Background */}
       <div className="absolute inset-0 opacity-[0.1]" 
@@ -43,7 +43,7 @@ export default function TechMethodologySection() {
               BUILT FOR<br/>
               <span className="text-[var(--color-primary)]">ANALYSTS.</span>
             </h2>
-            <div className="absolute bottom-2 left-0 w-full h-4 bg-white z-0 translate-y-4" />
+            <div className="absolute bottom-2 left-0 w-full h-4 bg-theme-bg z-0 translate-y-4" />
           </motion.div>
           
           <motion.div variants={itemVariants} className="max-w-md border-l-8 border-[var(--color-primary)] pl-6">
@@ -69,7 +69,7 @@ export default function TechMethodologySection() {
             className="lg:col-span-7 bg-[#0a0a0a] border-4 border-white shadow-[12px_12px_0px_var(--color-primary)] flex flex-col overflow-hidden"
           >
             {/* Brutalist Terminal Header */}
-            <div className="bg-white text-black px-6 py-4 border-b-4 border-white flex justify-between items-center shrink-0">
+            <div className="bg-theme-bg text-theme-text px-6 py-4 border-b-4 border-white flex justify-between items-center shrink-0">
               <div className="flex items-center gap-3">
                 <TerminalWindow weight="bold" className="text-2xl" />
                 <span className="font-label text-sm font-bold uppercase tracking-widest">TRICKSTER // ENGINE</span>
@@ -111,15 +111,15 @@ export default function TechMethodologySection() {
               variants={itemVariants}
               whileHover={{ x: -10 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="bg-white text-black border-4 border-white p-8 shadow-[8px_8px_0px_rgba(255,255,255,0.2)] hover:shadow-[12px_12px_0px_var(--color-primary)] flex-1 relative overflow-hidden group"
+              className="bg-theme-bg text-theme-text border-4 border-white p-8 shadow-[8px_8px_0px_rgba(255,255,255,0.2)] hover:shadow-[12px_12px_0px_var(--color-primary)] flex-1 relative overflow-hidden group"
             >
 
               <div className="relative z-10">
                 <h3 className="font-display text-3xl font-black uppercase mb-4 leading-tight">
                   Context is<br/>Everything
                 </h3>
-                <div className="w-12 h-2 bg-[var(--color-primary)] border-2 border-black mb-4" />
-                <p className="font-body text-gray-700 font-medium leading-relaxed">
+                <div className="w-12 h-2 bg-[var(--color-primary)] border-2 border-theme-border mb-4" />
+                <p className="font-body text-[var(--color-secondary)] font-medium leading-relaxed">
                   A 300 ACS against Tier 3 mix teams is not the same as a 220 ACS against FNATIC. Our pipeline weights every single kill based on opponent ELO, economy state, and round impact.
                 </p>
               </div>
@@ -136,7 +136,7 @@ export default function TechMethodologySection() {
                 <h3 className="font-display text-3xl font-black uppercase mb-4 leading-tight text-[var(--color-primary)]">
                   Live Data<br/>Ingestion
                 </h3>
-                <div className="w-12 h-2 bg-white mb-4" />
+                <div className="w-12 h-2 bg-theme-bg mb-4" />
                 <p className="font-body text-gray-400 font-medium leading-relaxed">
                   Trickster's headless scrapers constantly index major endpoints. When a match ends, our database updates within minutes, running millions of recalculations in the background.
                 </p>

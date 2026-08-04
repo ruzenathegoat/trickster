@@ -44,15 +44,15 @@ export default function AdminLogin() {
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-black">
       
       {/* Left Panel: Warning Visual */}
-      <div className="hidden lg:flex lg:w-1/2 min-h-screen bg-[var(--color-primary)] border-r-4 border-black flex-col items-center justify-center relative overflow-hidden text-black z-10">
+      <div className="hidden lg:flex lg:w-1/2 min-h-screen bg-[var(--color-primary)] border-r-4 border-theme-border flex-col items-center justify-center relative overflow-hidden text-black z-10">
         
         {/* Halftone pattern background */}
         <div className="absolute inset-0 opacity-[0.1]" 
            style={{ backgroundImage: 'radial-gradient(black 2px, transparent 2px)', backgroundSize: '16px 16px' }} />
 
         {/* Diagonal Warning Stripes */}
-        <div className="absolute top-0 left-0 w-full h-8 border-b-4 border-black bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+CiAgPHBhdGggZD0iTTAgNDAgTDRwMCAwIEg0MCBMMCA0MCBaIiBmaWxsPSJibGFjayIvPgo8L3N2Zz4=')]" />
-        <div className="absolute bottom-0 left-0 w-full h-8 border-t-4 border-black bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+CiAgPHBhdGggZD0iTTAgNDAgTDRwMCAwIEg0MCBMMCA0MCBaIiBmaWxsPSJibGFjayIvPgo8L3N2Zz4=')]" />
+        <div className="absolute top-0 left-0 w-full h-8 border-b-4 border-theme-border bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+CiAgPHBhdGggZD0iTTAgNDAgTDRwMCAwIEg0MCBMMCA0MCBaIiBmaWxsPSJibGFjayIvPgo8L3N2Zz4=')]" />
+        <div className="absolute bottom-0 left-0 w-full h-8 border-t-4 border-theme-border bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+CiAgPHBhdGggZD0iTTAgNDAgTDRwMCAwIEg0MCBMMCA0MCBaIiBmaWxsPSJibGFjayIvPgo8L3N2Zz4=')]" />
 
         {/* Huge repeating typography */}
         <div className="absolute left-[-20%] top-0 h-full w-[140%] flex flex-col justify-between opacity-10 pointer-events-none select-none overflow-hidden">
@@ -64,15 +64,15 @@ export default function AdminLogin() {
         </div>
 
         <div className="relative z-10 max-w-lg text-center flex flex-col items-center">
-          <div className="w-32 h-32 bg-black border-4 border-black mb-8 flex items-center justify-center rotate-45">
+          <div className="w-32 h-32 bg-black border-4 border-theme-border mb-8 flex items-center justify-center rotate-45">
             <Warning weight="fill" className="text-[4rem] text-[var(--color-primary)] -rotate-45" />
           </div>
           
-          <h2 className="font-display text-[4rem] font-black uppercase leading-[0.85] tracking-tighter mb-6 text-black">
+          <h2 className="font-display text-[4rem] font-black uppercase leading-[0.85] tracking-tighter mb-6 text-theme-text">
             ADMINISTRATIVE<br/>GATEWAY
           </h2>
           
-          <p className="font-body text-xl text-gray-900 leading-relaxed font-bold border-4 border-black p-4 bg-white shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+          <p className="font-body text-xl text-gray-900 leading-relaxed font-bold border-4 border-theme-border p-4 bg-theme-bg shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
             UNAUTHORIZED ACCESS IS STRICTLY PROHIBITED. ALL ACTIONS ARE LOGGED AND MONITORED.
           </p>
         </div>
@@ -149,7 +149,7 @@ export default function AdminLogin() {
             >
               {loading ? (
                 <div className="flex items-center gap-4">
-                  <div className="w-5 h-5 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-5 h-5 border-4 border-theme-border border-t-transparent rounded-full animate-spin"></div>
                   <span>Verifying...</span>
                 </div>
               ) : (

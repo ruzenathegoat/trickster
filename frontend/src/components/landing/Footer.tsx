@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer className="bg-[#111111] border-t-8 border-black w-full py-16 px-6 md:px-12 mt-24 relative overflow-hidden">
+    <footer className="bg-[#111111] border-t-8 border-theme-border w-full py-16 px-6 md:px-12 mt-24 relative overflow-hidden">
       
       {/* Decorative Background Text */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5">
@@ -50,7 +50,7 @@ export default function Footer() {
 
         {/* Right: Copyright */}
         <div className="flex flex-col items-start md:items-end gap-2">
-          <div className="bg-white text-black font-numeric text-sm font-bold px-3 py-1 border-2 border-black">
+          <div className="bg-white text-black font-numeric text-sm font-bold px-3 py-1 border-2 border-theme-border">
             2026
           </div>
           <div className="font-label text-[10px] text-gray-500 uppercase tracking-widest text-left md:text-right">

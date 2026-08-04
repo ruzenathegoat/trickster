@@ -11,10 +11,10 @@ function AgentIcon({ agent }: { agent: { name: string; icon: string; tier: strin
         src={agent.icon} 
         alt={agent.name} 
         title={agent.name}
-        className="w-12 h-12 bg-black border-2 border-black shadow-[2px_2px_0px_rgba(0,0,0,1)] transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover/agent:-translate-y-1 group-hover/agent:scale-110 cursor-help"
+        className="w-12 h-12 bg-black border-2 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover/agent:-translate-y-1 group-hover/agent:scale-110 cursor-help"
       />
       {agent.shift && (
-        <div className={`absolute -top-2 -right-2 px-1 border-2 border-black font-numeric font-bold text-[10px] z-20 shadow-[1px_1px_0px_rgba(0,0,0,1)] ${agent.shift.startsWith('+') ? 'bg-[#00E676] text-black' : 'bg-[#FF3366] text-white'}`}>
+        <div className={`absolute -top-2 -right-2 px-1 border-2 border-theme-border font-numeric font-bold text-[10px] z-20 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] ${agent.shift.startsWith('+') ? 'bg-[#00E676] text-theme-text' : 'bg-[#FF3366] text-white'}`}>
           {agent.shift}
         </div>
       )}
@@ -27,8 +27,8 @@ function TierRow({ tier, agents, label }: { tier: string; agents: any[]; label: 
   if (filtered.length === 0) return null;
   return (
     <div className="flex items-center gap-4">
-      <div className={`w-10 h-10 shrink-0 border-2 border-black flex items-center justify-center font-display text-lg shadow-[2px_2px_0px_rgba(0,0,0,1)] ${
-        tier === 'S' ? 'bg-[var(--color-primary)]' : 'bg-white'
+      <div className={`w-10 h-10 shrink-0 border-2 border-theme-border flex items-center justify-center font-display text-lg shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] ${
+        tier === 'S' ? 'bg-[var(--color-primary)]' : 'bg-theme-bg'
       }`}>
         {label}
       </div>
@@ -43,16 +43,16 @@ function CompositionsList({ compositions, compact = false }: { compositions: any
   if (!compositions || compositions.length === 0) return null;
 
   return (
-    <div className={`mt-6 ${compact ? 'border-t-2 border-black/10 group-hover:border-black/20 pt-4' : 'border-t-4 border-black pt-6'}`}>
-      <h3 className={`font-display ${compact ? 'text-lg text-black/70 group-hover:text-black' : 'text-2xl'} uppercase tracking-tighter mb-4`}>
+    <div className={`mt-6 ${compact ? 'border-t-2 border-theme-border/10 group-hover:border-theme-border/20 pt-4' : 'border-t-4 border-theme-border pt-6'}`}>
+      <h3 className={`font-display ${compact ? 'text-lg text-theme-text/70 group-hover:text-theme-text' : 'text-2xl'} uppercase tracking-tighter mb-4`}>
         Top Compositions
       </h3>
       <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3`}>
         {compositions.map((comp, i) => (
-          <div key={i} className={`border-2 border-black p-2.5 sm:p-3 flex flex-col justify-between gap-3 shadow-[2px_2px_0px_rgba(0,0,0,1)] transition-colors ${compact ? 'bg-white group-hover:border-black' : 'hover:shadow-[4px_4px_0px_var(--color-primary)]'}`}>
+          <div key={i} className={`border-2 border-theme-border p-2.5 sm:p-3 flex flex-col justify-between gap-3 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] transition-colors ${compact ? 'bg-theme-bg group-hover:border-theme-border' : 'hover:shadow-[4px_4px_0px_var(--color-primary)]'}`}>
             <div className="flex flex-wrap gap-1 sm:gap-1.5">
               {comp.agents.map((agent: any, j: number) => (
-                <div key={j} className="relative w-7 h-7 sm:w-8 sm:h-8 border border-black bg-black shrink-0 group/agentIcon" title={agent.name}>
+                <div key={j} className="relative w-7 h-7 sm:w-8 sm:h-8 border border-theme-border bg-black shrink-0 group/agentIcon" title={agent.name}>
                   {agent.icon ? (
                     <img src={agent.icon} alt={agent.name} className="w-full h-full object-cover opacity-90 hover:opacity-100 transition-opacity" />
                   ) : (
@@ -120,9 +120,9 @@ export default function MetaExplorer() {
   if (loading && patches.length === 0) {
     return (
       <div className="max-w-7xl space-y-16 pb-16">
-        <Skeleton className="h-[80px] w-full border-4 border-black" />
-        <Skeleton className="h-[300px] md:h-[400px] w-full border-4 border-black" />
-        <Skeleton className="h-[200px] w-full border-4 border-black" />
+        <Skeleton className="h-[80px] w-full border-4 border-theme-border" />
+        <Skeleton className="h-[300px] md:h-[400px] w-full border-4 border-theme-border" />
+        <Skeleton className="h-[200px] w-full border-4 border-theme-border" />
       </div>
     );
   }
@@ -138,7 +138,7 @@ export default function MetaExplorer() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-        className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b-4 border-black"
+        className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b-4 border-theme-border"
       >
         <div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-display uppercase tracking-tighter leading-none mb-3">
@@ -153,7 +153,7 @@ export default function MetaExplorer() {
         <div className="relative shrink-0 z-20">
           <button 
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="bg-[var(--color-primary)] border-4 border-black px-4 md:px-6 py-2 md:py-3 flex items-center gap-2 md:gap-3 font-display text-base md:text-lg uppercase shadow-[4px_4px_0px_rgba(0,0,0,1)] md:shadow-[6px_6px_0px_rgba(0,0,0,1)] active:scale-[0.97] active:shadow-[2px_2px_0px_rgba(0,0,0,1)] transition-all"
+            className="bg-[var(--color-primary)] border-4 border-theme-border px-4 md:px-6 py-2 md:py-3 flex items-center gap-2 md:gap-3 font-display text-base md:text-lg uppercase shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] md:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] active:scale-[0.97] active:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] transition-all"
           >
             {selectedPatch ? selectedPatch.label : 'Select Patch'}
             <CaretDown weight="bold" size={20} className={`transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
@@ -161,14 +161,14 @@ export default function MetaExplorer() {
           
           {dropdownOpen && (
             <div 
-              className="absolute top-full right-0 mt-2 w-full min-w-[200px] bg-white border-4 border-black shadow-[6px_6px_0px_rgba(0,0,0,1)] z-50 max-h-[300px] overflow-y-auto"
+              className="absolute top-full right-0 mt-2 w-full min-w-[200px] bg-theme-bg border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] z-50 max-h-[300px] overflow-y-auto"
               data-lenis-prevent="true"
             >
               {patches.map((patch) => (
                 <button
                   key={patch.version}
                   onClick={() => { setSelectedPatch(patch); setDropdownOpen(false); }}
-                  className={`w-full text-left px-5 py-3 border-b-2 border-black last:border-b-0 font-label font-bold text-sm uppercase tracking-widest hover:bg-[var(--color-primary)] hover:text-black transition-colors ${selectedPatch?.version === patch.version ? 'bg-black text-[var(--color-primary)]' : 'text-black'}`}
+                  className={`w-full text-left px-5 py-3 border-b-2 border-theme-border last:border-b-0 font-label font-bold text-sm uppercase tracking-widest hover:bg-[var(--color-primary)] hover:text-black transition-colors ${selectedPatch?.version === patch.version ? 'bg-black text-[var(--color-primary)]' : 'text-black'}`}
                 >
                   {patch.label}
                 </button>
@@ -180,9 +180,9 @@ export default function MetaExplorer() {
 
       {loading && patches.length > 0 ? (
         <div className="space-y-8">
-          <Skeleton className="h-[300px] md:h-[400px] w-full border-4 border-black" />
-          <Skeleton className="h-[150px] w-full border-4 border-black" />
-          <Skeleton className="h-[150px] w-full border-4 border-black" />
+          <Skeleton className="h-[300px] md:h-[400px] w-full border-4 border-theme-border" />
+          <Skeleton className="h-[150px] w-full border-4 border-theme-border" />
+          <Skeleton className="h-[150px] w-full border-4 border-theme-border" />
         </div>
       ) : heroMap ? (
         <>
@@ -191,11 +191,11 @@ export default function MetaExplorer() {
             initial={{ clipPath: 'inset(0 100% 0 0)' }}
             animate={{ clipPath: 'inset(0 0% 0 0)' }}
             transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-            className="border-4 border-black shadow-[12px_12px_0px_rgba(0,0,0,1)] overflow-hidden"
+            className="border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] overflow-hidden"
           >
             <div className="flex flex-col lg:flex-row min-h-[400px]">
               {/* Map Image */}
-              <div className="lg:w-[45%] relative overflow-hidden border-b-4 lg:border-b-0 lg:border-r-4 border-black bg-black">
+              <div className="lg:w-[45%] relative overflow-hidden border-b-4 lg:border-b-0 lg:border-r-4 border-theme-border bg-black">
                 <img 
                   src={heroMap.image} 
                   alt={heroMap.name}
@@ -210,7 +210,7 @@ export default function MetaExplorer() {
               </div>
 
               {/* Agents */}
-              <div className="lg:w-[55%] p-6 md:p-8 lg:p-10 flex flex-col justify-center gap-6 md:gap-8 bg-white">
+              <div className="lg:w-[55%] p-6 md:p-8 lg:p-10 flex flex-col justify-center gap-6 md:gap-8 bg-theme-bg">
                 <TierRow tier="S" agents={heroMap.agents} label="S" />
                 <TierRow tier="A" agents={heroMap.agents} label="A" />
 
@@ -232,7 +232,7 @@ export default function MetaExplorer() {
           {/* Remaining Maps — Alternating horizontal modules */}
           {restMaps.length > 0 && (
             <section className="space-y-6">
-              <h2 className="text-3xl font-display uppercase tracking-tight border-b-4 border-black pb-4">
+              <h2 className="text-3xl font-display uppercase tracking-tight border-b-4 border-theme-border pb-4">
                 Full Map Pool
               </h2>
 
@@ -243,10 +243,10 @@ export default function MetaExplorer() {
                     initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 + index * 0.06, ease: [0.23, 1, 0.32, 1] }}
-                    className="border-4 border-black bg-white hover:bg-[var(--color-primary)] transition-colors group flex flex-col md:flex-row items-stretch overflow-hidden"
+                    className="border-4 border-theme-border bg-theme-bg hover:bg-[var(--color-primary)] transition-colors group flex flex-col md:flex-row items-stretch overflow-hidden"
                   >
                     {/* Map thumbnail */}
-                    <div className="md:w-48 h-32 md:h-auto relative overflow-hidden border-b-4 md:border-b-0 md:border-r-4 border-black bg-black shrink-0">
+                    <div className="md:w-48 h-32 md:h-auto relative overflow-hidden border-b-4 md:border-b-0 md:border-r-4 border-theme-border bg-black shrink-0">
                       <img 
                         src={map.image} 
                         alt={map.name}
@@ -269,11 +269,11 @@ export default function MetaExplorer() {
                         {/* Shift count */}
                         <div className="md:ml-auto shrink-0">
                           {map.agents.filter((a: any) => a.shift).length > 0 ? (
-                            <span className="font-label text-[11px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-black/50 tabular-nums">
+                            <span className="font-label text-[11px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-theme-text/50 tabular-nums">
                               {map.agents.filter((a: any) => a.shift).length} shift{map.agents.filter((a: any) => a.shift).length > 1 ? 's' : ''}
                             </span>
                           ) : (
-                            <span className="font-label text-[11px] font-bold uppercase tracking-widest text-gray-300 group-hover:text-black/30">
+                            <span className="font-label text-[11px] font-bold uppercase tracking-widest text-gray-300 group-hover:text-theme-text/30">
                               Stable
                             </span>
                           )}

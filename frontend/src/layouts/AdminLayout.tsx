@@ -52,7 +52,7 @@ export default function AdminLayout() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f4f4f4]">
-        <div className="w-12 h-12 border-4 border-black border-t-[var(--color-primary)] rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-theme-border border-t-[var(--color-primary)] rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -64,24 +64,24 @@ export default function AdminLayout() {
   if (isLoggingOut) {
     return (
       <div className="min-h-screen bg-[#f4f4f4] flex flex-col font-body">
-        <header className="w-full bg-white border-b-4 border-black p-4 flex justify-between">
-          <div className="w-48 h-8 bg-gray-200 animate-pulse border-2 border-black"></div>
-          <div className="w-32 h-8 bg-gray-200 animate-pulse border-2 border-black"></div>
+        <header className="w-full bg-theme-bg border-b-4 border-theme-border p-4 flex justify-between">
+          <div className="w-48 h-8 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
+          <div className="w-32 h-8 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
         </header>
         <div className="flex flex-1">
-          <aside className="w-64 border-r-4 border-black bg-white p-4 space-y-4">
-            <div className="w-full h-10 bg-gray-200 animate-pulse border-2 border-black"></div>
-            <div className="w-full h-10 bg-gray-200 animate-pulse border-2 border-black"></div>
-            <div className="w-full h-10 bg-gray-200 animate-pulse border-2 border-black"></div>
-            <div className="w-full h-10 bg-gray-200 animate-pulse border-2 border-black"></div>
+          <aside className="w-64 border-r-4 border-theme-border bg-theme-bg p-4 space-y-4">
+            <div className="w-full h-10 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
+            <div className="w-full h-10 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
+            <div className="w-full h-10 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
+            <div className="w-full h-10 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
           </aside>
           <main className="flex-1 p-8 space-y-8">
-            <div className="w-1/3 h-12 bg-gray-200 animate-pulse border-2 border-black"></div>
-            <div className="w-full h-64 bg-gray-200 animate-pulse border-2 border-black"></div>
+            <div className="w-1/3 h-12 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
+            <div className="w-full h-64 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
             <div className="flex gap-4">
-              <div className="flex-1 h-32 bg-gray-200 animate-pulse border-2 border-black"></div>
-              <div className="flex-1 h-32 bg-gray-200 animate-pulse border-2 border-black"></div>
-              <div className="flex-1 h-32 bg-gray-200 animate-pulse border-2 border-black"></div>
+              <div className="flex-1 h-32 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
+              <div className="flex-1 h-32 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
+              <div className="flex-1 h-32 bg-gray-200 animate-pulse border-2 border-theme-border"></div>
             </div>
             <div className="flex justify-center mt-8">
                <span className="font-display font-black text-2xl uppercase tracking-widest animate-pulse">TERMINATING SESSION...</span>
@@ -96,14 +96,14 @@ export default function AdminLayout() {
     <div className="min-h-screen bg-[#f4f4f4] text-black flex flex-col font-body selection:bg-[var(--color-primary)] selection:text-black">
       
       {/* 1. Headbar (Top Navbar) */}
-      <header className="w-full bg-white border-b-4 border-black sticky top-0 z-50 flex flex-col md:flex-row">
+      <header className="w-full bg-theme-bg border-b-4 border-theme-border sticky top-0 z-50 flex flex-col md:flex-row">
         
         {/* Brand Area */}
-        <div className="flex items-center justify-between md:w-64 shrink-0 border-b-4 md:border-b-0 md:border-r-4 border-black p-4 bg-[var(--color-primary)] text-black transition-all duration-300">
+        <div className="flex items-center justify-between md:w-64 shrink-0 border-b-4 md:border-b-0 md:border-r-4 border-theme-border p-4 bg-[var(--color-primary)] text-black transition-all duration-300">
           <div className="flex items-center gap-2">
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-              className="p-1 border-2 border-transparent hover:border-black hover:bg-black hover:text-white transition-colors"
+              className="p-1 border-2 border-transparent hover:border-theme-border hover:bg-black hover:text-white transition-colors"
               aria-label="Toggle Sidebar"
             >
               <List weight="bold" size={24} />
@@ -115,7 +115,7 @@ export default function AdminLayout() {
         </div>
 
         {/* Marquee Area */}
-        <div className="flex-1 flex items-center border-b-4 md:border-b-0 md:border-r-4 border-black overflow-hidden bg-black text-white relative">
+        <div className="flex-1 flex items-center border-b-4 md:border-b-0 md:border-r-4 border-theme-border overflow-hidden bg-black text-white relative">
           <div className="flex w-[200%] animate-marquee py-3">
             <div className="flex items-center justify-around w-1/2 gap-8 font-label text-xs font-bold uppercase tracking-widest px-4">
               <span className="text-[var(--color-primary)]">/// SYSTEM STATUS: ONLINE ///</span>
@@ -138,7 +138,7 @@ export default function AdminLayout() {
 
         {/* User Actions */}
         <div className="shrink-0 flex items-stretch">
-          <div className="hidden md:flex items-center justify-center px-6 font-label text-xs font-bold uppercase tracking-widest bg-white text-black border-r-4 border-black">
+          <div className="hidden md:flex items-center justify-center px-6 font-label text-xs font-bold uppercase tracking-widest bg-theme-bg text-theme-text border-r-4 border-theme-border">
             OP: {user.name}
           </div>
           <button 
@@ -165,9 +165,9 @@ export default function AdminLayout() {
       <div className="flex flex-1 overflow-hidden flex-col md:flex-row relative">
         
         {/* 2. Sidebar */}
-        <aside className={`${isSidebarOpen ? 'w-full md:w-64 md:border-r-4 opacity-100' : 'w-0 border-r-0 opacity-0 pointer-events-none'} bg-white border-b-4 md:border-b-0 border-black shrink-0 flex flex-col z-40 relative transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]`}>
+        <aside className={`${isSidebarOpen ? 'w-full md:w-64 md:border-r-4 opacity-100' : 'w-0 border-r-0 opacity-0 pointer-events-none'} bg-theme-bg border-b-4 md:border-b-0 border-theme-border shrink-0 flex flex-col z-40 relative transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]`}>
           <div className="min-w-[16rem] h-full flex flex-col">
-            <div className="p-4 border-b-4 border-black bg-[#f4f4f4]">
+            <div className="p-4 border-b-4 border-theme-border bg-[#f4f4f4]">
               <h2 className="font-label text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">
                 Navigation Protocol
               </h2>
@@ -182,10 +182,10 @@ export default function AdminLayout() {
                     <motion.div
                       whileHover={isActive ? {} : { x: 4, y: -2 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`flex items-center gap-3 px-4 py-3 font-label text-xs font-bold uppercase tracking-widest transition-all duration-200 border-2 border-black ${
+                      className={`flex items-center gap-3 px-4 py-3 font-label text-xs font-bold uppercase tracking-widest transition-all duration-200 border-2 border-theme-border ${
                         isActive 
                           ? 'bg-black text-white shadow-[4px_4px_0px_var(--color-primary)] translate-x-1 -translate-y-1' 
-                          : 'bg-white text-black hover:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                          : 'bg-theme-bg text-theme-text hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]'
                       }`}
                     >
                       <Icon weight={isActive ? "fill" : "bold"} className="text-lg shrink-0" />
@@ -196,12 +196,12 @@ export default function AdminLayout() {
               })}
             </nav>
 
-            <div className="p-4 border-t-4 border-black mt-auto bg-[#f4f4f4]">
+            <div className="p-4 border-t-4 border-theme-border mt-auto bg-[#f4f4f4]">
               <Link to="/">
                 <motion.div
                   whileHover={{ x: 4, y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-black text-black hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] font-label text-xs font-bold uppercase tracking-widest transition-all"
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-theme-bg border-2 border-theme-border text-theme-text hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] font-label text-xs font-bold uppercase tracking-widest transition-all"
                 >
                   Return to Public
                 </motion.div>
@@ -223,7 +223,7 @@ export default function AdminLayout() {
           </div>
 
           {/* 4. Footer */}
-          <footer className="border-t-4 border-black bg-white p-6 relative z-10 w-full mt-auto">
+          <footer className="border-t-4 border-theme-border bg-theme-bg p-6 relative z-10 w-full mt-auto">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               
               <div className="flex flex-col">
@@ -236,13 +236,13 @@ export default function AdminLayout() {
               <div className="flex gap-8">
                 <div className="flex flex-col">
                   <span className="font-label text-[10px] font-bold text-gray-500 uppercase tracking-widest">System Build</span>
-                  <span className="font-label text-xs font-bold text-black">v2.1.0-RC4</span>
+                  <span className="font-label text-xs font-bold text-theme-text">v2.1.0-RC4</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="font-label text-[10px] font-bold text-gray-500 uppercase tracking-widest">Core Status</span>
                   <div className="flex items-center gap-1">
                     <CheckCircle weight="fill" className="text-green-500" />
-                    <span className="font-label text-xs font-bold text-black uppercase">Optimal</span>
+                    <span className="font-label text-xs font-bold text-theme-text uppercase">Optimal</span>
                   </div>
                 </div>
               </div>

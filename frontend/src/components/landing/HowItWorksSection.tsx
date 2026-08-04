@@ -28,24 +28,24 @@ export default function HowItWorksSection() {
       number: "01",
       title: "Parameter Mapping",
       desc: "Define your exact roster requirements. Filter by region, role, economy management, and micro-metrics. Stop relying on blind searches.",
-      icon: <SlidersHorizontal weight="bold" className="text-[3rem] text-black group-hover:text-white transition-colors duration-300" />
+      icon: <SlidersHorizontal weight="bold" className="text-[3rem] text-theme-text group-hover:text-white transition-colors duration-300" />
     },
     {
       number: "02",
       title: "SMART Normalization",
       desc: "We instantly process match histories and normalize raw stats against opponent strength, map biases, and patch metas. Raw data becomes pure truth.",
-      icon: <Cpu weight="bold" className="text-[3rem] text-black group-hover:text-[var(--color-primary)] transition-colors duration-300" />
+      icon: <Cpu weight="bold" className="text-[3rem] text-theme-text group-hover:text-[var(--color-primary)] transition-colors duration-300" />
     },
     {
       number: "03",
       title: "Roster Validation",
       desc: "Test players side-by-side. Compare overlapping agent pools and statistical deltas to validate your scouting targets with mathematical certainty.",
-      icon: <Flask weight="bold" className="text-[3rem] text-black group-hover:text-white transition-colors duration-300" />
+      icon: <Flask weight="bold" className="text-[3rem] text-theme-text group-hover:text-white transition-colors duration-300" />
     }
   ];
 
   return (
-    <section id="scout" className="w-full bg-[#f4f4f4] py-24 md:py-32 relative z-10 border-b-4 border-black overflow-hidden">
+    <section id="scout" className="w-full bg-[var(--color-surface-variant)] py-24 md:py-32 relative z-10 border-b-4 border-theme-border overflow-hidden">
       {/* Brutalist Grid Background */}
       <div className="absolute inset-0 opacity-[0.04] pointer-events-none" 
            style={{ backgroundImage: 'radial-gradient(black 2px, transparent 2px)', backgroundSize: '24px 24px' }} />
@@ -60,10 +60,10 @@ export default function HowItWorksSection() {
           className="text-center mb-20 md:mb-32 relative z-10 flex flex-col items-center"
         >
           <motion.div variants={itemVariants} className="relative inline-block">
-            <h2 className="font-display text-[3.5rem] md:text-[5rem] font-black uppercase tracking-tighter text-black leading-none relative z-10 px-4">
+            <h2 className="font-display text-[3.5rem] md:text-[5rem] font-black uppercase tracking-tighter text-theme-text leading-none relative z-10 px-4">
               THE WORKFLOW
             </h2>
-            <div className="absolute bottom-2 left-0 w-full h-4 bg-[var(--color-primary)] z-0 border-y-4 border-black translate-y-1" />
+            <div className="absolute bottom-2 left-0 w-full h-4 bg-[var(--color-primary)] z-0 border-y-4 border-theme-border translate-y-1" />
           </motion.div>
         </motion.div>
 
@@ -75,7 +75,7 @@ export default function HowItWorksSection() {
           className="relative"
         >
           {/* Connecting Line (Desktop) */}
-          <div className="hidden md:block absolute top-[48px] left-0 w-full h-0 border-t-4 border-dashed border-black z-0" />
+          <div className="hidden md:block absolute top-[48px] left-0 w-full h-0 border-t-4 border-dashed border-theme-border z-0" />
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8 relative z-10">
             {steps.map((step, index) => (
@@ -90,12 +90,12 @@ export default function HowItWorksSection() {
                   whileHover={{ scale: 1.1, rotate: index % 2 === 0 ? 5 : -5 }}
                   whileTap={{ scale: 0.95 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className={`w-24 h-24 border-4 border-black shadow-[6px_6px_0px_rgba(0,0,0,1)] flex items-center justify-center relative mb-8 transition-colors duration-300 z-10 ${
-                    index === 1 ? 'bg-black hover:bg-black group-hover:shadow-[6px_6px_0px_var(--color-primary)]' : 'bg-white hover:bg-black'
+                  className={`w-24 h-24 border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] flex items-center justify-center relative mb-8 transition-colors duration-300 z-10 ${
+                    index === 1 ? 'bg-black hover:bg-black group-hover:shadow-[6px_6px_0px_var(--color-primary)]' : 'bg-theme-bg hover:bg-black'
                   }`}
                 >
                   {/* Badge */}
-                  <div className="font-display text-[1.25rem] font-black absolute -top-4 -left-4 bg-[var(--color-primary)] border-4 border-black px-2 py-1 shadow-[4px_4px_0px_rgba(0,0,0,1)] group-hover:-translate-y-2 group-hover:-translate-x-2 transition-transform duration-300">
+                  <div className="font-display text-[1.25rem] font-black absolute -top-4 -left-4 bg-[var(--color-primary)] border-4 border-theme-border px-2 py-1 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] group-hover:-translate-y-2 group-hover:-translate-x-2 transition-transform duration-300">
                     {step.number}
                   </div>
                   
@@ -109,12 +109,12 @@ export default function HowItWorksSection() {
                 <motion.div 
                   whileHover={{ y: -5 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="bg-white border-4 border-black p-8 shadow-[8px_8px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_var(--color-primary)] w-full relative transition-all duration-300"
+                  className="bg-theme-bg border-4 border-theme-border p-8 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:shadow-[12px_12px_0px_var(--color-primary)] w-full relative transition-all duration-300"
                 >
                   <h3 className="font-display text-[1.5rem] md:text-[2rem] font-black uppercase mb-4 leading-tight">
                     {step.title}
                   </h3>
-                  <p className="font-body text-lg text-gray-700 leading-relaxed font-medium">
+                  <p className="font-body text-lg text-[var(--color-secondary)] leading-relaxed font-medium">
                     {step.desc}
                   </p>
                 </motion.div>

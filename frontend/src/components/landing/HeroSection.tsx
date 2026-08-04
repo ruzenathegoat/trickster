@@ -81,7 +81,7 @@ export default function HeroSection() {
         <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="hero-grid" width="60" height="60" patternUnits="userSpaceOnUse">
-              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="black" strokeWidth="1" />
+              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="var(--color-on-background)" strokeWidth="1" />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#hero-grid)" />
@@ -99,17 +99,17 @@ export default function HeroSection() {
         >
           <motion.h1 
             variants={itemVariants}
-            className="font-display text-5xl sm:text-[3.5rem] md:text-[5.5rem] font-black uppercase leading-[0.9] tracking-tighter text-black break-words"
+            className="font-display text-5xl sm:text-[3.5rem] md:text-[5.5rem] font-black uppercase leading-[0.9] tracking-tighter text-theme-text break-words"
           >
             VALORANT<br/>
             TALENT<br/>
-            <span className="text-white bg-black px-4 pt-2 pb-1 inline-block mt-2 border-4 border-black">
+            <span className="text-white bg-black px-4 pt-2 pb-1 inline-block mt-2 border-4 border-theme-border">
               DECISIONS.
             </span>
           </motion.h1>
 
-          <motion.div variants={itemVariants} className="pl-6 border-l-8 border-black">
-            <p className="font-label text-sm md:text-base font-bold uppercase tracking-widest text-gray-600 max-w-lg leading-relaxed">
+          <motion.div variants={itemVariants} className="pl-6 border-l-8 border-theme-border">
+            <p className="font-label text-sm md:text-base font-bold uppercase tracking-widest text-[var(--color-secondary)] max-w-lg leading-relaxed">
               Stop guessing. Start scouting with data. Trickster combines automated VLR.gg data with multi-criteria SMART scoring to help coaches build winning rosters.
             </p>
           </motion.div>
@@ -119,11 +119,11 @@ export default function HeroSection() {
             <div className="relative group inline-block">
               <Link to="/app/dashboard" className="flex items-stretch hover:-translate-y-1 transition-transform active:scale-[0.97]">
                 {/* Label Segment */}
-                <div className="bg-[#111111] text-white px-8 md:px-10 py-5 rounded-l-full font-display text-xl md:text-2xl uppercase tracking-tighter shadow-[8px_8px_0px_rgba(0,0,0,0.2)] flex items-center justify-center border-y-4 border-l-4 border-black">
+                <div className="bg-[#111111] text-white px-8 md:px-10 py-5 rounded-l-full font-display text-xl md:text-2xl uppercase tracking-tighter shadow-[8px_8px_0px_rgba(0,0,0,0.2)] flex items-center justify-center border-y-4 border-l-4 border-theme-border">
                   START EVALUATING
                 </div>
                 {/* Icon Segment (Fused) */}
-                <div className="bg-[var(--color-primary)] text-black w-16 md:w-20 flex items-center justify-center rounded-r-full border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] group-hover:bg-white transition-colors">
+                <div className="bg-[var(--color-primary)] text-black w-16 md:w-20 flex items-center justify-center rounded-r-full border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] group-hover:bg-white transition-colors">
                   <ArrowRight weight="bold" size={28} />
                 </div>
               </Link>
@@ -146,13 +146,13 @@ export default function HeroSection() {
             className="relative w-full max-w-lg aspect-square"
           >
             {/* Layer 1: Background Terminal Window */}
-            <div className="absolute inset-0 bg-white border-4 border-black shadow-[16px_16px_0px_rgba(0,0,0,1)] rounded-xl overflow-hidden flex flex-col">
+            <div className="absolute inset-0 bg-theme-bg border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] rounded-xl overflow-hidden flex flex-col">
               {/* Terminal Header */}
-              <div className="bg-black text-white px-4 py-3 border-b-4 border-black flex justify-between items-center shrink-0">
+              <div className="bg-black text-white px-4 py-3 border-b-4 border-theme-border flex justify-between items-center shrink-0">
                 <div className="flex gap-2">
-                  <div className="w-3 h-3 rounded-full bg-white border-2 border-black" />
-                  <div className="w-3 h-3 rounded-full bg-white border-2 border-black" />
-                  <div className="w-3 h-3 rounded-full bg-white border-2 border-black" />
+                  <div className="w-3 h-3 rounded-full bg-theme-bg border-2 border-theme-border" />
+                  <div className="w-3 h-3 rounded-full bg-theme-bg border-2 border-theme-border" />
+                  <div className="w-3 h-3 rounded-full bg-theme-bg border-2 border-theme-border" />
                 </div>
                 <div className="font-numeric text-[10px] font-bold uppercase tracking-widest">
                   TRICKSTER_SMART_V2.4
@@ -210,21 +210,21 @@ export default function HeroSection() {
             {/* Layer 2: Floating SMART Score Badge (Counter-Parallax) */}
             <motion.div 
               style={{ x: useTransform(smoothX, [-0.5, 0.5], [20, -20]), y: useTransform(smoothY, [-0.5, 0.5], [20, -20]) }}
-              className="absolute -top-6 -right-2 sm:-right-6 md:-top-10 md:-right-10 bg-white border-4 border-black p-4 sm:p-6 w-40 sm:w-48 md:w-56 shadow-[8px_8px_0px_rgba(0,0,0,1)] z-20"
+              className="absolute -top-6 -right-2 sm:-right-6 md:-top-10 md:-right-10 bg-theme-bg border-4 border-theme-border p-4 sm:p-6 w-40 sm:w-48 md:w-56 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] z-20"
             >
               <div className="flex justify-between items-center mb-4">
                 <span className="font-label text-xs font-bold text-gray-500 uppercase tracking-widest">SMART Score</span>
-                <TrendUp weight="bold" className="text-black" size={24} />
+                <TrendUp weight="bold" className="text-theme-text" size={24} />
               </div>
-              <div className="font-numeric text-5xl md:text-6xl font-black text-black">
+              <div className="font-numeric text-5xl md:text-6xl font-black text-theme-text">
                 94<span className="text-3xl text-gray-400">.2</span>
               </div>
-              <div className="w-full bg-gray-200 h-3 mt-4 border-2 border-black overflow-hidden">
+              <div className="w-full bg-[var(--color-theme-muted)] h-3 mt-4 border-2 border-theme-border overflow-hidden">
                 <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: "94%" }}
                   transition={{ duration: 1.5, delay: 1, ease: easeOut }}
-                  className="bg-[var(--color-primary)] h-full border-r-2 border-black" 
+                  className="bg-[var(--color-primary)] h-full border-r-2 border-theme-border" 
                 />
               </div>
             </motion.div>
@@ -232,10 +232,10 @@ export default function HeroSection() {
             {/* Layer 3: Sticker Badge */}
             <motion.div 
               style={{ x: useTransform(smoothX, [-0.5, 0.5], [40, -40]), y: useTransform(smoothY, [-0.5, 0.5], [40, -40]) }}
-              className="absolute -bottom-4 -left-4 sm:-bottom-8 sm:-left-8 w-24 h-24 sm:w-28 sm:h-28 bg-[var(--color-primary)] rounded-full border-4 border-black flex flex-col items-center justify-center shadow-[4px_4px_0px_rgba(0,0,0,1)] z-30 -rotate-12 cursor-default"
+              className="absolute -bottom-4 -left-4 sm:-bottom-8 sm:-left-8 w-24 h-24 sm:w-28 sm:h-28 bg-[var(--color-primary)] rounded-full border-4 border-theme-border flex flex-col items-center justify-center shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] z-30 -rotate-12 cursor-default"
             >
-              <Crosshair weight="bold" size={32} className="text-black mb-1" />
-              <span className="font-label text-[9px] font-bold uppercase text-center leading-tight tracking-widest text-black">
+              <Crosshair weight="bold" size={32} className="text-theme-text mb-1" />
+              <span className="font-label text-[9px] font-bold uppercase text-center leading-tight tracking-widest text-theme-text">
                 MATCH<br/>SYNCED
               </span>
             </motion.div>

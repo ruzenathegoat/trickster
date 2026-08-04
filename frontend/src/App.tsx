@@ -33,13 +33,15 @@ const AdminPlayers = lazy(() => import('./pages/admin/AdminPlayers'));
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './components/ThemeProvider';
 
 function App() {
   return (
-    <AuthProvider>
-      <SmoothScroller>
-        <Suspense fallback={<div className="min-h-screen w-full bg-black" />}>
-          <Routes>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <AuthProvider>
+        <SmoothScroller>
+          <Suspense fallback={<div className="min-h-screen w-full bg-black" />}>
+            <Routes>
           {/* Public / Marketing Routes (Layer 1) */}
           <Route path="/" element={<Landing />} />
 
@@ -80,7 +82,8 @@ function App() {
         </Suspense>
         <Toaster position="top-right" richColors theme="light" />
       </SmoothScroller>
-    </AuthProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

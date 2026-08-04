@@ -25,17 +25,17 @@ const nodeVariants = {
 
 export default function DashboardPreviewSection() {
   return (
-    <section className="w-full bg-white py-24 md:py-32 relative z-10 overflow-hidden">
+    <section className="w-full bg-theme-bg py-24 md:py-32 relative z-10 overflow-hidden">
       
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10 flex flex-col gap-16">
         
         {/* Header - Editorial Style */}
-        <div className="w-full text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-8 border-b-4 border-black pb-8">
+        <div className="w-full text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-8 border-b-4 border-theme-border pb-8">
           <div>
-            <div className="inline-block bg-black text-white px-4 py-1.5 mb-6 font-['JetBrains_Mono'] font-bold text-sm tracking-widest uppercase border-2 border-black">
+            <div className="inline-block bg-black text-white px-4 py-1.5 mb-6 font-['JetBrains_Mono'] font-bold text-sm tracking-widest uppercase border-2 border-theme-border">
               LAYER_02 // UTILITY
             </div>
-            <h2 className="font-['Archivo_Black'] text-5xl md:text-[5.5rem] lg:text-[7.5rem] font-black uppercase leading-[0.85] tracking-tighter text-black break-words">
+            <h2 className="font-['Archivo_Black'] text-5xl md:text-[5.5rem] lg:text-[7.5rem] font-black uppercase leading-[0.85] tracking-tighter text-theme-text break-words">
               CLEAN.<br/>
               DENSE.<br/>
               <span className="text-[var(--color-primary)] bg-black px-2 inline-block -ml-2">FAST.</span>
@@ -43,7 +43,7 @@ export default function DashboardPreviewSection() {
           </div>
           
           <div className="max-w-sm text-center md:text-left pb-2">
-            <p className="font-['Inter'] text-lg text-black font-bold leading-relaxed">
+            <p className="font-['Inter'] text-lg text-theme-text font-bold leading-relaxed">
               No marketing fluff. Just raw telemetry, lightning-fast navigation, and actionable insights wrapped in a high-contrast terminal UI.
             </p>
           </div>
@@ -55,12 +55,12 @@ export default function DashboardPreviewSection() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
-          className="w-full grid grid-cols-1 md:grid-cols-12 gap-0 border-4 border-black shadow-[12px_12px_0px_#111111] bg-black"
+          className="w-full grid grid-cols-1 md:grid-cols-12 gap-0 border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] bg-black"
         >
           {/* Main Terminal Window */}
-          <motion.div variants={nodeVariants} className="md:col-span-8 bg-white border-b-4 md:border-b-0 md:border-r-4 border-black p-8 md:p-12 flex flex-col">
-            <div className="flex justify-between items-center mb-8 border-b-4 border-black pb-4">
-              <h3 className="font-['Archivo_Black'] text-3xl uppercase tracking-tighter text-black">Live Telemetry</h3>
+          <motion.div variants={nodeVariants} className="md:col-span-8 bg-theme-bg border-b-4 md:border-b-0 md:border-r-4 border-theme-border p-8 md:p-12 flex flex-col">
+            <div className="flex justify-between items-center mb-8 border-b-4 border-theme-border pb-4">
+              <h3 className="font-['Archivo_Black'] text-3xl uppercase tracking-tighter text-theme-text">Live Telemetry</h3>
               <div className="flex items-center gap-2 font-['JetBrains_Mono'] font-bold text-xs bg-black text-[var(--color-primary)] px-3 py-1">
                 <span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-pulse"></span>
                 SYSTEM_NOMINAL
@@ -73,7 +73,7 @@ export default function DashboardPreviewSection() {
                 <div className="font-['JetBrains_Mono'] text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
                   <PlayCircle size={16} /> Tracked Entities
                 </div>
-                <div className="font-['Archivo_Black'] text-6xl text-black tracking-tighter transition-transform duration-150 group-hover:-translate-y-1">
+                <div className="font-['Archivo_Black'] text-6xl text-theme-text tracking-tighter transition-transform duration-150 group-hover:-translate-y-1">
                   12,402
                 </div>
                 <div className="font-['JetBrains_Mono'] text-sm text-[var(--color-success)] font-bold mt-2 flex items-center gap-1">
@@ -86,10 +86,10 @@ export default function DashboardPreviewSection() {
                 <div className="font-['JetBrains_Mono'] text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
                   <Lightning size={16} /> API Latency
                 </div>
-                <div className="font-['Archivo_Black'] text-6xl text-black tracking-tighter transition-transform duration-150 group-hover:-translate-y-1">
+                <div className="font-['Archivo_Black'] text-6xl text-theme-text tracking-tighter transition-transform duration-150 group-hover:-translate-y-1">
                   18<span className="text-3xl text-gray-400">ms</span>
                 </div>
-                <div className="font-['JetBrains_Mono'] text-sm text-black font-bold mt-2">
+                <div className="font-['JetBrains_Mono'] text-sm text-theme-text font-bold mt-2">
                   P99 24ms // Global Edge
                 </div>
               </div>
@@ -112,14 +112,14 @@ export default function DashboardPreviewSection() {
 
           {/* Sidebar / Action Nodes */}
           <motion.div variants={nodeVariants} className="md:col-span-4 bg-[var(--color-primary)] flex flex-col">
-            <div className="p-8 md:p-12 flex-1 flex flex-col justify-center border-b-4 border-black">
+            <div className="p-8 md:p-12 flex-1 flex flex-col justify-center border-b-4 border-theme-border">
               <div className="font-['JetBrains_Mono'] text-sm text-black font-bold uppercase tracking-widest mb-4">
                 Active Shortlists
               </div>
               <div className="font-['Archivo_Black'] text-[6rem] leading-none text-black tracking-tighter mb-4">
                 04
               </div>
-              <div className="font-['Inter'] text-sm font-bold text-black bg-white inline-block self-start px-3 py-1 border-2 border-black">
+              <div className="font-['Inter'] text-sm font-bold text-theme-text bg-theme-bg inline-block self-start px-3 py-1 border-2 border-theme-border">
                 UPDATED 2H AGO
               </div>
             </div>
@@ -127,7 +127,7 @@ export default function DashboardPreviewSection() {
             <motion.div 
               whileTap={{ scale: 0.96 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
-              className="bg-black text-white p-8 md:p-12 flex items-center justify-between cursor-pointer hover:bg-white hover:text-black transition-colors duration-200"
+              className="bg-black text-white p-8 md:p-12 flex items-center justify-between cursor-pointer hover:bg-theme-bg hover:text-theme-text transition-colors duration-200"
             >
               <span className="font-['Archivo_Black'] uppercase text-2xl tracking-tighter">
                 Enter App

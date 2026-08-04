@@ -65,11 +65,11 @@ export default function TeamProfile() {
   if (loading) {
     return (
       <div className="space-y-8 max-w-7xl mx-auto">
-        <Skeleton className="h-8 w-32 border-2 border-black" />
-        <Skeleton className="h-[250px] md:h-[400px] w-full border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+        <Skeleton className="h-8 w-32 border-2 border-theme-border" />
+        <Skeleton className="h-[250px] md:h-[400px] w-full border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Skeleton className="lg:col-span-2 h-64 md:h-96 border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
-          <Skeleton className="h-96 border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+          <Skeleton className="lg:col-span-2 h-64 md:h-96 border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]" />
+          <Skeleton className="h-96 border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]" />
         </div>
       </div>
     );
@@ -77,11 +77,11 @@ export default function TeamProfile() {
 
   if (error || !team) {
     return (
-      <div className="max-w-4xl mx-auto py-20 text-center border-4 border-dashed border-black">
+      <div className="max-w-4xl mx-auto py-20 text-center border-4 border-dashed border-theme-border">
         <h2 className="text-3xl font-display mb-6">Team Not Found</h2>
         <button
           onClick={() => navigate(-1)}
-          className="px-6 py-3 bg-black text-white font-label text-sm font-bold uppercase tracking-widest hover:bg-[var(--color-primary)] hover:text-black transition-colors border-4 border-black"
+          className="px-6 py-3 bg-black text-white font-label text-sm font-bold uppercase tracking-widest hover:bg-[var(--color-primary)] hover:text-black transition-colors border-4 border-theme-border"
         >
           Go Back
         </button>
@@ -150,7 +150,7 @@ export default function TeamProfile() {
       <div className="flex justify-between items-center">
         <button
           onClick={() => navigate('/app/teams')}
-          className="flex items-center gap-2 font-label text-[12px] font-bold uppercase tracking-widest text-gray-500 hover:text-black transition-colors"
+          className="flex items-center gap-2 font-label text-[12px] font-bold uppercase tracking-widest text-gray-500 hover:text-theme-text transition-colors"
         >
           <ArrowLeft size={16} weight="bold" />
           Back to Teams
@@ -159,7 +159,7 @@ export default function TeamProfile() {
         {user && (
           <button 
             onClick={toggleFavorite}
-            className={`flex items-center gap-2 font-label text-[11px] font-bold uppercase tracking-widest px-4 py-2 border-2 transition-all ${isFavorite ? 'bg-[var(--color-primary)] border-black shadow-[4px_4px_0px_0px_#111111] text-black hover:translate-y-1 hover:shadow-none' : 'bg-white border-gray-300 text-gray-500 hover:border-black hover:text-black'}`}
+            className={`flex items-center gap-2 font-label text-[11px] font-bold uppercase tracking-widest px-4 py-2 border-2 transition-all ${isFavorite ? 'bg-[var(--color-primary)] border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] text-black hover:translate-y-1 hover:shadow-none' : 'bg-theme-bg border-gray-300 text-gray-500 hover:border-theme-border hover:text-black'}`}
           >
             <Star size={16} weight={isFavorite ? 'fill' : 'regular'} />
             {isFavorite ? 'Favorited' : 'Add to Favorites'}
@@ -172,14 +172,14 @@ export default function TeamProfile() {
         initial={{ clipPath: 'inset(0 100% 0 0)' }}
         animate={{ clipPath: 'inset(0 0% 0 0)' }}
         transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-        className="border-4 border-black shadow-[12px_12px_0px_rgba(0,0,0,1)] flex flex-col lg:flex-row overflow-hidden"
+        className="border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] flex flex-col lg:flex-row overflow-hidden"
       >
         {/* Logo Section */}
-        <div className="lg:w-[35%] bg-white flex items-center justify-center p-10 lg:p-12 relative border-b-4 lg:border-b-0 lg:border-r-4 border-black min-h-[280px]">
+        <div className="lg:w-[35%] bg-theme-bg flex items-center justify-center p-10 lg:p-12 relative border-b-4 lg:border-b-0 lg:border-r-4 border-theme-border min-h-[280px]">
           {team.logo_url ? (
             <img src={team.logo_url} alt={team.name} className="w-40 h-40 object-contain relative z-10 drop-shadow-xl" />
           ) : (
-            <span className="font-display text-8xl text-black/10">{team.name.charAt(0)}</span>
+            <span className="font-display text-8xl text-theme-text/10">{team.name.charAt(0)}</span>
           )}
         </div>
 
@@ -187,29 +187,29 @@ export default function TeamProfile() {
         <div className="lg:w-[65%] bg-[var(--color-primary)] flex flex-col justify-between overflow-hidden">
           {/* Name + Region */}
           <div className="p-6 sm:p-8 lg:p-10">
-            <h1 className="text-4xl md:text-5xl lg:text-7xl font-display uppercase tracking-tighter leading-none text-black mb-2 truncate">
+            <h1 className="text-4xl md:text-5xl lg:text-7xl font-display uppercase tracking-tighter leading-none text-theme-text mb-2 truncate">
               {team.name}
             </h1>
-            <p className="font-label text-sm text-black/50 uppercase tracking-widest truncate">{team.region}</p>
+            <p className="font-label text-sm text-theme-text/50 uppercase tracking-widest truncate">{team.region}</p>
           </div>
 
           {/* Stat row — joined cells */}
-          <div className="grid grid-cols-2 md:grid-cols-4 border-t-4 border-black">
-            <div className="p-4 sm:p-5 lg:p-6 border-r-4 border-b-4 md:border-b-0 border-black overflow-hidden flex flex-col justify-center">
-              <span className="font-label text-[10px] text-black/50 uppercase tracking-widest block mb-1 truncate">Win Rate</span>
-              <span className="font-display text-2xl md:text-xl lg:text-3xl tracking-tighter text-black block whitespace-nowrap">{team.win_rate ? `${team.win_rate}%` : 'N/A'}</span>
+          <div className="grid grid-cols-2 md:grid-cols-4 border-t-4 border-theme-border">
+            <div className="p-4 sm:p-5 lg:p-6 border-r-4 border-b-4 md:border-b-0 border-theme-border overflow-hidden flex flex-col justify-center">
+              <span className="font-label text-[10px] text-theme-text/50 uppercase tracking-widest block mb-1 truncate">Win Rate</span>
+              <span className="font-display text-2xl md:text-xl lg:text-3xl tracking-tighter text-theme-text block whitespace-nowrap">{team.win_rate ? `${team.win_rate}%` : 'N/A'}</span>
             </div>
-            <div className="p-4 sm:p-5 lg:p-6 border-b-4 md:border-b-0 md:border-r-4 border-black overflow-hidden flex flex-col justify-center">
-              <span className="font-label text-[10px] text-black/50 uppercase tracking-widest block mb-1 truncate">Matches</span>
-              <span className="font-numeric text-2xl md:text-2xl lg:text-3xl tracking-tighter font-bold text-black tabular-nums block whitespace-nowrap">{stats.total_matches}</span>
+            <div className="p-4 sm:p-5 lg:p-6 border-b-4 md:border-b-0 md:border-r-4 border-theme-border overflow-hidden flex flex-col justify-center">
+              <span className="font-label text-[10px] text-theme-text/50 uppercase tracking-widest block mb-1 truncate">Matches</span>
+              <span className="font-numeric text-2xl md:text-2xl lg:text-3xl tracking-tighter font-bold text-theme-text tabular-nums block whitespace-nowrap">{stats.total_matches}</span>
             </div>
-            <div className="p-4 sm:p-5 lg:p-6 border-r-4 border-black overflow-hidden flex flex-col justify-center">
-              <span className="font-label text-[10px] text-black/50 uppercase tracking-widest block mb-1 truncate">Wins</span>
-              <span className="font-numeric text-2xl md:text-2xl lg:text-3xl tracking-tighter font-bold text-black tabular-nums block whitespace-nowrap">{stats.total_wins}</span>
+            <div className="p-4 sm:p-5 lg:p-6 border-r-4 border-theme-border overflow-hidden flex flex-col justify-center">
+              <span className="font-label text-[10px] text-theme-text/50 uppercase tracking-widest block mb-1 truncate">Wins</span>
+              <span className="font-numeric text-2xl md:text-2xl lg:text-3xl tracking-tighter font-bold text-theme-text tabular-nums block whitespace-nowrap">{stats.total_wins}</span>
             </div>
             <div className="p-4 sm:p-5 lg:p-6 overflow-hidden flex flex-col justify-center">
-              <span className="font-label text-[10px] text-black/50 uppercase tracking-widest block mb-1 truncate">Losses</span>
-              <span className="font-numeric text-2xl md:text-2xl lg:text-3xl tracking-tighter font-bold text-black tabular-nums block whitespace-nowrap">{stats.total_losses}</span>
+              <span className="font-label text-[10px] text-theme-text/50 uppercase tracking-widest block mb-1 truncate">Losses</span>
+              <span className="font-numeric text-2xl md:text-2xl lg:text-3xl tracking-tighter font-bold text-theme-text tabular-nums block whitespace-nowrap">{stats.total_losses}</span>
             </div>
           </div>
         </div>
@@ -226,9 +226,9 @@ export default function TeamProfile() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
-            className="border-4 border-black bg-white"
+            className="border-4 border-theme-border bg-theme-bg"
           >
-            <div className="border-b-4 border-black px-6 py-4">
+            <div className="border-b-4 border-theme-border px-6 py-4">
               <h2 className="text-2xl font-display uppercase tracking-tight">Tournament Performance</h2>
             </div>
             <div className="p-4 md:p-6">
@@ -250,9 +250,9 @@ export default function TeamProfile() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.15, ease: [0.23, 1, 0.32, 1] }}
-              className="border-4 border-black bg-white"
+              className="border-4 border-theme-border bg-theme-bg"
             >
-              <div className="border-b-4 border-black px-6 py-4 flex justify-between items-center">
+              <div className="border-b-4 border-theme-border px-6 py-4 flex justify-between items-center">
                 <h2 className="text-2xl font-display uppercase tracking-tight">Map Pool (2026)</h2>
                 {team.most_picked_maps.length > 4 && (
                   <button 
@@ -268,7 +268,7 @@ export default function TeamProfile() {
                 {team.most_picked_maps.slice(0, showAllMaps ? undefined : 4).map((map: any, idx: number) => (
                   <div key={map.name} className="flex items-center gap-4 p-4 hover:bg-[var(--color-primary)] transition-colors group">
                     {/* Map thumbnail */}
-                    <div className="w-20 h-14 border-2 border-black bg-black shrink-0 overflow-hidden relative">
+                    <div className="w-20 h-14 border-2 border-theme-border bg-black shrink-0 overflow-hidden relative">
                       {map.icon_url ? (
                         <img src={map.icon_url} alt={map.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
                       ) : (
@@ -278,7 +278,7 @@ export default function TeamProfile() {
                     {/* Map name */}
                     <div className="flex-1 min-w-0">
                       <span className="font-display text-lg uppercase tracking-tight truncate block">{map.name}</span>
-                      <span className="font-label text-[10px] text-gray-400 group-hover:text-black/50 uppercase tracking-widest">{map.count} picks</span>
+                      <span className="font-label text-[10px] text-gray-400 group-hover:text-theme-text/50 uppercase tracking-widest">{map.count} picks</span>
                     </div>
                     {/* Win rate bar */}
                     <div className="w-32 hidden md:block">
@@ -294,7 +294,7 @@ export default function TeamProfile() {
                     {/* Stats */}
                     <div className="flex items-center gap-4 shrink-0">
                       <span className="font-numeric font-bold text-sm tabular-nums">{map.percentage}</span>
-                      <span className="font-numeric font-bold text-sm tabular-nums bg-black text-[var(--color-primary)] px-2 py-1 border-2 border-black">WR {map.win_rate}%</span>
+                      <span className="font-numeric font-bold text-sm tabular-nums bg-black text-[var(--color-primary)] px-2 py-1 border-2 border-theme-border">WR {map.win_rate}%</span>
                     </div>
                   </div>
                 ))}
@@ -308,9 +308,9 @@ export default function TeamProfile() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
-              className="border-4 border-black bg-white"
+              className="border-4 border-theme-border bg-theme-bg"
             >
-              <div className="border-b-4 border-black px-6 py-4 flex justify-between items-center">
+              <div className="border-b-4 border-theme-border px-6 py-4 flex justify-between items-center">
                 <h2 className="text-2xl font-display uppercase tracking-tight">Recent Matches</h2>
               </div>
               <div className="divide-y-2 divide-gray-200">
@@ -325,17 +325,17 @@ export default function TeamProfile() {
                     {/* Opponent */}
                     <div className="flex items-center gap-3 w-full sm:w-auto shrink-0 border-t-2 sm:border-t-0 border-gray-100 pt-3 sm:pt-0 mt-2 sm:mt-0">
                       <span className="font-label text-[10px] text-gray-400 uppercase tracking-widest">VS</span>
-                      <div className="w-8 h-8 border-2 border-black bg-white shrink-0 overflow-hidden flex items-center justify-center">
+                      <div className="w-8 h-8 border-2 border-theme-border bg-theme-bg shrink-0 overflow-hidden flex items-center justify-center">
                         {match.opponent_logo ? (
                           <img src={match.opponent_logo} alt={match.opponent_name} className="w-full h-full object-contain p-1" />
                         ) : (
-                          <span className="font-display text-xs text-black/30">{match.opponent_name.charAt(0)}</span>
+                          <span className="font-display text-xs text-theme-text/30">{match.opponent_name.charAt(0)}</span>
                         )}
                       </div>
                       <span className="font-display uppercase tracking-tight truncate max-w-[120px]">{match.opponent_name}</span>
                       
                       {/* Result */}
-                      <span className={`ml-4 font-label text-[11px] font-bold uppercase tracking-widest px-3 py-1 border-2 border-black ${match.is_win ? 'bg-[var(--color-primary)] text-black' : 'bg-red-500 text-white'}`}>
+                      <span className={`ml-4 font-label text-[11px] font-bold uppercase tracking-widest px-3 py-1 border-2 border-theme-border ${match.is_win ? 'bg-[var(--color-primary)] text-black' : 'bg-red-500 text-white'}`}>
                         {match.is_win ? 'WIN' : 'LOSS'}
                       </span>
                     </div>
@@ -352,9 +352,9 @@ export default function TeamProfile() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
-            className="border-4 border-black bg-white sticky top-24"
+            className="border-4 border-theme-border bg-theme-bg sticky top-24"
           >
-            <div className="border-b-4 border-black px-6 py-4 flex justify-between items-center bg-black text-white">
+            <div className="border-b-4 border-theme-border px-6 py-4 flex justify-between items-center bg-black text-white">
               <h2 className="text-xl font-display uppercase tracking-tight text-[var(--color-primary)]">Active Roster</h2>
               <span className="font-numeric font-bold text-sm tabular-nums bg-[var(--color-primary)] text-black px-2 py-1">
                 {team.players?.length || 0}
@@ -370,7 +370,7 @@ export default function TeamProfile() {
                     className="flex items-center justify-between p-4 hover:bg-[var(--color-primary)] transition-colors cursor-pointer group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 border-2 border-black bg-gray-100 shrink-0 overflow-hidden flex items-center justify-center">
+                      <div className="w-10 h-10 border-2 border-theme-border bg-gray-100 shrink-0 overflow-hidden flex items-center justify-center">
                         {player.photo_url ? (
                           <img src={player.photo_url} alt={player.ign} className="w-full h-full object-cover" />
                         ) : (
@@ -379,11 +379,11 @@ export default function TeamProfile() {
                       </div>
                       <div className="min-w-0">
                         <p className="font-display uppercase text-base truncate">{player.ign}</p>
-                        <p className="font-label text-[10px] text-gray-400 group-hover:text-black/50 uppercase tracking-widest truncate">{player.name}</p>
+                        <p className="font-label text-[10px] text-gray-400 group-hover:text-theme-text/50 uppercase tracking-widest truncate">{player.name}</p>
                       </div>
                     </div>
                     {player.current_role && (
-                      <span className="font-label text-[10px] font-bold uppercase tracking-widest border-2 border-black px-2 py-1 bg-white shrink-0 ml-2">
+                      <span className="font-label text-[10px] font-bold uppercase tracking-widest border-2 border-theme-border px-2 py-1 bg-theme-bg shrink-0 ml-2">
                         {player.current_role}
                       </span>
                     )}

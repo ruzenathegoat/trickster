@@ -30,7 +30,7 @@ export default function FAQSection() {
   };
 
   return (
-    <section className="w-full bg-white py-24 md:py-32 relative z-10 border-b-4 border-black overflow-hidden">
+    <section className="w-full bg-theme-bg py-24 md:py-32 relative z-10 border-b-4 border-theme-border overflow-hidden">
       
       {/* Halftone background */}
       <div className="absolute inset-0 opacity-[0.05] pointer-events-none" 
@@ -47,14 +47,14 @@ export default function FAQSection() {
           className="mb-16 md:mb-24 flex flex-col md:flex-row md:items-end justify-between gap-8"
         >
           <motion.div variants={itemVariants} className="relative inline-block">
-            <h2 className="font-display text-[4rem] md:text-[6rem] font-black uppercase tracking-tighter text-black leading-[0.85] relative z-10">
+            <h2 className="font-display text-[4rem] md:text-[6rem] font-black uppercase tracking-tighter text-theme-text leading-[0.85] relative z-10">
               NO<br/>SECRETS.
             </h2>
-            <div className="absolute bottom-2 left-0 w-full h-6 bg-[var(--color-primary)] z-0 border-y-4 border-black translate-y-2" />
+            <div className="absolute bottom-2 left-0 w-full h-6 bg-[var(--color-primary)] z-0 border-y-4 border-theme-border translate-y-2" />
           </motion.div>
           
-          <motion.div variants={itemVariants} className="max-w-md border-l-8 border-black pl-6">
-            <p className="font-body text-xl text-gray-700 font-bold uppercase tracking-wide">
+          <motion.div variants={itemVariants} className="max-w-md border-l-8 border-theme-border pl-6">
+            <p className="font-body text-xl text-[var(--color-secondary)] font-bold uppercase tracking-wide">
               Skip the generic dropdowns.<br/>
               Here's exactly how our data engine operates.
             </p>
@@ -72,21 +72,21 @@ export default function FAQSection() {
           {/* Card 1: Data Freshness (Wide, White) */}
           <motion.div 
             variants={itemVariants}
-            className="md:col-span-7 bg-white border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_var(--color-primary)] transition-shadow duration-300"
+            className="md:col-span-7 bg-theme-bg border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:shadow-[12px_12px_0px_var(--color-primary)] transition-shadow duration-300"
           >
             <button 
               onClick={() => toggleOpen(1)}
               className="w-full text-left p-8 md:p-12 flex justify-between items-start focus:outline-none group"
             >
               <div>
-                <div className="w-16 h-16 bg-[#f4f4f4] border-4 border-black flex items-center justify-center mb-6 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
-                  <Database weight="bold" className="text-3xl text-black" />
+                <div className="w-16 h-16 bg-[var(--color-surface-variant)] border-4 border-theme-border flex items-center justify-center mb-6 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
+                  <Database weight="bold" className="text-3xl text-theme-text" />
                 </div>
-                <h3 className="font-display text-3xl md:text-4xl font-black uppercase leading-tight text-black">
+                <h3 className="font-display text-3xl md:text-4xl font-black uppercase leading-tight text-theme-text">
                   How fresh is<br/>the data?
                 </h3>
               </div>
-              <div className={`shrink-0 w-12 h-12 border-4 border-black flex items-center justify-center transition-colors ${openIndex === 1 ? 'bg-[var(--color-primary)] text-black' : 'bg-black text-white group-hover:bg-[var(--color-primary)] group-hover:text-black'}`}>
+              <div className={`shrink-0 w-12 h-12 border-4 border-theme-border flex items-center justify-center transition-colors ${openIndex === 1 ? 'bg-[var(--color-primary)] text-black' : 'bg-black text-white group-hover:bg-[var(--color-primary)] group-hover:text-black'}`}>
                 {openIndex === 1 ? <Minus weight="bold" className="text-xl" /> : <Plus weight="bold" className="text-xl" />}
               </div>
             </button>
@@ -100,8 +100,8 @@ export default function FAQSection() {
                   className="overflow-hidden"
                 >
                   <div className="px-8 md:px-12 pb-8 md:pb-12 pt-4">
-                    <div className="border-t-4 border-black pt-6">
-                      <p className="font-body text-lg text-gray-700 font-medium leading-relaxed">
+                    <div className="border-t-4 border-theme-border pt-6">
+                      <p className="font-body text-lg text-[var(--color-secondary)] font-medium leading-relaxed">
                         Our scrapers index major databases multiple times a day. As soon as a tournament match concludes, the data is ingested, normalized, and available in Trickster within minutes. Zero manual delay.
                       </p>
                     </div>
@@ -114,21 +114,21 @@ export default function FAQSection() {
           {/* Card 2: Tier 2/3 (Tall, Yellow) */}
           <motion.div 
             variants={itemVariants}
-            className="md:col-span-5 bg-[var(--color-primary)] border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_rgba(0,0,0,1)] transition-shadow duration-300"
+            className="md:col-span-5 bg-[var(--color-primary)] border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] transition-shadow duration-300"
           >
             <button 
               onClick={() => toggleOpen(2)}
               className="w-full text-left p-8 md:p-12 flex justify-between items-start focus:outline-none group"
             >
               <div>
-                <div className="w-16 h-16 bg-black border-4 border-black flex items-center justify-center mb-6 shadow-[4px_4px_0px_rgba(255,255,255,1)]">
+                <div className="w-16 h-16 bg-black border-4 border-theme-border flex items-center justify-center mb-6 shadow-[4px_4px_0px_0px_var(--color-theme-bg)]">
                   <Target weight="bold" className="text-3xl text-[var(--color-primary)]" />
                 </div>
                 <h3 className="font-display text-3xl md:text-4xl font-black uppercase leading-tight text-black">
                   Do you track<br/>Tier 2 & 3?
                 </h3>
               </div>
-              <div className={`shrink-0 w-12 h-12 border-4 border-black flex items-center justify-center transition-colors ${openIndex === 2 ? 'bg-white text-black' : 'bg-black text-white group-hover:bg-white group-hover:text-black'}`}>
+              <div className={`shrink-0 w-12 h-12 border-4 border-theme-border flex items-center justify-center transition-colors ${openIndex === 2 ? 'bg-theme-bg text-theme-text' : 'bg-black text-white group-hover:bg-theme-bg group-hover:text-theme-text'}`}>
                 {openIndex === 2 ? <Minus weight="bold" className="text-xl" /> : <Plus weight="bold" className="text-xl" />}
               </div>
             </button>
@@ -142,9 +142,9 @@ export default function FAQSection() {
                   className="overflow-hidden"
                 >
                   <div className="px-8 md:px-12 pb-8 md:pb-12 pt-4">
-                    <div className="bg-white border-4 border-black p-6 shadow-[4px_4px_0px_rgba(0,0,0,1)] mt-2">
-                      <p className="font-body text-lg text-black font-bold leading-relaxed">NO.</p>
-                      <p className="font-body text-base text-gray-800 font-medium mt-2 leading-relaxed">
+                    <div className="bg-theme-bg border-4 border-theme-border p-6 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] mt-2">
+                      <p className="font-body text-lg text-theme-text font-bold leading-relaxed">NO.</p>
+                      <p className="font-body text-base text-[var(--color-secondary)] font-medium mt-2 leading-relaxed">
                         Trickster strictly focuses on Tier 1 (VCT Americas, EMEA, Pacific, CN) and select high-level Ascension data. We skip lower circuits to ensure our predictive models remain highly calibrated and noise-free.
                       </p>
                     </div>
@@ -157,15 +157,15 @@ export default function FAQSection() {
           {/* Card 3: SMART vs ACS (Tall, Black) */}
           <motion.div 
             variants={itemVariants}
-            className="md:col-span-5 bg-black border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,0.3)] hover:shadow-[12px_12px_0px_var(--color-primary)] transition-shadow duration-300"
+            className="md:col-span-5 bg-black border-4 border-theme-border shadow-[8px_8px_0px_rgba(0,0,0,0.3)] hover:shadow-[12px_12px_0px_var(--color-primary)] transition-shadow duration-300"
           >
             <button 
               onClick={() => toggleOpen(3)}
               className="w-full text-left p-8 md:p-12 flex justify-between items-start focus:outline-none group"
             >
               <div>
-                <div className="w-16 h-16 bg-white border-4 border-[var(--color-primary)] flex items-center justify-center mb-6 shadow-[4px_4px_0px_var(--color-primary)]">
-                  <Brain weight="bold" className="text-3xl text-black" />
+                <div className="w-16 h-16 bg-theme-bg border-4 border-[var(--color-primary)] flex items-center justify-center mb-6 shadow-[4px_4px_0px_var(--color-primary)]">
+                  <Brain weight="bold" className="text-3xl text-theme-text" />
                 </div>
                 <h3 className="font-display text-3xl md:text-4xl font-black uppercase leading-tight text-white">
                   SMART score<br/>vs Raw ACS?
@@ -199,7 +199,7 @@ export default function FAQSection() {
           {/* Card 4: Export (Wide, White with Halftone) */}
           <motion.div 
             variants={itemVariants}
-            className="md:col-span-7 bg-white border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_rgba(0,0,0,1)] relative overflow-hidden transition-shadow duration-300"
+            className="md:col-span-7 bg-theme-bg border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] relative overflow-hidden transition-shadow duration-300"
           >
             {/* Inner Halftone */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
@@ -210,14 +210,14 @@ export default function FAQSection() {
               className="relative z-10 w-full text-left p-8 md:p-12 flex justify-between items-start focus:outline-none group"
             >
               <div>
-                <div className="w-16 h-16 bg-[#f4f4f4] border-4 border-black flex items-center justify-center mb-6 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
-                  <Export weight="bold" className="text-3xl text-black" />
+                <div className="w-16 h-16 bg-[var(--color-surface-variant)] border-4 border-theme-border flex items-center justify-center mb-6 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
+                  <Export weight="bold" className="text-3xl text-theme-text" />
                 </div>
-                <h3 className="font-display text-3xl md:text-4xl font-black uppercase leading-tight text-black">
+                <h3 className="font-display text-3xl md:text-4xl font-black uppercase leading-tight text-theme-text">
                   Can I export<br/>the data?
                 </h3>
               </div>
-              <div className={`shrink-0 w-12 h-12 border-4 border-black flex items-center justify-center transition-colors ${openIndex === 4 ? 'bg-black text-white' : 'bg-[#f4f4f4] text-black group-hover:bg-black group-hover:text-white'}`}>
+              <div className={`shrink-0 w-12 h-12 border-4 border-theme-border flex items-center justify-center transition-colors ${openIndex === 4 ? 'bg-black text-white' : 'bg-[var(--color-surface-variant)] text-theme-text group-hover:bg-black group-hover:text-white'}`}>
                 {openIndex === 4 ? <Minus weight="bold" className="text-xl" /> : <Plus weight="bold" className="text-xl" />}
               </div>
             </button>
@@ -232,7 +232,7 @@ export default function FAQSection() {
                 >
                   <div className="px-8 md:px-12 pb-8 md:pb-12 pt-4">
                     <div className="border-l-4 border-[var(--color-primary)] pl-6 py-2">
-                      <p className="font-body text-lg text-gray-700 font-medium leading-relaxed">
+                      <p className="font-body text-lg text-[var(--color-secondary)] font-medium leading-relaxed">
                         Absolutely. Pro users can export shortlists and team simulations via CSV or access our GraphQL API directly to integrate with internal scouting tools.
                       </p>
                     </div>

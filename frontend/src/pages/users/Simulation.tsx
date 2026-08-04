@@ -213,7 +213,7 @@ const calculateSynergy = async () => {
     >
     <div className="min-h-[calc(100vh-4rem)] w-full space-y-6 pb-12 sm:space-y-8">
       {/* Header */}
-      <div className="flex flex-col gap-4 border-b-2 border-black pb-6 sm:gap-5">
+      <div className="flex flex-col gap-4 border-b-2 border-theme-border pb-6 sm:gap-5">
         <div className="inline-flex w-fit items-center gap-2 bg-black px-3 py-1.5 text-[var(--color-primary)]">
           <span className="relative flex h-1.5 w-1.5">
             <span className="absolute inline-flex h-full w-full motion-safe:animate-ping rounded-full bg-[var(--color-primary)] opacity-75" />
@@ -225,7 +225,7 @@ const calculateSynergy = async () => {
         </div>
 
         <div className="space-y-2">
-          <h1 className="font-display text-4xl font-black uppercase leading-none tracking-tight text-black sm:text-5xl md:text-6xl">
+          <h1 className="font-display text-4xl font-black uppercase leading-none tracking-tight text-theme-text sm:text-5xl md:text-6xl">
             Roster Simulator
           </h1>
           <p className="max-w-xl text-base leading-relaxed text-[var(--color-text-secondary)]">
@@ -237,14 +237,14 @@ const calculateSynergy = async () => {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start lg:gap-8">
         {/* Left: Roster area */}
-        <div className="relative z-10 h-fit max-h-[calc(100vh-4rem)] overflow-y-auto border-4 border-black bg-white p-5 shadow-[8px_8px_0px_rgba(0,0,0,1)] sm:p-6 lg:col-span-7 lg:sticky lg:top-8 lg:p-8" data-lenis-prevent>
-          <div className="mb-6 flex items-center justify-between border-b-4 border-black pb-4">
-            <h2 className="flex items-center gap-2 font-display text-xl font-black uppercase tracking-tight text-black sm:text-2xl">
+        <div className="relative z-10 h-fit max-h-[calc(100vh-4rem)] overflow-y-auto border-4 border-theme-border bg-theme-bg p-5 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] sm:p-6 lg:col-span-7 lg:sticky lg:top-8 lg:p-8" data-lenis-prevent>
+          <div className="mb-6 flex items-center justify-between border-b-4 border-theme-border pb-4">
+            <h2 className="flex items-center gap-2 font-display text-xl font-black uppercase tracking-tight text-theme-text sm:text-2xl">
               <Crosshair weight="regular" size={22} className="text-[var(--color-primary)]" />
               Active Roster
             </h2>
             <div className="flex items-baseline gap-1 font-mono text-lg font-semibold tabular-nums">
-              <span className="text-black">{filledSlots}</span>
+              <span className="text-theme-text">{filledSlots}</span>
               <span className="text-[var(--color-text-muted)]">/ 5</span>
             </div>
           </div>
@@ -264,8 +264,8 @@ const calculateSynergy = async () => {
 
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               {/* Synergy Score */}
-              <div className="col-span-2 flex flex-col justify-between border-4 border-black bg-[var(--color-primary)] p-4 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
-                <div className="mb-3 font-label text-[10px] font-bold uppercase tracking-widest text-black/70">
+              <div className="col-span-2 flex flex-col justify-between border-4 border-theme-border bg-[var(--color-primary)] p-4 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
+                <div className="mb-3 font-label text-[10px] font-bold uppercase tracking-widest text-theme-text/70">
                   Synergy Score
                 </div>
                 {synergyScore !== null ? (
@@ -274,9 +274,9 @@ const calculateSynergy = async () => {
                       <AnimatedCounter
                         value={synergyScore}
                         decimals={0}
-                        className="font-mono text-3xl font-bold leading-none text-black sm:text-4xl"
+                        className="font-mono text-3xl font-bold leading-none text-theme-text sm:text-4xl"
                       />
-                      <span className="font-mono text-lg font-bold text-black/70">%</span>
+                      <span className="font-mono text-lg font-bold text-theme-text/70">%</span>
                     </div>
                     <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-black/15">
                       <motion.div
@@ -289,7 +289,7 @@ const calculateSynergy = async () => {
                   </>
                 ) : (
                   <div className="flex-1 flex items-center justify-start py-2">
-                    <span className="font-label text-xs font-bold uppercase tracking-widest text-black/60">
+                    <span className="font-label text-xs font-bold uppercase tracking-widest text-theme-text/60">
                       Pending Check
                     </span>
                   </div>
@@ -297,14 +297,14 @@ const calculateSynergy = async () => {
               </div>
 
               {/* Average Rating */}
-              <div className="col-span-2 flex flex-col justify-between border-4 border-black bg-white p-4 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+              <div className="col-span-2 flex flex-col justify-between border-4 border-theme-border bg-theme-bg p-4 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
                 <div className="mb-3 font-label text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-secondary)]">
                   Average Rating
                 </div>
                 <AnimatedCounter
                   value={avgRatingValue}
                   decimals={2}
-                  className="font-mono text-3xl font-bold leading-none text-black sm:text-4xl"
+                  className="font-mono text-3xl font-bold leading-none text-theme-text sm:text-4xl"
                 />
                 <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-black/10">
                   <motion.div
@@ -318,9 +318,9 @@ const calculateSynergy = async () => {
 
               {/* IGL status */}
               <div
-                className={`col-span-1 md:col-span-2 flex flex-col justify-between border-4 p-4 shadow-[4px_4px_0px_rgba(0,0,0,1)] ${hasIgl
-                  ? 'border-black bg-[#ECFDF5]'
-                  : 'border-black bg-[#FEF2F2]'
+                className={`col-span-1 md:col-span-2 flex flex-col justify-between border-4 p-4 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] ${hasIgl
+                  ? 'border-theme-border bg-[#ECFDF5]'
+                  : 'border-theme-border bg-[#FEF2F2]'
                   }`}
               >
                 <div className="mb-3 font-label text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-secondary)]">
@@ -336,7 +336,7 @@ const calculateSynergy = async () => {
               </div>
 
               {/* Readiness */}
-              <div className="col-span-1 md:col-span-2 flex flex-col justify-between border-4 border-black bg-[var(--color-background)] p-4 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+              <div className="col-span-1 md:col-span-2 flex flex-col justify-between border-4 border-theme-border bg-[var(--color-background)] p-4 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
                 <div className="mb-3 font-label text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-secondary)]">
                   Readiness
                 </div>
@@ -356,15 +356,15 @@ const calculateSynergy = async () => {
             type="button"
             onClick={calculateSynergy}
             disabled={!isReady || simulating}
-            className="mt-6 w-full border-4 border-black bg-[var(--color-primary)] py-3 font-display text-sm font-black uppercase tracking-wide text-black shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-all duration-150 ease-out hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none disabled:hover:translate-x-0 disabled:hover:translate-y-0"
+            className="mt-6 w-full border-4 border-theme-border bg-[var(--color-primary)] py-3 font-display text-sm font-black uppercase tracking-wide text-black shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] transition-all duration-150 ease-out hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none disabled:hover:translate-x-0 disabled:hover:translate-y-0"
           >
             {simulating ? 'Calculating Synergy…' : isReady ? 'Cek Synergy' : 'Fill Roster To Check Synergy'}
           </button>
         </div>
 
         {/* Right: Player pool */}
-        <div className="relative z-20 flex flex-col h-fit max-h-[calc(100vh-4rem)] overflow-y-auto border-4 border-black bg-white p-5 shadow-[8px_8px_0px_rgba(0,0,0,1)] sm:p-6 lg:col-span-5 lg:sticky lg:top-8 lg:p-8" data-lenis-prevent>
-          <div className="relative mb-5 flex border-b-4 border-black pb-1" role="tablist">
+        <div className="relative z-20 flex flex-col h-fit max-h-[calc(100vh-4rem)] overflow-y-auto border-4 border-theme-border bg-theme-bg p-5 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] sm:p-6 lg:col-span-5 lg:sticky lg:top-8 lg:p-8" data-lenis-prevent>
+          <div className="relative mb-5 flex border-b-4 border-theme-border pb-1" role="tablist">
             {(['recommended', 'all'] as const).map((key) => (
               <button
                 key={key}
@@ -372,7 +372,7 @@ const calculateSynergy = async () => {
                 role="tab"
                 aria-selected={tab === key}
                 onClick={() => setTab(key)}
-                className={`relative flex-1 pb-3 text-center font-label text-xs font-bold uppercase tracking-widest transition-colors duration-150 ${tab === key ? 'text-black' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'
+                className={`relative flex-1 pb-3 text-center font-label text-xs font-bold uppercase tracking-widest transition-colors duration-150 ${tab === key ? 'text-theme-text' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'
                   }`}
               >
                 {key === 'recommended' ? 'Recommended' : 'All Players'}
@@ -397,7 +397,7 @@ const calculateSynergy = async () => {
               <input
                 type="text"
                 placeholder="Search players…"
-                className="w-full border-4 border-black bg-white py-2.5 pl-9 pr-3 text-sm font-bold text-black placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:shadow-[4px_4px_0px_rgba(0,0,0,1)]"
+                className="w-full border-4 border-theme-border bg-theme-bg py-2.5 pl-9 pr-3 text-sm font-bold text-theme-text placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -408,7 +408,7 @@ const calculateSynergy = async () => {
             {loading ? (
               <div className="space-y-2.5" aria-hidden="true">
                 {[0, 1, 2].map((i) => (
-                  <div key={i} className="flex animate-pulse items-start gap-3 rounded-md border border-black/10 p-3">
+                  <div key={i} className="flex animate-pulse items-start gap-3 rounded-md border border-theme-border/10 p-3">
                     <div className="h-11 w-11 shrink-0 rounded-full bg-black/10" />
                     <div className="flex-1 space-y-2">
                       <div className="h-3 w-1/3 rounded bg-black/10" />
@@ -452,7 +452,7 @@ const calculateSynergy = async () => {
             )}
           </div>
 
-          <div className="mt-4 border-t-4 border-black pt-3 text-center">
+          <div className="mt-4 border-t-4 border-theme-border pt-3 text-center">
             <span className="font-label text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
               Drag, double-click, or tap + to add a player
             </span>

@@ -31,14 +31,14 @@ export default function TeamSimulationPreviewSection() {
   };
 
   return (
-    <section className="w-full bg-[var(--color-surface-variant)] py-24 md:py-32 relative z-10 border-b-4 border-[var(--color-on-background)] overflow-hidden flex flex-col items-center">
+    <section className="w-full bg-[var(--theme-bg)] py-24 md:py-32 relative z-10 border-b-4 border-theme-border overflow-hidden flex flex-col items-center">
       
       {/* Structural Pattern - Brutalist grid */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'linear-gradient(90deg, var(--color-on-background) 2px, transparent 0), linear-gradient(180deg, var(--color-on-background) 2px, transparent 0)', backgroundSize: '128px 128px' }} />
+      <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'linear-gradient(90deg, var(--theme-border) 2px, transparent 0), linear-gradient(180deg, var(--theme-border) 2px, transparent 0)', backgroundSize: '128px 128px' }} />
 
       {/* Massive Background Typography - Breaks out of container */}
       <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none overflow-hidden select-none">
-        <h2 className="font-['Archivo_Black'] text-[20vw] leading-none whitespace-nowrap text-[var(--color-on-background)]">
+        <h2 className="font-['Archivo_Black'] text-[20vw] leading-none whitespace-nowrap text-theme-text">
           CHEMISTRY
         </h2>
       </div>
@@ -52,7 +52,7 @@ export default function TeamSimulationPreviewSection() {
              whileInView={{ y: 0, opacity: 1 }}
              viewport={{ once: true, margin: "-50px" }}
              transition={{ duration: 0.5, ease: easeOut }}
-             className="inline-flex items-center gap-2 bg-[var(--color-primary)] text-black border-2 border-[var(--color-on-background)] px-4 py-2 mb-8 brutal-shadow-sm font-['JetBrains_Mono'] font-bold text-sm uppercase"
+             className="inline-flex items-center gap-2 bg-[var(--color-primary)] text-black border-2 border-theme-border px-4 py-2 mb-8 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] font-['JetBrains_Mono'] font-bold text-sm uppercase"
            >
              <CursorClick weight="bold" className="text-lg" />
              Interactive Prediction
@@ -63,10 +63,10 @@ export default function TeamSimulationPreviewSection() {
              whileInView={{ y: 0, opacity: 1 }}
              viewport={{ once: true, margin: "-50px" }}
              transition={{ duration: 0.5, delay: 0.1, ease: easeOut }}
-             className="font-['Archivo_Black'] text-5xl md:text-7xl font-black uppercase leading-[0.95] tracking-tighter text-[var(--color-on-background)] mb-6"
+             className="font-['Archivo_Black'] text-5xl md:text-7xl font-black uppercase leading-[0.95] tracking-tighter text-theme-text mb-6"
            >
              SIMULATE <br />
-             <span className="text-transparent" style={{ WebkitTextStroke: '2px var(--color-on-background)' }}>THE IMPACT.</span>
+             <span className="text-transparent" style={{ WebkitTextStroke: '2px var(--theme-text)' }}>THE IMPACT.</span>
            </motion.h2>
 
            <motion.p 
@@ -74,7 +74,7 @@ export default function TeamSimulationPreviewSection() {
              whileInView={{ y: 0, opacity: 1 }}
              viewport={{ once: true, margin: "-50px" }}
              transition={{ duration: 0.5, delay: 0.2, ease: easeOut }}
-             className="font-['Inter'] text-lg md:text-xl text-[var(--color-secondary)] mx-auto font-medium"
+             className="font-['Inter'] text-lg md:text-xl text-gray-500 mx-auto font-medium"
            >
              Don't guess how a roster change will play out. Drag a scouted player into your team and let our AI calculate the predicted synergy, pacing overlaps, and statistical deltas in real-time.
            </motion.p>
@@ -86,16 +86,16 @@ export default function TeamSimulationPreviewSection() {
           whileInView={{ y: 0, opacity: 1 }}
           viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 0.6, delay: 0.3, ease: easeOut }}
-          className="w-full max-w-4xl bg-[var(--color-background)] border-4 border-[var(--color-on-background)] brutal-shadow-lg relative"
+          className="w-full max-w-4xl bg-[var(--theme-bg)] border-4 border-theme-border shadow-[8px_8px_0px_0px_var(--color-theme-shadow)] relative"
         >
           {/* Terminal Header */}
-          <div className="flex justify-between items-center bg-[var(--color-surface)] border-b-4 border-[var(--color-on-background)] px-4 py-3">
+          <div className="flex justify-between items-center bg-[var(--theme-bg)] border-b-4 border-theme-border px-4 py-3">
              <div className="flex gap-2">
-                <div className="w-4 h-4 rounded-full bg-red-500 border-2 border-[var(--color-on-background)]" />
-                <div className="w-4 h-4 rounded-full bg-yellow-400 border-2 border-[var(--color-on-background)]" />
-                <div className="w-4 h-4 rounded-full bg-green-500 border-2 border-[var(--color-on-background)]" />
+                <div className="w-4 h-4 rounded-full bg-red-500 border-2 border-theme-border" />
+                <div className="w-4 h-4 rounded-full bg-yellow-400 border-2 border-theme-border" />
+                <div className="w-4 h-4 rounded-full bg-green-500 border-2 border-theme-border" />
              </div>
-             <span className="font-['JetBrains_Mono'] font-bold text-xs md:text-sm uppercase tracking-widest text-[var(--color-on-background)] opacity-70">
+             <span className="font-['JetBrains_Mono'] font-bold text-xs md:text-sm uppercase tracking-widest text-theme-text opacity-70">
                 AI_ROSTER_ENGINE.EXE
              </span>
           </div>
@@ -110,27 +110,27 @@ export default function TeamSimulationPreviewSection() {
                      whileInView={{ opacity: 1, x: 0 }}
                      viewport={{ once: true }}
                      transition={{ duration: 0.4, delay: 0.4 + (i * 0.05), ease: easeOut }} // Stagger entrance
-                     className="flex items-center justify-between p-4 bg-[var(--color-surface)] border-2 border-[var(--color-on-background)]"
+                     className="flex items-center justify-between p-4 bg-[var(--theme-bg)] border-2 border-theme-border"
                    >
                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-[var(--color-surface-variant)] border-2 border-[var(--color-on-background)] flex items-center justify-center text-[var(--color-on-background)]">
+                        <div className="w-10 h-10 bg-[var(--theme-bg)] border-2 border-theme-border flex items-center justify-center text-theme-text">
                           {player.role === 'Controller' ? <EyeClosed weight="bold" size={20} /> : player.role === 'Duelist' ? <Fire weight="bold" size={20} /> : player.role === 'Sentinel' ? <Shield weight="bold" size={20} /> : <Crosshair weight="bold" size={20} />}
                         </div>
                         <div>
-                          <p className="font-['Archivo_Black'] font-bold text-lg md:text-xl leading-none uppercase text-[var(--color-on-background)]">{player.name}</p>
-                          <p className="font-['JetBrains_Mono'] text-[0.7rem] text-[var(--color-secondary)] uppercase mt-1">{player.role}</p>
+                          <p className="font-['Archivo_Black'] font-bold text-lg md:text-xl leading-none uppercase text-theme-text">{player.name}</p>
+                          <p className="font-['JetBrains_Mono'] text-[0.7rem] text-gray-500 uppercase mt-1">{player.role}</p>
                         </div>
                      </div>
                      <div className="text-right">
-                        <p className="font-['JetBrains_Mono'] text-lg md:text-xl font-black text-[var(--color-on-background)]">{player.acs}</p>
-                        <p className="font-['JetBrains_Mono'] text-[0.6rem] text-[var(--color-secondary)] uppercase">ACS</p>
+                        <p className="font-['JetBrains_Mono'] text-lg md:text-xl font-black text-theme-text">{player.acs}</p>
+                        <p className="font-['JetBrains_Mono'] text-[0.6rem] text-gray-500 uppercase">ACS</p>
                      </div>
                    </motion.div>
                 ))}
              </div>
 
              {/* The Empty Slot / Target Area */}
-             <div className="mt-2 md:mt-4 relative h-[88px] border-4 border-dashed border-[var(--color-on-background)] bg-[var(--color-surface-variant)] flex items-center justify-center">
+             <div className="mt-2 md:mt-4 relative h-[88px] border-4 border-dashed border-theme-border bg-[var(--theme-bg)] flex items-center justify-center">
                 <AnimatePresence mode="wait">
                   {!isSimulating ? (
                     <motion.div 
@@ -139,7 +139,7 @@ export default function TeamSimulationPreviewSection() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
-                      className="text-[var(--color-secondary)] font-['JetBrains_Mono'] text-sm md:text-base font-bold uppercase tracking-widest flex items-center gap-2"
+                      className="text-gray-500 font-['JetBrains_Mono'] text-sm md:text-base font-bold uppercase tracking-widest flex items-center gap-2"
                     >
                       <Target className="text-xl" /> Drop Player Here
                     </motion.div>
@@ -150,10 +150,10 @@ export default function TeamSimulationPreviewSection() {
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ type: "spring", duration: 0.5, bounce: 0.2 }}
-                      className="absolute inset-[-4px] bg-[var(--color-primary-container)] border-4 border-[var(--color-primary)] flex items-center justify-between p-4 z-10"
+                      className="absolute inset-[-4px] bg-[var(--color-primary)] border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] flex items-center justify-between p-4 z-10"
                     >
                        <div className="flex items-center gap-3 md:gap-4">
-                          <div className="w-10 h-10 bg-[var(--color-primary)] text-black border-2 border-[var(--color-on-background)] flex items-center justify-center shrink-0">
+                          <div className="w-10 h-10 bg-theme-bg text-theme-text border-2 border-theme-border flex items-center justify-center shrink-0 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
                             <Crosshair weight="bold" size={20} />
                           </div>
                           <div>
@@ -214,12 +214,12 @@ export default function TeamSimulationPreviewSection() {
                        y: { repeat: Infinity, duration: 4, ease: "easeInOut" },
                        rotate: { repeat: Infinity, duration: 5, ease: "easeInOut" }
                      }}
-                     className="absolute bottom-[-10px] right-2 md:right-10 z-20 brutal-shadow-lg cursor-grab active:cursor-grabbing border-4 border-[var(--color-on-background)] bg-[var(--color-surface)] p-3 flex items-center gap-3 w-56 md:w-64 rotate-[-3deg]"
+                     className="absolute bottom-[-10px] right-2 md:right-10 z-20 shadow-[8px_8px_0px_0px_var(--color-theme-shadow)] cursor-grab active:cursor-grabbing border-4 border-theme-border bg-[var(--theme-bg)] p-3 flex items-center gap-3 w-56 md:w-64 rotate-[-3deg]"
                    >
-                     <DotsSixVertical className="text-2xl text-[var(--color-secondary)]" />
+                     <DotsSixVertical className="text-2xl text-gray-500" />
                      <div>
-                       <p className="font-['Archivo_Black'] font-bold text-lg uppercase text-[var(--color-on-background)]">{incomingPlayer.name}</p>
-                       <p className="font-['JetBrains_Mono'] text-[0.6rem] text-[var(--color-secondary)] uppercase">Drag to simulate</p>
+                       <p className="font-['Archivo_Black'] font-bold text-lg uppercase text-theme-text">{incomingPlayer.name}</p>
+                       <p className="font-['JetBrains_Mono'] text-[0.6rem] text-gray-500 uppercase">Drag to simulate</p>
                      </div>
                    </motion.div>
                 )}

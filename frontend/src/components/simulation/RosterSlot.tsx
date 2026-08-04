@@ -34,7 +34,7 @@ export default function RosterSlot({ player, onRemove, index }: RosterSlotProps)
       id={`roster-slot-${index}`}
       className={`relative w-full flex items-center border-4 rounded-none transition-all duration-200 min-h-[100px] ${
         player 
-          ? 'border-black border-solid bg-white shadow-[8px_8px_0px_rgba(0,0,0,1)]' 
+          ? 'border-theme-border border-solid bg-theme-bg shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]' 
           : isHoveredWithPlayer
             ? 'border-[var(--color-primary)] border-dashed bg-yellow-50 shadow-[4px_4px_0px_var(--color-primary)] scale-[1.02] z-10'
             : 'border-gray-400 border-dashed bg-gray-100/50 shadow-none'
@@ -49,12 +49,12 @@ export default function RosterSlot({ player, onRemove, index }: RosterSlotProps)
         >
           <button 
             onClick={onRemove}
-            className="absolute top-2 right-2 w-7 h-7 bg-[#ef4444] text-white border-2 border-black flex items-center justify-center hover:bg-red-600 transition-colors z-10 shadow-[2px_2px_0px_#000] hover:shadow-[3px_3px_0px_#000] hover:-translate-y-px active:shadow-[1px_1px_0px_#000] active:translate-y-px"
+            className="absolute top-2 right-2 w-7 h-7 bg-[#ef4444] text-white border-2 border-theme-border flex items-center justify-center hover:bg-red-600 transition-colors z-10 shadow-[2px_2px_0px_#000] hover:shadow-[3px_3px_0px_#000] hover:-translate-y-px active:shadow-[1px_1px_0px_#000] active:translate-y-px"
           >
             <X size={16} weight="bold" />
           </button>
           
-          <div className="relative w-16 h-16 border-2 border-black bg-black shadow-[2px_2px_0px_#000] shrink-0">
+          <div className="relative w-16 h-16 border-2 border-theme-border bg-black shadow-[2px_2px_0px_#000] shrink-0">
             <img 
               src={player.photo_url || `https://ui-avatars.com/api/?name=${player.ign}&background=random`} 
               alt={player.ign} 
@@ -65,17 +65,17 @@ export default function RosterSlot({ player, onRemove, index }: RosterSlotProps)
           <div className="flex-1 min-w-0 pr-8 flex flex-col justify-center">
             <div className="flex items-center gap-3">
               <h3 className="font-display font-black text-xl uppercase truncate leading-none">{player.ign}</h3>
-              <span className="font-numeric font-black bg-black text-[var(--color-primary)] px-2 py-0.5 text-sm border-2 border-black shadow-[2px_2px_0px_#000]">
+              <span className="font-numeric font-black bg-black text-[var(--color-primary)] px-2 py-0.5 text-sm border-2 border-theme-border shadow-[2px_2px_0px_#000]">
                 {Number(player.avg_rating || 0).toFixed(2)}
               </span>
             </div>
             
             <div className="flex flex-wrap gap-2 mt-2">
-              <span className="font-label text-[10px] font-black uppercase tracking-widest border-2 border-black px-2 py-0.5 shadow-[2px_2px_0px_#000] bg-gray-100">
+              <span className="font-label text-[10px] font-black uppercase tracking-widest border-2 border-theme-border px-2 py-0.5 shadow-[2px_2px_0px_#000] bg-gray-100">
                 {player.current_role}
               </span>
               {player.is_igl && (
-                <span className="flex items-center gap-1 font-label text-[10px] font-black uppercase tracking-widest border-2 border-black px-2 py-0.5 shadow-[2px_2px_0px_#000] bg-[var(--color-primary)] text-black">
+                <span className="flex items-center gap-1 font-label text-[10px] font-black uppercase tracking-widest border-2 border-theme-border px-2 py-0.5 shadow-[2px_2px_0px_#000] bg-[var(--color-primary)] text-black">
                   <Star weight="fill" size={10} /> IGL
                 </span>
               )}

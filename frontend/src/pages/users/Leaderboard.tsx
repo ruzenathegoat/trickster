@@ -65,17 +65,17 @@ export default function Leaderboard() {
     return (
       <div className="space-y-16 max-w-7xl pb-24">
         <div>
-          <Skeleton className="h-12 w-3/4 md:w-80 mb-4 border-2 border-black" />
-          <Skeleton className="h-5 w-full md:w-96 border-2 border-black" />
+          <Skeleton className="h-12 w-3/4 md:w-80 mb-4 border-2 border-theme-border" />
+          <Skeleton className="h-5 w-full md:w-96 border-2 border-theme-border" />
         </div>
         <div className="flex flex-col lg:flex-row gap-12 mt-12">
-          <Skeleton className="flex-1 min-h-[500px] border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+          <Skeleton className="flex-1 min-h-[500px] border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]" />
           <div className="flex-[2] flex flex-col gap-12">
-            <Skeleton className="flex-1 h-64 border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
-            <Skeleton className="flex-1 h-64 border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+            <Skeleton className="flex-1 h-64 border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]" />
+            <Skeleton className="flex-1 h-64 border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]" />
           </div>
         </div>
-        <Skeleton className="h-96 w-full mt-16 border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+        <Skeleton className="h-96 w-full mt-16 border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]" />
       </div>
     );
   }
@@ -84,8 +84,8 @@ export default function Leaderboard() {
     <div className="space-y-16 max-w-7xl pb-24">
       {/* Header */}
       <section>
-        <div className="flex flex-col border-b-4 border-black pb-4">
-          <h1 className="text-4xl md:text-5xl font-['Archivo_Black'] uppercase tracking-tight mb-2 text-black">
+        <div className="flex flex-col border-b-4 border-theme-border pb-4">
+          <h1 className="text-4xl md:text-5xl font-['Archivo_Black'] uppercase tracking-tight mb-2 text-theme-text">
             Leaderboard
           </h1>
           <p className="text-gray-600 font-['JetBrains_Mono'] font-bold text-[15px] uppercase tracking-widest">
@@ -103,16 +103,16 @@ export default function Leaderboard() {
                 animate={{ clipPath: 'inset(0% 0 0 0)' }}
                 transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
                 onClick={() => navigate(`/app/players/${topPlayers[0].id}`)}
-                className="flex-1 bg-[var(--color-primary)] border-4 border-black relative overflow-hidden group cursor-pointer shadow-[12px_12px_0px_rgba(0,0,0,1)] hover:shadow-[16px_16px_0px_rgba(0,0,0,1)] transition-shadow duration-300"
+                className="flex-1 bg-[var(--color-primary)] border-4 border-theme-border relative overflow-hidden group cursor-pointer shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] transition-shadow duration-300"
               >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-20 translate-x-1/3 -translate-y-1/3 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-theme-bg opacity-20 translate-x-1/3 -translate-y-1/3 rounded-full blur-3xl pointer-events-none" />
                 
-                <div className="absolute top-6 right-6 w-16 h-16 bg-black text-[var(--color-primary)] border-2 border-black rounded-full flex items-center justify-center font-['Archivo_Black'] text-3xl z-20">
+                <div className="absolute top-6 right-6 w-16 h-16 bg-black text-[var(--color-primary)] border-2 border-theme-border rounded-full flex items-center justify-center font-['Archivo_Black'] text-3xl z-20">
                   #1
                 </div>
 
                 <div className="flex flex-col h-full min-h-[500px]">
-                  <div className="flex-1 relative z-10 w-full overflow-hidden bg-white/20 border-b-4 border-black">
+                  <div className="flex-1 relative z-10 w-full overflow-hidden bg-theme-bg/20 border-b-4 border-theme-border">
                      {topPlayers[0].photo_url ? (
                         <img 
                           src={topPlayers[0].photo_url} 
@@ -121,28 +121,28 @@ export default function Leaderboard() {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.05)_10px,rgba(0,0,0,0.05)_20px)]">
-                          <span className="font-['JetBrains_Mono'] text-sm font-bold uppercase tracking-widest text-black/40">No Photo</span>
+                          <span className="font-['JetBrains_Mono'] text-sm font-bold uppercase tracking-widest text-theme-text/40">No Photo</span>
                         </div>
                       )}
                   </div>
                   <div className="p-8 md:p-12 z-20 relative bg-[var(--color-primary)]">
-                     <p className="text-black font-['JetBrains_Mono'] font-bold text-[14px] uppercase tracking-widest mb-4 flex items-center gap-3">
+                     <p className="text-theme-text font-['JetBrains_Mono'] font-bold text-[14px] uppercase tracking-widest mb-4 flex items-center gap-3">
                        <span className="w-2 h-2 bg-black inline-block" /> {topPlayers[0].team_name}
                      </p>
-                     <h2 className="text-6xl md:text-8xl font-['Archivo_Black'] uppercase tracking-tighter text-black leading-none mb-6 group-hover:pl-4 transition-all duration-300">
+                     <h2 className="text-6xl md:text-8xl font-['Archivo_Black'] uppercase tracking-tighter text-theme-text leading-none mb-6 group-hover:pl-4 transition-all duration-300">
                        {topPlayers[0].ign}
                      </h2>
                      <div className="flex flex-wrap items-end gap-8">
                        <div>
-                         <p className="text-[11px] text-black font-black mb-1 tracking-widest uppercase">SMART Rating</p>
+                         <p className="text-[11px] text-theme-text font-black mb-1 tracking-widest uppercase">SMART Rating</p>
                          <p className="text-5xl font-['JetBrains_Mono'] font-black tabular-nums">{topPlayers[0].rating}</p>
                        </div>
                        <div>
-                         <p className="text-[11px] text-black/60 font-bold mb-1 tracking-widest uppercase">ACS</p>
+                         <p className="text-[11px] text-theme-text/60 font-bold mb-1 tracking-widest uppercase">ACS</p>
                          <p className="text-2xl font-['JetBrains_Mono'] font-bold tabular-nums">{topPlayers[0].acs}</p>
                        </div>
                        <div>
-                         <p className="text-[11px] text-black/60 font-bold mb-1 tracking-widest uppercase">K/D</p>
+                         <p className="text-[11px] text-theme-text/60 font-bold mb-1 tracking-widest uppercase">K/D</p>
                          <p className="text-2xl font-['JetBrains_Mono'] font-bold tabular-nums">{topPlayers[0].kd}</p>
                        </div>
                      </div>
@@ -163,12 +163,12 @@ export default function Leaderboard() {
                     animate={{ clipPath: 'inset(0 0% 0 0)' }}
                     transition={{ duration: 0.6, delay: 0.2 + index * 0.1, ease: [0.23, 1, 0.32, 1] }}
                     onClick={() => navigate(`/app/players/${player.id}`)}
-                    className="flex-1 bg-white border-4 border-black relative overflow-hidden group cursor-pointer shadow-[8px_8px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_rgba(0,0,0,1)] transition-shadow duration-300 flex flex-col"
+                    className="flex-1 bg-theme-bg border-4 border-theme-border relative overflow-hidden group cursor-pointer shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] transition-shadow duration-300 flex flex-col"
                   >
-                    <div className="absolute top-4 right-4 w-10 h-10 bg-black text-white border-2 border-black rounded-full flex items-center justify-center font-['Archivo_Black'] text-xl z-20">
+                    <div className="absolute top-4 right-4 w-10 h-10 bg-black text-white border-2 border-theme-border rounded-full flex items-center justify-center font-['Archivo_Black'] text-xl z-20">
                       #{player.rank}
                     </div>
-                    <div className="h-40 md:h-48 relative border-b-4 border-black bg-gray-100 overflow-hidden">
+                    <div className="h-40 md:h-48 relative border-b-4 border-theme-border bg-gray-100 overflow-hidden">
                        {player.photo_url ? (
                           <img 
                             src={player.photo_url} 
@@ -177,7 +177,7 @@ export default function Leaderboard() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.05)_10px,rgba(0,0,0,0.05)_20px)]">
-                            <span className="font-['JetBrains_Mono'] text-xs font-bold uppercase tracking-widest text-black/40">No Photo</span>
+                            <span className="font-['JetBrains_Mono'] text-xs font-bold uppercase tracking-widest text-theme-text/40">No Photo</span>
                           </div>
                         )}
                     </div>
@@ -186,11 +186,11 @@ export default function Leaderboard() {
                          <p className="text-gray-500 font-['JetBrains_Mono'] font-bold text-[12px] uppercase tracking-widest mb-2">
                            {player.team_name}
                          </p>
-                         <h2 className="text-4xl md:text-5xl font-['Archivo_Black'] uppercase tracking-tighter text-black leading-none mb-6 group-hover:text-[var(--color-primary)] transition-colors">
+                         <h2 className="text-4xl md:text-5xl font-['Archivo_Black'] uppercase tracking-tighter text-theme-text leading-none mb-6 group-hover:text-[var(--color-primary)] transition-colors">
                            {player.ign}
                          </h2>
                        </div>
-                       <div className="flex flex-wrap items-end gap-6 border-t-2 border-black pt-4">
+                       <div className="flex flex-wrap items-end gap-6 border-t-2 border-theme-border pt-4">
                          <div>
                            <p className="text-[10px] text-gray-500 font-black mb-1 tracking-widest uppercase">SMART</p>
                            <p className="text-3xl font-['JetBrains_Mono'] font-black tabular-nums">{player.rating}</p>
@@ -207,8 +207,8 @@ export default function Leaderboard() {
             </div>
           </div>
         ) : !loadingTop && (
-          <div className="py-24 text-center border-4 border-black bg-gray-50">
-            <p className="text-black font-['JetBrains_Mono'] font-bold text-lg">Not enough player data available.</p>
+          <div className="py-24 text-center border-4 border-theme-border bg-gray-50">
+            <p className="text-theme-text font-['JetBrains_Mono'] font-bold text-lg">Not enough player data available.</p>
           </div>
         )}
       </section>
@@ -220,20 +220,20 @@ export default function Leaderboard() {
         transition={{ duration: 0.8, delay: 0.4 }}
         className="pt-8" 
       >
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-6 border-b-4 border-black pb-4">
-          <h2 className="text-3xl font-['Archivo_Black'] uppercase tracking-tight text-black">Full Leaderboard</h2>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-6 border-b-4 border-theme-border pb-4">
+          <h2 className="text-3xl font-['Archivo_Black'] uppercase tracking-tight text-theme-text">Full Leaderboard</h2>
           
-          <div className="flex items-center gap-0 w-full md:w-auto overflow-x-auto border-2 border-black">
+          <div className="flex items-center gap-0 w-full md:w-auto overflow-x-auto border-2 border-theme-border">
             {ROLES.map((role, idx) => (
               <button
                 key={role}
                 onClick={() => { setRoleFilter(role); setPage(1); }}
                 className={`px-6 py-3 text-[13px] font-black uppercase transition-all whitespace-nowrap ${
-                  idx !== ROLES.length - 1 ? 'border-r-2 border-black' : ''
+                  idx !== ROLES.length - 1 ? 'border-r-2 border-theme-border' : ''
                 } ${
                   roleFilter === role 
                     ? 'bg-black text-[var(--color-primary)]' 
-                    : 'bg-white text-black hover:bg-gray-100'
+                    : 'bg-theme-bg text-theme-text hover:bg-gray-100'
                 }`}
               >
                 {role}
@@ -245,7 +245,7 @@ export default function Leaderboard() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-[15px] border-collapse">
             <thead>
-              <tr className="border-b-4 border-black text-[10px] md:text-[12px] font-black text-black uppercase tracking-widest font-['JetBrains_Mono']">
+              <tr className="border-b-4 border-theme-border text-[10px] md:text-[12px] font-black text-theme-text uppercase tracking-widest font-['JetBrains_Mono']">
                 <th className="py-4 px-3 md:px-6 w-16 md:w-24">Rank</th>
                 <th className="py-4 px-3 md:px-6">Player</th>
                 <th className="py-4 px-3 md:px-6">Team</th>
@@ -278,12 +278,12 @@ export default function Leaderboard() {
                     className="hover:bg-[var(--color-primary)] transition-colors cursor-pointer group"
                     onClick={() => navigate(`/app/players/${player.id}`)}
                   >
-                    <td className="py-4 px-3 md:py-6 md:px-6 font-['JetBrains_Mono'] font-black text-black tabular-nums whitespace-nowrap">
+                    <td className="py-4 px-3 md:py-6 md:px-6 font-['JetBrains_Mono'] font-black text-theme-text tabular-nums whitespace-nowrap">
                       #{((page - 1) * 10) + index + 1}
                     </td>
-                    <td className="py-4 px-3 md:py-6 md:px-6 font-['Archivo_Black'] uppercase text-lg md:text-xl text-black whitespace-nowrap">
+                    <td className="py-4 px-3 md:py-6 md:px-6 font-['Archivo_Black'] uppercase text-lg md:text-xl text-theme-text whitespace-nowrap">
                       <div className="flex items-center gap-3 md:gap-4">
-                        <div className="w-10 h-10 md:w-12 md:h-12 bg-white border-2 border-black rounded-full overflow-hidden shrink-0 flex items-center justify-center shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-theme-bg border-2 border-theme-border rounded-full overflow-hidden shrink-0 flex items-center justify-center shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
                           {player.photo_url ? (
                             <img src={player.photo_url} alt={player.ign} className="w-full h-full object-cover contrast-125" />
                           ) : (
@@ -293,21 +293,21 @@ export default function Leaderboard() {
                         {player.ign}
                       </div>
                     </td>
-                    <td className="py-4 px-3 md:py-6 md:px-6 font-bold text-gray-500 group-hover:text-black uppercase text-[11px] md:text-[13px] tracking-widest transition-colors whitespace-nowrap">
+                    <td className="py-4 px-3 md:py-6 md:px-6 font-bold text-gray-500 group-hover:text-theme-text uppercase text-[11px] md:text-[13px] tracking-widest transition-colors whitespace-nowrap">
                       {player.team_name}
                     </td>
                     <td className="py-4 px-3 md:py-6 md:px-6 whitespace-nowrap">
-                      <span className="inline-block px-2 py-1 md:px-3 md:py-1.5 bg-white border-2 border-black text-[10px] md:text-[11px] font-black uppercase tracking-widest shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                      <span className="inline-block px-2 py-1 md:px-3 md:py-1.5 bg-theme-bg border-2 border-theme-border text-[10px] md:text-[11px] font-black uppercase tracking-widest shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
                         {player.role}
                       </span>
                     </td>
-                    <td className="py-4 px-3 md:py-6 md:px-6 text-right font-['JetBrains_Mono'] font-black text-black text-xl md:text-2xl tabular-nums whitespace-nowrap">
+                    <td className="py-4 px-3 md:py-6 md:px-6 text-right font-['JetBrains_Mono'] font-black text-theme-text text-xl md:text-2xl tabular-nums whitespace-nowrap">
                       {player.rating}
                     </td>
-                    <td className="py-4 px-3 md:py-6 md:px-6 text-right font-['JetBrains_Mono'] font-bold text-gray-600 group-hover:text-black tabular-nums transition-colors whitespace-nowrap">
+                    <td className="py-4 px-3 md:py-6 md:px-6 text-right font-['JetBrains_Mono'] font-bold text-gray-600 group-hover:text-theme-text tabular-nums transition-colors whitespace-nowrap">
                       {player.acs}
                     </td>
-                    <td className="py-4 px-3 md:py-6 md:px-6 text-right font-['JetBrains_Mono'] font-bold text-gray-600 group-hover:text-black tabular-nums transition-colors whitespace-nowrap">
+                    <td className="py-4 px-3 md:py-6 md:px-6 text-right font-['JetBrains_Mono'] font-bold text-gray-600 group-hover:text-theme-text tabular-nums transition-colors whitespace-nowrap">
                       {player.kd}
                     </td>
                   </motion.tr>
@@ -325,21 +325,21 @@ export default function Leaderboard() {
 
         {/* Pagination Controls */}
         <div className="mt-8 pt-6 flex justify-between items-center">
-          <span className="text-[13px] font-bold font-['JetBrains_Mono'] uppercase tracking-widest text-black">
+          <span className="text-[13px] font-bold font-['JetBrains_Mono'] uppercase tracking-widest text-theme-text">
             Page {page} / {totalPages}
           </span>
           <div className="flex gap-4">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1 || loadingTable}
-              className="px-6 py-3 bg-white border-2 border-black hover:bg-black hover:text-white disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-black transition-colors active:scale-95 shadow-[4px_4px_0px_rgba(0,0,0,1)] disabled:shadow-none flex items-center justify-center"
+              className="px-6 py-3 bg-theme-bg border-2 border-theme-border hover:bg-black hover:text-white disabled:opacity-50 disabled:hover:bg-theme-bg disabled:hover:text-theme-text transition-colors active:scale-95 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] disabled:shadow-none flex items-center justify-center"
             >
               <CaretLeft size={20} weight="bold" />
             </button>
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages || loadingTable}
-              className="px-6 py-3 bg-white border-2 border-black hover:bg-black hover:text-white disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-black transition-colors active:scale-95 shadow-[4px_4px_0px_rgba(0,0,0,1)] disabled:shadow-none flex items-center justify-center"
+              className="px-6 py-3 bg-theme-bg border-2 border-theme-border hover:bg-black hover:text-white disabled:opacity-50 disabled:hover:bg-theme-bg disabled:hover:text-theme-text transition-colors active:scale-95 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] disabled:shadow-none flex items-center justify-center"
             >
               <CaretRight size={20} weight="bold" />
             </button>

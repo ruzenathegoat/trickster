@@ -11,7 +11,7 @@ export default function NavBar() {
       <header className="max-w-7xl mx-auto pointer-events-auto relative">
         
         {/* Main Navbar Container (Command Bar) */}
-        <div className="bg-[#111111] h-20 flex items-center justify-between px-6 md:px-8 border-4 border-black shadow-[8px_8px_0px_0px_var(--color-primary)]">
+        <div className="bg-[#111111] h-20 flex items-center justify-between px-6 md:px-8 border-4 border-theme-border shadow-[8px_8px_0px_0px_var(--color-primary)]">
           
           {/* Left: Logo */}
           <div className="flex-1 flex justify-start">
@@ -62,7 +62,7 @@ export default function NavBar() {
 
         {/* Mobile Dropdown (Brutalist) */}
         {mobileMenuOpen && (
-          <div className="absolute top-24 right-4 w-64 bg-[#111111] border-4 border-black shadow-[8px_8px_0px_var(--color-primary)] p-6 flex flex-col gap-6 md:hidden z-30 pointer-events-auto">
+          <div className="absolute top-24 right-4 w-64 bg-[#111111] border-4 border-theme-border shadow-[8px_8px_0px_var(--color-primary)] p-6 flex flex-col gap-6 md:hidden z-30 pointer-events-auto">
             <a href="#leaderboard" onClick={() => setMobileMenuOpen(false)} className="text-white font-['JetBrains_Mono'] text-sm font-bold uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">
               <span className="text-[var(--color-primary)] mr-2">//</span> METRICS
             </a>

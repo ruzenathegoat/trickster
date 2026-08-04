@@ -6,7 +6,7 @@ const EMIL_EASE_OUT: [number, number, number, number] = [0.23, 1, 0.32, 1];
 
 export default function RecommendationPreviewSection() {
   return (
-    <section id="leaderboard" className="w-full bg-[var(--color-inverse-surface)] py-24 md:py-32 relative overflow-hidden">
+    <section id="leaderboard" className="w-full bg-[#111111] py-24 md:py-32 relative overflow-hidden">
       
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10 flex flex-col gap-12 md:gap-16">
         
@@ -36,7 +36,7 @@ export default function RecommendationPreviewSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "0px" }}
           transition={{ duration: 0.8, ease: EMIL_EASE_OUT }}
-          className="w-full bg-white border-4 border-white shadow-[8px_8px_0px_var(--color-primary)] grid grid-cols-1 lg:grid-cols-12"
+          className="w-full bg-theme-bg border-4 border-white shadow-[8px_8px_0px_var(--color-primary)] grid grid-cols-1 lg:grid-cols-12"
         >
           {/* Left Column: Player Identity */}
           <div className="lg:col-span-5 bg-black p-8 md:p-12 border-b-4 lg:border-b-0 lg:border-r-4 border-white flex flex-col justify-between">

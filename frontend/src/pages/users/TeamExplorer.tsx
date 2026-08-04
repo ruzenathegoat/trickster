@@ -63,14 +63,14 @@ export default function TeamExplorer() {
     return (
       <div className="space-y-8 max-w-7xl">
         <div>
-          <Skeleton className="h-12 w-64 border-2 border-black mb-4" />
-          <Skeleton className="h-6 w-96 border-2 border-black" />
+          <Skeleton className="h-12 w-64 border-2 border-theme-border mb-4" />
+          <Skeleton className="h-6 w-96 border-2 border-theme-border" />
         </div>
         <div className="flex flex-col lg:flex-row gap-12 mt-12">
-          <Skeleton className="flex-[2] h-[500px] border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+          <Skeleton className="flex-[2] h-[500px] border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]" />
           <div className="flex-1 flex flex-col gap-12">
-            <Skeleton className="h-60 border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
-            <Skeleton className="h-60 border-4 border-black shadow-[8px_8px_0px_0px_#111111]" />
+            <Skeleton className="h-60 border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]" />
+            <Skeleton className="h-60 border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]" />
           </div>
         </div>
       </div>
@@ -106,7 +106,7 @@ export default function TeamExplorer() {
             animate={{ clipPath: 'inset(0 0% 0 0)' }}
             transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
             onClick={() => navigate(`/app/teams/${rank1.id}`)}
-            className="flex-[2] bg-[var(--color-primary)] border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] md:shadow-[12px_12px_0px_rgba(0,0,0,1)] cursor-pointer group relative overflow-hidden min-h-[400px] md:min-h-[500px] flex flex-col justify-end"
+            className="flex-[2] bg-[var(--color-primary)] border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] md:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] cursor-pointer group relative overflow-hidden min-h-[400px] md:min-h-[500px] flex flex-col justify-end"
           >
             {/* Rank tag */}
             <div className="absolute top-6 left-6 bg-black text-[var(--color-primary)] font-display text-4xl px-5 py-2 border-4 border-[var(--color-primary)] z-10">
@@ -120,21 +120,21 @@ export default function TeamExplorer() {
             </div>
             {/* Content bottom */}
             <div className="relative z-10 p-6 md:p-8 lg:p-10">
-              <h2 className="text-4xl md:text-5xl lg:text-7xl font-display uppercase tracking-tighter leading-none text-black mb-4 group-hover:translate-x-2 transition-transform">
+              <h2 className="text-4xl md:text-5xl lg:text-7xl font-display uppercase tracking-tighter leading-none text-theme-text mb-4 group-hover:translate-x-2 transition-transform">
                 {rank1.name}
               </h2>
               <div className="flex items-end gap-8">
                 <div>
-                  <span className="font-label text-[11px] font-bold text-black/50 uppercase tracking-widest block mb-1">Region</span>
-                  <span className="font-label text-lg font-bold text-black uppercase">{rank1.region}</span>
+                  <span className="font-label text-[11px] font-bold text-theme-text/50 uppercase tracking-widest block mb-1">Region</span>
+                  <span className="font-label text-lg font-bold text-theme-text uppercase">{rank1.region}</span>
                 </div>
                 <div>
-                  <span className="font-label text-[11px] font-bold text-black/50 uppercase tracking-widest block mb-1">Win Rate</span>
-                  <span className="font-display text-4xl text-black">{rank1.win_rate ?? 0}%</span>
+                  <span className="font-label text-[11px] font-bold text-theme-text/50 uppercase tracking-widest block mb-1">Win Rate</span>
+                  <span className="font-display text-4xl text-theme-text">{rank1.win_rate ?? 0}%</span>
                 </div>
                 <div>
-                  <span className="font-label text-[11px] font-bold text-black/50 uppercase tracking-widest block mb-1">Record</span>
-                  <span className="font-numeric text-lg font-bold text-black tabular-nums">{rank1.wins}W - {rank1.losses}L</span>
+                  <span className="font-label text-[11px] font-bold text-theme-text/50 uppercase tracking-widest block mb-1">Record</span>
+                  <span className="font-numeric text-lg font-bold text-theme-text tabular-nums">{rank1.wins}W - {rank1.losses}L</span>
                 </div>
               </div>
             </div>
@@ -149,14 +149,14 @@ export default function TeamExplorer() {
                 animate={{ clipPath: 'inset(0 0 0% 0)' }}
                 transition={{ duration: 0.6, delay: 0.2 + i * 0.15, ease: [0.23, 1, 0.32, 1] }}
                 onClick={() => navigate(`/app/teams/${team.id}`)}
-                className="flex-1 bg-white border-4 border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_rgba(0,0,0,1)] cursor-pointer group flex items-center gap-4 md:gap-6 p-4 md:p-6 hover:bg-black hover:text-white transition-colors relative overflow-hidden"
+                className="flex-1 bg-theme-bg border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] md:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] cursor-pointer group flex items-center gap-4 md:gap-6 p-4 md:p-6 hover:bg-black hover:text-white transition-colors relative overflow-hidden"
               >
                 {/* Rank */}
                 <span className="font-display text-4xl md:text-5xl text-gray-200 group-hover:text-white/20 transition-colors shrink-0">
                   #{i + 2}
                 </span>
                 {/* Logo */}
-                <div className="w-16 h-16 border-2 border-black bg-gray-50 group-hover:bg-white/10 flex items-center justify-center shrink-0 overflow-hidden transition-colors">
+                <div className="w-16 h-16 border-2 border-theme-border bg-gray-50 group-hover:bg-theme-bg/10 flex items-center justify-center shrink-0 overflow-hidden transition-colors">
                   {team.logo_url ? (
                     <img src={team.logo_url} alt={team.name} className="w-12 h-12 object-contain" />
                   ) : (
@@ -170,7 +170,7 @@ export default function TeamExplorer() {
                   </h3>
                   <div className="flex gap-6 mt-1">
                     <span className="font-label text-[11px] font-bold uppercase tracking-widest text-gray-500 group-hover:text-white/60">{team.region}</span>
-                    <span className="font-numeric text-[13px] font-bold tabular-nums text-black group-hover:text-white">{team.win_rate ?? 0}%</span>
+                    <span className="font-numeric text-[13px] font-bold tabular-nums text-theme-text group-hover:text-white">{team.win_rate ?? 0}%</span>
                     <span className="font-label text-[11px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-white/40">{team.wins}W-{team.losses}L</span>
                   </div>
                 </div>
@@ -181,17 +181,17 @@ export default function TeamExplorer() {
       )}
 
       {topTeams.length === 0 && !loadingTop && (
-        <div className="py-20 text-center border-4 border-dashed border-black">
+        <div className="py-20 text-center border-4 border-dashed border-theme-border">
           <p className="font-label text-sm text-gray-400 uppercase tracking-widest">Not enough team data available.</p>
         </div>
       )}
 
       {/* Full Table Section */}
       <section>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b-4 border-black pb-6 mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b-4 border-theme-border pb-6 mb-8">
           <h2 className="text-3xl font-display uppercase tracking-tight">All Teams</h2>
           <div className="relative w-full md:w-auto md:min-w-[320px]">
-            <MagnifyingGlass weight="bold" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-black" />
+            <MagnifyingGlass weight="bold" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-theme-text" />
             <input
               type="text"
               value={searchQuery}
@@ -206,15 +206,15 @@ export default function TeamExplorer() {
                 }
               }}
               placeholder="Search teams..."
-              className="w-full pl-12 pr-4 py-4 border-4 border-black font-label text-[13px] font-bold uppercase tracking-widest bg-white focus:outline-none focus:bg-[var(--color-primary)] transition-colors"
+              className="w-full pl-12 pr-4 py-4 border-4 border-theme-border font-label text-[13px] font-bold uppercase tracking-widest bg-theme-bg focus:outline-none focus:bg-[var(--color-primary)] transition-colors"
             />
           </div>
         </div>
 
-        <div className="overflow-x-auto border-4 border-black">
+        <div className="overflow-x-auto border-4 border-theme-border">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
-              <tr className="border-b-4 border-black bg-black text-white font-label text-[11px] font-bold uppercase tracking-widest">
+              <tr className="border-b-4 border-theme-border bg-black text-white font-label text-[11px] font-bold uppercase tracking-widest">
                 <th className="py-4 px-3 md:px-5 w-[60px]">#</th>
                 <th className="py-4 px-3 md:px-5">Team</th>
                 <th className="py-4 px-3 md:px-5">Region</th>
@@ -240,7 +240,7 @@ export default function TeamExplorer() {
                     onClick={() => navigate(`/app/teams/${team.id}`)}
                     className="border-b-2 border-gray-200 hover:bg-[var(--color-primary)] transition-colors cursor-pointer group"
                   >
-                    <td className="py-4 px-3 md:px-5 font-numeric font-bold text-gray-300 group-hover:text-black transition-colors">
+                    <td className="py-4 px-3 md:px-5 font-numeric font-bold text-gray-300 group-hover:text-theme-text transition-colors">
                       {((page - 1) * 15) + index + 1}
                     </td>
                     <td className="py-4 px-3 md:px-5 whitespace-nowrap">
@@ -248,11 +248,11 @@ export default function TeamExplorer() {
                         {team.logo_url ? (
                           <img src={team.logo_url} alt={team.name} className="w-8 h-8 object-contain shrink-0" />
                         ) : (
-                          <div className="w-8 h-8 bg-gray-100 border-2 border-black flex items-center justify-center shrink-0">
+                          <div className="w-8 h-8 bg-gray-100 border-2 border-theme-border flex items-center justify-center shrink-0">
                             <span className="font-display text-xs text-gray-300">?</span>
                           </div>
                         )}
-                        <span className="font-display uppercase text-base group-hover:text-black transition-colors truncate max-w-[120px] sm:max-w-xs md:max-w-none block">
+                        <span className="font-display uppercase text-base group-hover:text-theme-text transition-colors truncate max-w-[120px] sm:max-w-xs md:max-w-none block">
                           {team.name}
                         </span>
                       </div>
@@ -306,14 +306,14 @@ export default function TeamExplorer() {
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1 || loadingTable}
-              className="p-3 border-4 border-black bg-white hover:bg-black hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-black transition-colors active:scale-95"
+              className="p-3 border-4 border-theme-border bg-theme-bg hover:bg-black hover:text-white disabled:opacity-30 disabled:hover:bg-theme-bg disabled:hover:text-theme-text transition-colors active:scale-95"
             >
               <CaretLeft size={20} weight="bold" />
             </button>
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages || loadingTable}
-              className="p-3 border-4 border-black bg-white hover:bg-black hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-black transition-colors active:scale-95"
+              className="p-3 border-4 border-theme-border bg-theme-bg hover:bg-black hover:text-white disabled:opacity-30 disabled:hover:bg-theme-bg disabled:hover:text-theme-text transition-colors active:scale-95"
             >
               <CaretRight size={20} weight="bold" />
             </button>
