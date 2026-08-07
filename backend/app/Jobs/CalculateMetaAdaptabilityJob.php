@@ -40,6 +40,17 @@ class CalculateMetaAdaptabilityJob implements ShouldQueue
         $playersToProcess = Player::whereIn('id', collect($this->players)->pluck('id'))->get();
         $patches = Patch::orderBy('release_date', 'asc')->get();
         
+        // --- PERFORMANCE OPTIMIZATION: Pre-fetch & Cache ---
+        $allRatings = AgentPatchRating::all();
+        $ratingsByPatchAndAgent = [];
+        foreach ($allRatings as $rating) {
+            $ratingsByPatchAndAgent[$rating->patch_id][strtolower($rating->agent)] = $rating;
+        }
+
+        $mapCountsCache = [];
+        $agentMapCountsCache = [];
+        // ---------------------------------------------------
+        
         $tierScores = [
             'S' => 5,
             'A' => 4,
@@ -74,25 +85,33 @@ class CalculateMetaAdaptabilityJob implements ShouldQueue
                     
                     $agentCounts[$agent] = ($agentCounts[$agent] ?? 0) + 1;
                     
-                    // Get base tier from AgentPatchRating
-                    $baseRating = AgentPatchRating::where('patch_id', $patch->id)->where('agent', 'ILIKE', $agent)->first();
+                    // Get base tier from AgentPatchRating (using cache)
+                    $baseRating = $ratingsByPatchAndAgent[$patch->id][strtolower($agent)] ?? null;
                     if (!$baseRating || !isset($tierScores[$baseRating->tier])) continue;
                     
                     $baseScore = $tierScores[$baseRating->tier];
                     
-                    // Calculate map pick rate for this agent during this patch
-                    $totalMatchesOnMap = DB::table('player_match_agents')
-                        ->join('matches', 'player_match_agents.match_id', '=', 'matches.id')
-                        ->where('player_match_agents.map_id', $stat->map_id)
-                        ->whereBetween('matches.match_date', [$patch->release_date, $endDate])
-                        ->count();
+                    // Calculate map pick rate for this agent during this patch (using cache)
+                    $mapCacheKey = "{$stat->map_id}_{$patch->id}";
+                    if (!isset($mapCountsCache[$mapCacheKey])) {
+                        $mapCountsCache[$mapCacheKey] = DB::table('player_match_agents')
+                            ->join('matches', 'player_match_agents.match_id', '=', 'matches.id')
+                            ->where('player_match_agents.map_id', $stat->map_id)
+                            ->whereBetween('matches.match_date', [$patch->release_date, $endDate])
+                            ->count();
+                    }
+                    $totalMatchesOnMap = $mapCountsCache[$mapCacheKey];
                         
-                    $agentMatchesOnMap = DB::table('player_match_agents')
-                        ->join('matches', 'player_match_agents.match_id', '=', 'matches.id')
-                        ->where('player_match_agents.map_id', $stat->map_id)
-                        ->where('player_match_agents.agent_name', $agent)
-                        ->whereBetween('matches.match_date', [$patch->release_date, $endDate])
-                        ->count();
+                    $agentMapCacheKey = "{$stat->map_id}_{$patch->id}_" . strtolower($agent);
+                    if (!isset($agentMapCountsCache[$agentMapCacheKey])) {
+                        $agentMapCountsCache[$agentMapCacheKey] = DB::table('player_match_agents')
+                            ->join('matches', 'player_match_agents.match_id', '=', 'matches.id')
+                            ->where('player_match_agents.map_id', $stat->map_id)
+                            ->where('player_match_agents.agent_name', $agent)
+                            ->whereBetween('matches.match_date', [$patch->release_date, $endDate])
+                            ->count();
+                    }
+                    $agentMatchesOnMap = $agentMapCountsCache[$agentMapCacheKey];
                     
                     $pickRate = $totalMatchesOnMap > 0 ? ($agentMatchesOnMap / $totalMatchesOnMap) * 100 : 0;
                     
@@ -113,7 +132,7 @@ class CalculateMetaAdaptabilityJob implements ShouldQueue
                 arsort($agentCounts);
                 $mostPlayedAgent = array_key_first($agentCounts);
                 
-                $baseRating = AgentPatchRating::where('patch_id', $patch->id)->where('agent', 'ILIKE', $mostPlayedAgent)->first();
+                $baseRating = $ratingsByPatchAndAgent[$patch->id][strtolower($mostPlayedAgent)] ?? null;
                 $agentPerPatch[$patch->id] = [
                     'agent' => $mostPlayedAgent,
                     'tier_score' => $baseRating && isset($tierScores[$baseRating->tier]) ? $tierScores[$baseRating->tier] : 3
@@ -139,7 +158,7 @@ class CalculateMetaAdaptabilityJob implements ShouldQueue
                     $prevTierInOldPatch = $previousPatchData['tier_score'];
                     
                     // What is the prev agent's tier in the current patch?
-                    $prevAgentRatingInCurrentPatch = AgentPatchRating::where('patch_id', $patch->id)->where('agent', 'ILIKE', $prevAgent)->first();
+                    $prevAgentRatingInCurrentPatch = $ratingsByPatchAndAgent[$patch->id][strtolower($prevAgent)] ?? null;
                     $prevAgentTierInCurrentPatch = $prevAgentRatingInCurrentPatch && isset($tierScores[$prevAgentRatingInCurrentPatch->tier]) 
                         ? $tierScores[$prevAgentRatingInCurrentPatch->tier] 
                         : 3;

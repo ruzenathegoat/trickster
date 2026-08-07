@@ -16,11 +16,11 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': { target: 'http://localhost:8000', changeOrigin: true },
-      '/sanctum': { target: 'http://localhost:8000', changeOrigin: true },
-      '/login': { target: 'http://localhost:8000', changeOrigin: true },
-      '/logout': { target: 'http://localhost:8000', changeOrigin: true },
-      '/register': { target: 'http://localhost:8000', changeOrigin: true },
+      '/api': { target: 'http://127.0.0.1:8000', changeOrigin: true },
+      '/sanctum': { target: 'http://127.0.0.1:8000', changeOrigin: true },
+      '/login': { target: 'http://127.0.0.1:8000', changeOrigin: true },
+      '/logout': { target: 'http://127.0.0.1:8000', changeOrigin: true },
+      '/register': { target: 'http://127.0.0.1:8000', changeOrigin: true },
     },
   },
   build: {
