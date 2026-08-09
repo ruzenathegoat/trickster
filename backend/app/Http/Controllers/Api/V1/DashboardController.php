@@ -85,14 +85,14 @@ class DashboardController extends Controller
                 }
             }
 
-            // 3. Recent Matches (Completed only) using JOIN
-            $matches = \Illuminate\Support\Facades\DB::table('matches')
+            // 3. Recent Matches (Completed only) by Region (max 2 per region)
+            $baseQuery = \Illuminate\Support\Facades\DB::table('matches')
                 ->join('teams as teamA', 'teamA.id', '=', 'matches.team_a_id')
                 ->join('teams as teamB', 'teamB.id', '=', 'matches.team_b_id')
                 ->leftJoin('events', 'events.id', '=', 'matches.event_id')
                 ->whereNotNull('matches.winner_team_id')
-                ->orderBy('matches.match_date', 'desc')
                 ->select(
+                    'matches.id as match_id',
                     'matches.match_date',
                     'matches.team_a_id',
                     'matches.team_b_id',
@@ -102,9 +102,38 @@ class DashboardController extends Controller
                     'teamB.name as team_b_name',
                     'teamB.logo_url as team_b_logo',
                     'events.name as event_name'
-                )
-                ->take(10)
-                ->get();
+                );
+
+            $regions = ['Americas', 'EMEA', 'Pacific', 'China'];
+            $matches = collect();
+
+            foreach ($regions as $region) {
+                $q = clone $baseQuery;
+                $matches = $matches->concat(
+                    $q->where('events.name', 'like', '%' . $region . '%')
+                      ->orderBy('matches.match_date', 'desc')
+                      ->orderBy('matches.id', 'desc')
+                      ->take(2)
+                      ->get()
+                );
+            }
+
+            // For global/international events (e.g. Masters, Champions)
+            $qGlobal = clone $baseQuery;
+            foreach ($regions as $region) {
+                $qGlobal->where('events.name', 'not like', '%' . $region . '%');
+            }
+            $matches = $matches->concat(
+                $qGlobal->orderBy('matches.match_date', 'desc')
+                        ->orderBy('matches.id', 'desc')
+                        ->take(2)
+                        ->get()
+            );
+
+            // Sort all collected matches globally by match_date desc
+            $matches = $matches->sortByDesc(function($match) {
+                return $match->match_date . '_' . str_pad($match->match_id, 10, '0', STR_PAD_LEFT);
+            })->values();
 
             $recentMatches = [];
             foreach ($matches as $match) {
