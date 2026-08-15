@@ -4,6 +4,8 @@ import { ArrowUpRight, Crosshair, User, WarningCircle } from '@phosphor-icons/re
 import axios from '../../lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
+import Highcharts from 'highcharts';
+import { HighchartsReact } from 'highcharts-react-official';
 
 interface TopAgent {
   name: string;
@@ -24,12 +26,20 @@ interface RecentMatch {
   winner_id: string;
 }
 
+interface RankSnapshot {
+  date: string;
+  rank: number;
+  score?: number;
+}
+
 interface HeroKpi {
+  id?: string;
   name: string;
   score: string | number;
   profile_name: string;
   role: string;
   photo_url?: string | null;
+  smart_rank_history?: RankSnapshot[];
 }
 
 interface TrackedPlayer {
@@ -37,6 +47,8 @@ interface TrackedPlayer {
   ign: string;
   photo_url?: string | null;
   team_name?: string | null;
+  smart_rank_history?: RankSnapshot[];
+  current_rank?: number | null;
 }
 
 interface DashboardData {
@@ -53,6 +65,116 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [activeTrackedIndex, setActiveTrackedIndex] = useState<number>(0);
+  const [dashTimeframe, setDashTimeframe] = useState<'24h' | '7d' | '30d'>('7d');
+
+  const sliceHistoryByTimeframe = (history: RankSnapshot[], tf: '24h' | '7d' | '30d') => {
+    if (!history || history.length === 0) return { sliced: [], delta: 0, deltaLabel: '0', startRank: 0, endRank: 0 };
+    let sliced = history;
+    if (tf === '24h') sliced = history.slice(-2);
+    else if (tf === '7d') sliced = history.slice(-7);
+    else sliced = history.slice(-30);
+
+    const startRank = sliced[0]?.rank ?? 0;
+    const endRank = sliced[sliced.length - 1]?.rank ?? 0;
+    const delta = (sliced.length > 1) ? (startRank - endRank) : 0;
+    const deltaLabel = delta > 0 ? `+${delta}` : delta < 0 ? `${delta}` : '0';
+
+    return { sliced, delta, deltaLabel, startRank, endRank };
+  };
+
+  const getRankChartOptions = (history: RankSnapshot[], playerName: string, tf: '24h' | '7d' | '30d'): Highcharts.Options => {
+    const ranks = history.map(h => h.rank);
+    const minRank = ranks.length > 0 ? Math.min(...ranks) : 1;
+    const maxRank = ranks.length > 0 ? Math.max(...ranks) : 100;
+    const range = maxRank - minRank;
+    const padding = Math.max(3, Math.ceil(range * 0.12));
+    const yAxisMin = Math.max(1, minRank - padding);
+    const yAxisMax = maxRank + padding;
+
+    return {
+      chart: {
+        type: 'spline',
+        backgroundColor: 'transparent',
+        style: { fontFamily: "'JetBrains Mono', monospace" },
+        height: 200,
+        spacingTop: 10,
+        spacingBottom: 10,
+        spacingLeft: 10,
+        spacingRight: 15,
+        margin: [15, 15, 35, 40]
+      },
+      title: { text: undefined },
+      xAxis: {
+        categories: history.map(h => {
+          const parts = h.date.split('-');
+          if (parts.length === 3) {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return `${parseInt(parts[2], 10)} ${months[parseInt(parts[1], 10) - 1]}`;
+          }
+          return h.date;
+        }),
+        labels: {
+          style: { fontSize: '10px', fontWeight: 'bold', color: 'var(--color-theme-text, #000)' }
+        },
+        tickInterval: tf === '24h' ? 1 : Math.max(1, Math.ceil(history.length / 5)),
+        lineColor: '#000',
+        tickColor: '#000',
+        offset: 5
+      },
+      yAxis: {
+        reversed: true,
+        min: yAxisMin,
+        max: yAxisMax,
+        startOnTick: false,
+        endOnTick: false,
+        title: { text: 'Rank', style: { fontWeight: 'bold', textTransform: 'uppercase', fontSize: '9px', color: 'var(--color-theme-text, #000)' } },
+        allowDecimals: false,
+        gridLineDashStyle: 'Dash',
+        gridLineColor: '#eaeaea',
+        labels: { style: { fontWeight: 'bold', fontSize: '10px' } }
+      },
+    tooltip: {
+      formatter: function() {
+        const pointIndex = (this as any).point?.index ?? 0;
+        const rawItem = history[pointIndex];
+        const fullDate = rawItem?.date || this.x;
+        return `<div style="padding: 4px;">
+          <span style="font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:1px;font-weight:bold;">${playerName} &bull; ${fullDate}</span><br/>
+          <span style="font-size:14px;font-weight:900;color:var(--color-primary, #FFEB00)">Rank #${this.y}</span>
+        </div>`;
+      },
+      useHTML: true,
+      backgroundColor: '#111',
+      style: { color: '#fff', fontWeight: 'bold' },
+      borderWidth: 0,
+      borderRadius: 0,
+      shadow: false
+    },
+    legend: { enabled: false },
+    credits: { enabled: false },
+    plotOptions: {
+      spline: {
+        clip: false,
+        lineWidth: 3,
+        marker: {
+          enabled: true,
+          radius: history.length > 15 ? 2.5 : 4,
+          fillColor: 'var(--color-primary)',
+          lineWidth: 1.5,
+          lineColor: '#000',
+          states: { hover: { enabled: true, radius: 6 } }
+        },
+        color: 'var(--color-primary)'
+      }
+    },
+    series: [{
+      type: 'spline',
+      name: 'Rank',
+      data: history.map(h => h.rank)
+    }]
+  };
+};
 
   useEffect(() => {
     let isMounted = true;
@@ -223,47 +345,172 @@ export default function Dashboard() {
           </Link>
         </motion.div>
 
-        {/* Right: Consistency (Horizontal/Textual) */}
+        {/* Right: Consistency & SMART Rank Snapshot Tracker */}
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3, ease: [0.23, 1, 0.32, 1] }}
-          className="w-full md:w-[35%] flex flex-col"
+          className="w-full md:w-[48%] flex flex-col"
         >
-          <h3 className="font-['Archivo_Black'] uppercase text-3xl tracking-tight mb-8 border-b-4 border-theme-border pb-3 text-theme-text">Consistency Tracker</h3>
-          <div className="flex-1 flex flex-col pt-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-baseline mb-8 border-b-4 border-theme-border pb-3 gap-3">
+            <div>
+              <h3 className="font-['Archivo_Black'] uppercase text-3xl tracking-tight text-theme-text">Rank Trajectory</h3>
+              <p className="font-['JetBrains_Mono'] text-xs text-gray-500 font-bold uppercase tracking-wider mt-1">Day-to-Day Snapshot Trend</p>
+            </div>
+            
+            {/* Timeframe Buttons */}
+            <div className="flex border-2 border-theme-border bg-theme-bg p-0.5 shadow-[2px_2px_0px_0px_var(--color-theme-shadow)] self-end sm:self-auto">
+              {(['24h', '7d', '30d'] as const).map(tf => (
+                <button
+                  key={tf}
+                  onClick={() => setDashTimeframe(tf)}
+                  className={`px-2.5 py-1 font-['JetBrains_Mono'] text-[11px] font-black uppercase tracking-wider transition-all ${
+                    dashTimeframe === tf 
+                      ? 'bg-black text-[var(--color-primary)] shadow-[2px_2px_0px_0px_var(--color-theme-shadow)]' 
+                      : 'text-gray-500 hover:text-black hover:bg-gray-100'
+                  }`}
+                >
+                  {tf === '24h' ? '24h' : tf.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex-1 flex flex-col pt-2">
              {data.tracked_players && data.tracked_players.length > 0 ? (
-               <div className="flex flex-col gap-4 mb-8">
-                 {data.tracked_players.map(player => (
-                   <Link to={`/app/players/${player.id}`} key={player.id} className="flex items-center gap-4 group border-b-2 border-transparent hover:border-theme-border transition-colors pb-2">
-                     <div className="w-12 h-12 bg-[var(--color-theme-muted)] border-2 border-theme-border overflow-hidden flex items-center justify-center shrink-0">
-                       {player.photo_url ? (
-                         <img src={player.photo_url} alt={player.ign} loading="lazy" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
+               <div className="flex flex-col gap-4 mb-6">
+                 {/* Tracked players chips */}
+                 <div className="flex flex-wrap gap-2 mb-2">
+                   {data.tracked_players.map((player, idx) => (
+                     <button
+                       key={player.id}
+                       onClick={() => setActiveTrackedIndex(idx)}
+                       className={`px-3 py-1.5 font-['JetBrains_Mono'] text-xs font-black uppercase tracking-wider border-2 transition-all flex items-center gap-2 ${
+                         activeTrackedIndex === idx
+                           ? 'bg-black text-[var(--color-primary)] border-theme-border shadow-[2px_2px_0px_0px_var(--color-theme-shadow)]'
+                           : 'bg-theme-bg text-theme-text border-theme-border/40 hover:border-theme-border'
+                       }`}
+                     >
+                       <span>{player.ign}</span>
+                       {player.current_rank && (
+                         <span className="text-[10px] bg-[var(--color-primary)] text-black px-1 font-bold">#{player.current_rank}</span>
+                       )}
+                     </button>
+                   ))}
+                 </div>
+
+                 {/* Active player snapshot chart */}
+                 {(() => {
+                   const activePlayer = data.tracked_players[activeTrackedIndex] || data.tracked_players[0];
+                   const rawHistory = activePlayer?.smart_rank_history || [];
+                   const { sliced, delta, deltaLabel } = sliceHistoryByTimeframe(rawHistory, dashTimeframe);
+                   return (
+                     <div className="border-2 border-theme-border p-3 bg-theme-bg shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] flex flex-col gap-3">
+                       <div className="flex justify-between items-center border-b border-theme-border/20 pb-2 flex-wrap gap-2">
+                         <div>
+                           <span className="font-['Archivo_Black'] uppercase text-base text-theme-text mr-2">{activePlayer.ign}</span>
+                           <span className="font-['JetBrains_Mono'] text-[11px] text-gray-500 font-bold uppercase">{activePlayer.team_name || 'Free Agent'}</span>
+                         </div>
+                         <div className="flex items-center gap-2">
+                           <div className="flex items-center gap-1.5 text-xs font-['JetBrains_Mono']">
+                             <span className="font-bold text-gray-500 uppercase">{dashTimeframe}, changes :</span>
+                             <span className={`font-black px-1.5 py-0.5 border text-[11px] ${
+                               delta > 0 
+                                 ? 'bg-[#00E676] text-black border-black font-black' 
+                                 : delta < 0 
+                                 ? 'bg-[#FF3366] text-white border-black font-black' 
+                                 : 'bg-gray-200 text-black border-gray-400'
+                             }`}>
+                               {deltaLabel}
+                             </span>
+                           </div>
+                           <Link 
+                             to={`/app/players/${activePlayer.id}`} 
+                             className="font-['JetBrains_Mono'] text-[11px] font-black uppercase tracking-wider text-[var(--color-primary)] bg-black px-2 py-0.5 hover:bg-[var(--color-primary)] hover:text-black transition-colors"
+                           >
+                             Profile &rarr;
+                           </Link>
+                         </div>
+                       </div>
+
+                       {sliced.length > 0 ? (
+                         <div>
+                           <div className="flex justify-between items-center text-[10px] font-['JetBrains_Mono'] font-bold text-gray-500 mb-1">
+                             <span>Snapshot Timeline ({sliced.length} points)</span>
+                             <span>{sliced[0]?.date} &rarr; {sliced[sliced.length - 1]?.date}</span>
+                           </div>
+                           <div className="w-full h-[200px]">
+                             <HighchartsReact highcharts={Highcharts} options={getRankChartOptions(sliced, activePlayer.ign, dashTimeframe)} />
+                           </div>
+                         </div>
                        ) : (
-                         <User weight="fill" className="text-gray-400" size={24} />
+                         <p className="font-['JetBrains_Mono'] text-xs text-gray-400 py-8 text-center">No snapshot history recorded for this timeframe.</p>
                        )}
                      </div>
-                     <div>
-                       <div className="font-['Archivo_Black'] text-lg text-theme-text uppercase tracking-tight">{player.ign}</div>
-                       <div className="font-['JetBrains_Mono'] text-[11px] font-bold text-gray-500 uppercase tracking-widest">{player.team_name || 'Free Agent'}</div>
-                     </div>
-                     <div className="ml-auto">
-                       <div className="text-[10px] font-['JetBrains_Mono'] font-bold uppercase tracking-widest text-black bg-[var(--color-primary)] px-2 py-1 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] group-hover:-translate-y-0.5 group-hover:-translate-x-0.5 transition-transform">
-                         Active
+                   );
+                 })()}
+               </div>
+             ) : data.hero_kpi?.smart_rank_history && data.hero_kpi.smart_rank_history.length > 0 ? (
+               <div className="flex flex-col gap-4 mb-6">
+                 {(() => {
+                   const rawHistory = data.hero_kpi.smart_rank_history || [];
+                   const { sliced, delta, deltaLabel } = sliceHistoryByTimeframe(rawHistory, dashTimeframe);
+                   return (
+                     <div className="border-2 border-theme-border p-4 bg-theme-bg shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] flex flex-col gap-3">
+                       <div className="flex justify-between items-center border-b border-theme-border/20 pb-2 flex-wrap gap-2">
+                         <div className="flex items-center gap-2">
+                           <span className="font-['Archivo_Black'] uppercase text-base text-theme-text">{data.hero_kpi.name}</span>
+                           <span className="font-['JetBrains_Mono'] text-[10px] text-black bg-[var(--color-primary)] px-1.5 py-0.5 font-bold uppercase">Top Candidate</span>
+                         </div>
+                         <div className="flex items-center gap-2">
+                           <div className="flex items-center gap-1.5 text-xs font-['JetBrains_Mono']">
+                             <span className="font-bold text-gray-500 uppercase">{dashTimeframe}, changes :</span>
+                             <span className={`font-black px-1.5 py-0.5 border text-[11px] ${
+                               delta > 0 
+                                 ? 'bg-[#00E676] text-black border-black font-black' 
+                                 : delta < 0 
+                                 ? 'bg-[#FF3366] text-white border-black font-black' 
+                                 : 'bg-gray-200 text-black border-gray-400'
+                             }`}>
+                               {deltaLabel}
+                             </span>
+                           </div>
+                           {data.hero_kpi.id && (
+                             <Link 
+                               to={`/app/players/${data.hero_kpi.id}`} 
+                               className="font-['JetBrains_Mono'] text-[11px] font-black uppercase tracking-wider text-[var(--color-primary)] bg-black px-2 py-0.5 hover:bg-[var(--color-primary)] hover:text-black transition-colors"
+                             >
+                               Profile &rarr;
+                             </Link>
+                           )}
+                         </div>
+                       </div>
+
+                       <div className="flex justify-between items-center text-[10px] font-['JetBrains_Mono'] font-bold text-gray-500 mb-1">
+                         <span>Daily Snapshot Timeline ({sliced.length} points)</span>
+                         <span>{sliced[0]?.date} &rarr; {sliced[sliced.length - 1]?.date}</span>
+                       </div>
+
+                       <div className="w-full h-[200px]">
+                         <HighchartsReact 
+                           highcharts={Highcharts} 
+                           options={getRankChartOptions(sliced, data.hero_kpi.name, dashTimeframe)} 
+                         />
                        </div>
                      </div>
-                   </Link>
-                 ))}
+                   );
+                 })()}
                </div>
              ) : (
-               <>
-                 <Crosshair weight="bold" size={40} className="text-theme-text mb-6" />
-                 <p className="font-['Archivo_Black'] text-2xl uppercase text-theme-text mb-4 leading-tight tracking-tight">You are not following any players.</p>
-                 <p className="font-['JetBrains_Mono'] text-[15px] text-gray-500 mb-12 leading-relaxed">
-                   Track up to 5 players to monitor their consistency across their last 10 official matches. Real-time form evaluation.
+               <div className="mb-6">
+                 <Crosshair weight="bold" size={40} className="text-theme-text mb-4" />
+                 <p className="font-['Archivo_Black'] text-xl uppercase text-theme-text mb-2 leading-tight tracking-tight">No Tracked Trajectories</p>
+                 <p className="font-['JetBrains_Mono'] text-[14px] text-gray-500 leading-relaxed mb-6">
+                   Track players to monitor their day-to-day SMART rank trajectory, form consistency, and snapshot dates.
                  </p>
-               </>
+               </div>
              )}
+
              {/* Secondary Ghost Link */}
              <Link to="/app/players" className="text-theme-text border-b-2 border-theme-border pb-1 font-['Archivo_Black'] uppercase text-[13px] tracking-widest w-fit hover:text-gray-500 hover:border-gray-500 transition-colors duration-200 mt-auto">
                Find Players to Track

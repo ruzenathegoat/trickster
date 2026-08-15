@@ -23,8 +23,10 @@ class DashboardController extends Controller
                 ->join('players', 'players.id', '=', 'player_smart_results.player_id')
                 ->leftJoin('smart_weight_profiles', 'smart_weight_profiles.id', '=', 'player_smart_results.profile_id')
                 ->select(
+                    'players.id as player_id',
                     'player_smart_results.final_score',
                     'player_smart_results.mode',
+                    'player_smart_results.profile_id',
                     'players.ign as ign',
                     'players.photo_url as photo_url',
                     'smart_weight_profiles.name as profile_name'
@@ -34,12 +36,30 @@ class DashboardController extends Controller
 
             $heroKpi = null;
             if ($topPlayerResult) {
+                $topPlayerHistory = \Illuminate\Support\Facades\DB::table('player_smart_rank_history')
+                    ->where('player_id', $topPlayerResult->player_id)
+                    ->where('mode', 'career')
+                    ->when($topPlayerResult->profile_id, function($q, $pid) {
+                        return $q->where('profile_id', $pid);
+                    })
+                    ->orderBy('snapshot_date', 'asc')
+                    ->get()
+                    ->map(fn($h) => [
+                        'date' => date('Y-m-d', strtotime($h->snapshot_date)),
+                        'rank' => (int)$h->rank,
+                        'score' => round((float)$h->final_score, 1)
+                    ])
+                    ->values()
+                    ->toArray();
+
                 $heroKpi = [
+                    'id' => $topPlayerResult->player_id,
                     'name' => $topPlayerResult->ign ?? 'Unknown',
                     'score' => $topPlayerResult->final_score,
                     'profile_name' => $topPlayerResult->profile_name ?? 'Default Profile',
                     'photo_url' => $topPlayerResult->photo_url ?? null,
-                    'role' => $topPlayerResult->mode !== 'overall' ? ucfirst($topPlayerResult->mode) : 'Overall'
+                    'role' => $topPlayerResult->mode !== 'overall' ? ucfirst($topPlayerResult->mode) : 'Overall',
+                    'smart_rank_history' => $topPlayerHistory
                 ];
             }
 
@@ -165,11 +185,26 @@ class DashboardController extends Controller
                 120,
                 function () use ($user) {
                     return $user->favoritePlayers()->with('team')->take(5)->get()->map(function ($player) {
+                        $history = \Illuminate\Support\Facades\DB::table('player_smart_rank_history')
+                            ->where('player_id', $player->id)
+                            ->where('mode', 'career')
+                            ->orderBy('snapshot_date', 'asc')
+                            ->get()
+                            ->map(fn($h) => [
+                                'date' => date('Y-m-d', strtotime($h->snapshot_date)),
+                                'rank' => (int)$h->rank,
+                                'score' => round((float)$h->final_score, 1)
+                            ])
+                            ->values()
+                            ->toArray();
+
                         return [
                             'id' => $player->id,
                             'ign' => $player->ign,
                             'photo_url' => $player->photo_url,
                             'team_name' => $player->team ? $player->team->name : null,
+                            'smart_rank_history' => $history,
+                            'current_rank' => count($history) > 0 ? $history[count($history) - 1]['rank'] : null
                         ];
                     })->toArray();
                 }

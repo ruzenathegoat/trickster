@@ -56,6 +56,7 @@ export default function PlayerProfile() {
   const [showAllAgents, setShowAllAgents] = useState(false);
   const { user } = useAuth();
   const [isFavorite, setIsFavorite] = useState(false);
+  const [timeframe, setTimeframe] = useState<'24h' | '7d' | '30d'>('30d');
 
   useEffect(() => {
     const fetchPlayer = async () => {
@@ -236,23 +237,57 @@ export default function PlayerProfile() {
     }
   };
 
-  const growthOptions: Highcharts.Options | undefined = player?.smart_rank_history ? {
+  const getFilteredRankHistory = () => {
+    const raw = player?.smart_rank_history || [];
+    if (raw.length === 0) return [];
+    if (timeframe === '24h') return raw.slice(-2);
+    if (timeframe === '7d') return raw.slice(-7);
+    return raw.slice(-30);
+  };
+
+  const displayedHistory = getFilteredRankHistory();
+  const startRank = displayedHistory[0]?.rank;
+  const endRank = displayedHistory[displayedHistory.length - 1]?.rank;
+  const rankDelta = (startRank !== undefined && endRank !== undefined && displayedHistory.length > 1) ? (startRank - endRank) : 0;
+
+  const ranks = displayedHistory.map(h => h.rank);
+  const minRank = ranks.length > 0 ? Math.min(...ranks) : 1;
+  const maxRank = ranks.length > 0 ? Math.max(...ranks) : 100;
+  const rankRange = maxRank - minRank;
+  const rankPadding = Math.max(3, Math.ceil(rankRange * 0.12));
+  const yAxisMin = Math.max(1, minRank - rankPadding);
+  const yAxisMax = maxRank + rankPadding;
+
+  const growthOptions: Highcharts.Options | undefined = displayedHistory && displayedHistory.length > 0 ? {
     chart: {
       type: 'spline',
       backgroundColor: 'transparent',
-      style: { fontFamily: "'JetBrains Mono', monospace" }
+      style: { fontFamily: "'JetBrains Mono', monospace" },
+      spacingTop: 15,
+      spacingBottom: 15,
+      spacingLeft: 10,
+      spacingRight: 15
     },
     title: { text: undefined },
     xAxis: {
-      categories: player.smart_rank_history.map(h => {
-          const d = new Date(h.date);
-          return `${d.getDate()}/${d.getMonth()+1}`;
+      categories: displayedHistory.map(h => {
+          const parts = h.date.split('-');
+          if (parts.length === 3) {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return `${parseInt(parts[2], 10)} ${months[parseInt(parts[1], 10) - 1]}`;
+          }
+          return h.date;
       }),
-      labels: { style: { fontSize: '10px', fontWeight: 'bold' } },
-      tickInterval: Math.ceil(player.smart_rank_history.length / 7)
+      labels: { style: { fontSize: '11px', fontWeight: 'bold' } },
+      tickInterval: timeframe === '24h' ? 1 : Math.max(1, Math.ceil(displayedHistory.length / 7)),
+      offset: 5
     },
     yAxis: {
       reversed: true,
+      min: yAxisMin,
+      max: yAxisMax,
+      startOnTick: false,
+      endOnTick: false,
       title: { text: 'Rank', style: { fontWeight: 'bold', textTransform: 'uppercase' } },
       allowDecimals: false,
       gridLineDashStyle: 'Dash',
@@ -261,8 +296,15 @@ export default function PlayerProfile() {
     },
     tooltip: {
       formatter: function() {
-          return `<span style="font-size:10px">${this.x}</span><br/><span style="font-size:14px;font-weight:900">Rank #${this.y}</span>`;
+          const pointIndex = (this as any).point?.index ?? 0;
+          const rawItem = displayedHistory[pointIndex];
+          const fullDate = rawItem?.date || this.x;
+          return `<div style="padding: 4px;">
+            <span style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:1px;font-weight:bold;">Snapshot: ${fullDate}</span><br/>
+            <span style="font-size:15px;font-weight:900;color:var(--color-primary, #FFEB00)">Rank #${this.y}</span>
+          </div>`;
       },
+      useHTML: true,
       backgroundColor: '#111',
       style: { color: '#fff', fontWeight: 'bold' },
       borderWidth: 0,
@@ -273,15 +315,23 @@ export default function PlayerProfile() {
     credits: { enabled: false },
     plotOptions: {
       spline: {
+        clip: false,
         lineWidth: 4,
-        marker: { enabled: false, states: { hover: { enabled: true, radius: 6 } } },
+        marker: { 
+          enabled: true, 
+          radius: displayedHistory.length > 15 ? 3 : 5, 
+          fillColor: 'var(--color-primary)', 
+          lineWidth: 2, 
+          lineColor: '#000',
+          states: { hover: { enabled: true, radius: 7 } } 
+        },
         color: 'var(--color-primary)'
       }
     },
     series: [{
       type: 'spline',
       name: 'Rank',
-      data: player.smart_rank_history.map(h => h.rank)
+      data: displayedHistory.map(h => h.rank)
     }]
   } : undefined;
 
@@ -456,9 +506,53 @@ export default function PlayerProfile() {
               transition={{ duration: 0.6, delay: 0.35, ease: [0.23, 1, 0.32, 1] }}
               className="flex flex-col"
             >
-              <h2 className="text-2xl md:text-3xl font-display uppercase tracking-tight text-theme-text border-b-4 border-theme-border pb-4 mb-8">
-                Growth (30 Days)
-              </h2>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b-4 border-theme-border pb-4 mb-8 gap-4">
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-display uppercase tracking-tight text-theme-text mb-2">
+                    SMART Rank Snapshot History
+                  </h2>
+                  <div className="flex items-center flex-wrap gap-2 text-xs font-label">
+                    <span className="font-bold text-gray-500 uppercase tracking-wider">
+                      {timeframe === '24h' ? '24h' : timeframe === '7d' ? '7d' : '30d'}, changes :
+                    </span>
+                    <span className={`font-numeric font-black px-2 py-0.5 border-2 border-theme-border text-xs ${
+                      rankDelta > 0 
+                        ? 'bg-[#00E676] text-black shadow-[2px_2px_0px_0px_var(--color-theme-shadow)]' 
+                        : rankDelta < 0 
+                        ? 'bg-[#FF3366] text-white shadow-[2px_2px_0px_0px_var(--color-theme-shadow)]' 
+                        : 'bg-gray-200 text-black'
+                    }`}>
+                      {rankDelta > 0 ? `+${rankDelta}` : rankDelta < 0 ? `${rankDelta}` : '0'}
+                    </span>
+                    {displayedHistory.length > 1 && (
+                      <span className="text-gray-400 font-numeric font-bold">
+                        (#{startRank} &rarr; #{endRank})
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex border-2 border-theme-border bg-theme-bg p-0.5 shadow-[2px_2px_0px_0px_var(--color-theme-shadow)]">
+                    {(['24h', '7d', '30d'] as const).map(tf => (
+                      <button
+                        key={tf}
+                        onClick={() => setTimeframe(tf)}
+                        className={`px-3 py-1 font-label text-xs font-black uppercase tracking-wider transition-all ${
+                          timeframe === tf 
+                            ? 'bg-black text-[var(--color-primary)] shadow-[2px_2px_0px_0px_var(--color-theme-shadow)]' 
+                            : 'text-gray-500 hover:text-black hover:bg-gray-100'
+                        }`}
+                      >
+                        {tf === '24h' ? '24 Hour' : tf.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                  <span className="font-label font-bold text-xs uppercase tracking-widest bg-black text-[var(--color-primary)] px-3 py-1.5 border-2 border-theme-border hidden lg:inline-block">
+                    {displayedHistory[0]?.date} &rarr; {displayedHistory[displayedHistory.length - 1]?.date}
+                  </span>
+                </div>
+              </div>
               <div className="w-full h-[250px] md:h-[350px] relative bg-theme-bg border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] md:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
                   <div className="absolute inset-0 p-4">
                       <HighchartsReact highcharts={Highcharts} options={growthOptions} containerProps={{ style: { height: '100%' } }} />

@@ -159,16 +159,26 @@ class PlayerController extends Controller
                 ];
             })->values()->toArray();
 
-            $history = \Illuminate\Support\Facades\DB::table('player_smart_rank_history')
+            $defaultProfile = \Illuminate\Support\Facades\DB::table('smart_weight_profiles')
+                ->where('is_public', true)
+                ->orderBy('created_at', 'asc')
+                ->first();
+
+            $historyQuery = \Illuminate\Support\Facades\DB::table('player_smart_rank_history')
                 ->where('player_id', $id)
-                ->where('mode', 'career')
-                ->orderBy('snapshot_date', 'asc')
-                ->get();
+                ->where('mode', 'career');
+
+            if ($defaultProfile) {
+                $historyQuery->where('profile_id', $defaultProfile->id);
+            }
+
+            $history = $historyQuery->orderBy('snapshot_date', 'asc')->get();
                 
             $rankHistory = $history->map(function($h) {
                 return [
                     'date' => date('Y-m-d', strtotime($h->snapshot_date)),
-                    'rank' => $h->rank
+                    'rank' => (int)$h->rank,
+                    'score' => round((float)$h->final_score, 1)
                 ];
             })->values()->toArray();
 
