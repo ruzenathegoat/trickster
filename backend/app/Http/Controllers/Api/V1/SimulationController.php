@@ -18,12 +18,10 @@ class SimulationController extends Controller
         
         // If roster is empty, just return the top players overall
         if (empty($rosterIds)) {
-            $players = \Illuminate\Support\Facades\Cache::remember('api_simulation_top_players', 300, function () {
-                return Player::orderBy('avg_rating', 'desc')
-                    ->with('team')
-                    ->limit(20)
-                    ->get();
-            });
+            $players = Player::orderBy('avg_rating', 'desc')
+                ->with('team')
+                ->limit(20)
+                ->get();
 
             $results = $players->map(function ($player) {
                 return [
@@ -38,7 +36,7 @@ class SimulationController extends Controller
         $roster = Player::whereIn('id', $rosterIds)->with('team')->get();
         
         // Analyze roster
-        $roles = $roster->pluck('current_role')->map(fn($r) => strtolower($r))->toArray();
+        $roles = $roster->pluck('current_role')->map(fn($r) => strtolower($r ?? ''))->toArray();
         $hasController = in_array('controller', $roles);
         $hasInitiator = in_array('initiator', $roles);
         $hasSentinel = in_array('sentinel', $roles);
@@ -61,11 +59,9 @@ class SimulationController extends Controller
 
         // Fetch candidate pool once (cached), then exclude roster in PHP.
         // Caching the full high-rated pool keeps the key stable across rosters.
-        $candidatePool = \Illuminate\Support\Facades\Cache::remember('api_simulation_candidates', 300, function () {
-            return Player::where('avg_rating', '>', 0.9)
-                ->with('team')
-                ->get();
-        });
+        $candidatePool = Player::where('avg_rating', '>', 0.9)
+            ->with('team')
+            ->get();
         $candidates = $candidatePool->whereNotIn('id', $rosterIds)->values();
 
         $recommendations = [];
@@ -75,7 +71,7 @@ class SimulationController extends Controller
             $reasons = [];
 
             // 1. Role Complement
-            $cRole = strtolower($candidate->current_role);
+            $cRole = strtolower($candidate->current_role ?? '');
             if (!$hasController && $cRole === 'controller') {
                 $score += 30;
                 $reasons[] = 'Fills the missing Controller role.';

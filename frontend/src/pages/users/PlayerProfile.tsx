@@ -373,16 +373,16 @@ export default function PlayerProfile() {
             </div>
 
             {/* Photo section */}
-            <div className="relative flex-1 bg-theme-bg border-b-4 border-theme-border overflow-hidden min-h-[300px] md:min-h-[400px]">
+            <div className="relative flex-1 bg-transparent border-b-4 border-theme-border overflow-hidden min-h-[300px] md:min-h-[350px] flex items-end justify-center pt-8">
               {player.photo_url ? (
                 <img 
                   src={player.photo_url} 
                   alt={player.ign} 
-                  className="absolute inset-0 w-full h-full object-cover object-top transition-all duration-700 hover:scale-105" 
+                  className="w-auto h-[250px] md:h-[300px] object-cover object-bottom transition-transform duration-700 hover:scale-105 filter contrast-125" 
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#f3f4f6_10px,#f3f4f6_20px)]">
-                  <span className="font-display text-4xl text-gray-300 -rotate-90">NO PHOTO</span>
+                <div className="w-full h-full flex items-center justify-center min-h-[250px]">
+                  <span className="font-display text-4xl text-white/20 -rotate-90">NO PHOTO</span>
                 </div>
               )}
             </div>

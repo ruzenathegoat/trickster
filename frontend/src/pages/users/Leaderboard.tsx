@@ -95,55 +95,61 @@ export default function Leaderboard() {
 
         {/* Asymmetric Top 3 Podium */}
         {topPlayers.length > 0 ? (
-          <div className="flex flex-col lg:flex-row gap-6 md:gap-8 pt-8">
-            {/* RANK 1 - Massive Poster Style */}
+          <div className="flex flex-col gap-6 md:gap-8 pt-8">
+            {/* RANK 1 - Horizontal Layout */}
             {topPlayers[0] && (
               <motion.div 
                 initial={{ clipPath: 'inset(100% 0 0 0)' }}
                 animate={{ clipPath: 'inset(0% 0 0 0)' }}
                 transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
                 onClick={() => navigate(`/app/players/${topPlayers[0].id}`)}
-                className="flex-1 bg-[var(--color-primary)] border-4 border-theme-border relative overflow-hidden group cursor-pointer shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] transition-shadow duration-300"
+                className="w-full bg-[#9b72cf] border-4 border-theme-border relative overflow-hidden group cursor-pointer shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] transition-shadow duration-300"
               >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-theme-bg opacity-20 translate-x-1/3 -translate-y-1/3 rounded-full blur-3xl pointer-events-none" />
-                
-                <div className="absolute top-6 right-6 w-16 h-16 bg-black text-[var(--color-primary)] border-2 border-theme-border rounded-full flex items-center justify-center font-['Archivo_Black'] text-3xl z-20">
-                  #1
-                </div>
+                <div className="flex flex-col md:flex-row h-full min-h-[300px]">
+                  {/* Rank Section */}
+                  <div className="w-full md:w-[200px] bg-black p-8 flex flex-col items-center justify-center border-b-4 md:border-b-0 md:border-r-4 border-theme-border shrink-0">
+                    <span className="text-white/60 font-['JetBrains_Mono'] text-sm tracking-widest uppercase mb-2">Rank</span>
+                    <span className="text-[#9b72cf] font-['Archivo_Black'] text-7xl md:text-8xl">#1</span>
+                  </div>
 
-                <div className="flex flex-col h-full min-h-[500px]">
-                  <div className="flex-1 relative z-10 w-full overflow-hidden bg-theme-bg/20 border-b-4 border-theme-border">
+                  {/* Photo Section */}
+                  <div className="w-full md:w-[300px] bg-[#111] relative overflow-hidden flex items-end justify-center border-b-4 md:border-b-0 md:border-r-4 border-theme-border shrink-0">
                      {topPlayers[0].photo_url ? (
                         <img 
                           src={topPlayers[0].photo_url} 
                           alt={topPlayers[0].ign}
-                          className="w-full h-full object-cover object-top filter contrast-125 transition-all duration-500 scale-100 group-hover:scale-105"
+                          className="h-[250px] w-auto object-cover object-bottom filter contrast-125 transition-transform duration-500 group-hover:scale-105"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.05)_10px,rgba(0,0,0,0.05)_20px)]">
-                          <span className="font-['JetBrains_Mono'] text-sm font-bold uppercase tracking-widest text-theme-text/40">No Photo</span>
+                        <div className="w-full h-full flex items-center justify-center min-h-[250px]">
+                          <span className="font-['JetBrains_Mono'] text-sm font-bold uppercase tracking-widest text-white/40">No Photo</span>
                         </div>
                       )}
                   </div>
-                  <div className="p-8 md:p-12 z-20 relative bg-[var(--color-primary)]">
-                     <p className="text-theme-text font-['JetBrains_Mono'] font-bold text-[14px] uppercase tracking-widest mb-4 flex items-center gap-3">
+
+                  {/* Info Section */}
+                  <div className="flex-1 p-8 md:p-10 z-20 relative flex flex-col justify-center bg-[#9b72cf]">
+                     <p className="text-black/80 font-['JetBrains_Mono'] font-bold text-[14px] uppercase tracking-widest mb-2 flex items-center gap-3">
                        <span className="w-2 h-2 bg-black inline-block" /> {topPlayers[0].team_name}
                      </p>
-                     <h2 className="text-6xl md:text-8xl font-['Archivo_Black'] uppercase tracking-tighter text-theme-text leading-none mb-6 group-hover:pl-4 transition-all duration-300">
+                     <h2 className="text-6xl md:text-8xl font-['Archivo_Black'] uppercase tracking-tighter text-black leading-none mb-4 group-hover:translate-x-2 transition-transform duration-300">
                        {topPlayers[0].ign}
                      </h2>
+                     <p className="text-black/70 font-['JetBrains_Mono'] text-[13px] font-bold tracking-widest uppercase mb-8">
+                       {topPlayers[0].role}
+                     </p>
                      <div className="flex flex-wrap items-end gap-8">
                        <div>
-                         <p className="text-[11px] text-theme-text font-black mb-1 tracking-widest uppercase">SMART Rating</p>
-                         <p className="text-5xl font-['JetBrains_Mono'] font-black tabular-nums">{topPlayers[0].rating}</p>
+                         <p className="text-[11px] text-black/60 font-black mb-1 tracking-widest uppercase">SMART Rating</p>
+                         <p className="text-5xl font-['JetBrains_Mono'] font-black tabular-nums text-black">{topPlayers[0].rating}</p>
                        </div>
                        <div>
-                         <p className="text-[11px] text-theme-text/60 font-bold mb-1 tracking-widest uppercase">ACS</p>
-                         <p className="text-2xl font-['JetBrains_Mono'] font-bold tabular-nums">{topPlayers[0].acs}</p>
+                         <p className="text-[11px] text-black/60 font-bold mb-1 tracking-widest uppercase">ACS</p>
+                         <p className="text-2xl font-['JetBrains_Mono'] font-bold tabular-nums text-black">{topPlayers[0].acs}</p>
                        </div>
                        <div>
-                         <p className="text-[11px] text-theme-text/60 font-bold mb-1 tracking-widest uppercase">K/D</p>
-                         <p className="text-2xl font-['JetBrains_Mono'] font-bold tabular-nums">{topPlayers[0].kd}</p>
+                         <p className="text-[11px] text-black/60 font-bold mb-1 tracking-widest uppercase">K/D</p>
+                         <p className="text-2xl font-['JetBrains_Mono'] font-bold tabular-nums text-black">{topPlayers[0].kd}</p>
                        </div>
                      </div>
                   </div>
@@ -151,8 +157,8 @@ export default function Leaderboard() {
               </motion.div>
             )}
 
-            {/* RANK 2 & 3 - Stacked Horizontal Modules */}
-            <div className="flex flex-col gap-6 md:gap-8 lg:w-[40%]">
+            {/* RANK 2 & 3 - Side by Side Horizontal Modules */}
+            <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
               {[1, 2].map(index => {
                 const player = topPlayers[index];
                 if (!player) return null;
@@ -163,43 +169,43 @@ export default function Leaderboard() {
                     animate={{ clipPath: 'inset(0 0% 0 0)' }}
                     transition={{ duration: 0.6, delay: 0.2 + index * 0.1, ease: [0.23, 1, 0.32, 1] }}
                     onClick={() => navigate(`/app/players/${player.id}`)}
-                    className="flex-1 bg-theme-bg border-4 border-theme-border relative overflow-hidden group cursor-pointer shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] transition-shadow duration-300 flex flex-col"
+                    className="flex-1 bg-[var(--color-primary)] border-4 border-theme-border relative overflow-hidden group cursor-pointer shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] transition-shadow duration-300"
                   >
-                    <div className="absolute top-4 right-4 w-10 h-10 bg-black text-white border-2 border-theme-border rounded-full flex items-center justify-center font-['Archivo_Black'] text-xl z-20">
-                      #{player.rank}
-                    </div>
-                    <div className="h-40 md:h-48 relative border-b-4 border-theme-border bg-gray-100 overflow-hidden">
-                       {player.photo_url ? (
-                          <img 
-                            src={player.photo_url} 
-                            alt={player.ign}
-                            className="w-full h-full object-cover object-top filter contrast-125 transition-all duration-500 group-hover:scale-105"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.05)_10px,rgba(0,0,0,0.05)_20px)]">
-                            <span className="font-['JetBrains_Mono'] text-xs font-bold uppercase tracking-widest text-theme-text/40">No Photo</span>
-                          </div>
-                        )}
-                    </div>
-                    <div className="p-6 md:p-8 flex-1 flex flex-col justify-between">
-                       <div>
-                         <p className="text-gray-500 font-['JetBrains_Mono'] font-bold text-[12px] uppercase tracking-widest mb-2">
-                           {player.team_name}
+                    <div className="flex flex-col sm:flex-row h-full">
+                      <div className="w-full sm:w-[180px] bg-[#111] relative overflow-hidden flex items-end justify-center border-b-4 sm:border-b-0 sm:border-r-4 border-theme-border shrink-0 min-h-[200px]">
+                         <div className="absolute top-2 left-2 w-10 h-10 bg-[var(--color-primary)] text-black border-2 border-theme-border rounded-full flex items-center justify-center font-['Archivo_Black'] text-xl z-20">
+                           #{player.rank}
+                         </div>
+                         {player.photo_url ? (
+                            <img 
+                              src={player.photo_url} 
+                              alt={player.ign}
+                              className="h-[200px] w-auto object-cover object-bottom filter contrast-125 transition-transform duration-500 group-hover:scale-105"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <span className="font-['JetBrains_Mono'] text-[10px] font-bold uppercase tracking-widest text-white/40">No Photo</span>
+                            </div>
+                          )}
+                      </div>
+                      <div className="p-6 flex-1 flex flex-col justify-center bg-theme-bg">
+                         <p className="text-gray-500 font-['JetBrains_Mono'] font-bold text-[11px] uppercase tracking-widest mb-2">
+                           {player.team_name} &bull; {player.role}
                          </p>
                          <h2 className="text-4xl md:text-5xl font-['Archivo_Black'] uppercase tracking-tighter text-theme-text leading-none mb-6 group-hover:text-[var(--color-primary)] transition-colors">
                            {player.ign}
                          </h2>
-                       </div>
-                       <div className="flex flex-wrap items-end gap-6 border-t-2 border-theme-border pt-4">
-                         <div>
-                           <p className="text-[10px] text-gray-500 font-black mb-1 tracking-widest uppercase">SMART</p>
-                           <p className="text-3xl font-['JetBrains_Mono'] font-black tabular-nums">{player.rating}</p>
+                         <div className="flex flex-wrap items-end gap-6 border-t-2 border-theme-border pt-4 mt-auto">
+                           <div>
+                             <p className="text-[10px] text-gray-500 font-black mb-1 tracking-widest uppercase">SMART</p>
+                             <p className="text-3xl font-['JetBrains_Mono'] font-black tabular-nums">{player.rating}</p>
+                           </div>
+                           <div>
+                             <p className="text-[10px] text-gray-400 font-bold mb-1 tracking-widest uppercase">ACS</p>
+                             <p className="text-xl font-['JetBrains_Mono'] font-bold tabular-nums">{player.acs}</p>
+                           </div>
                          </div>
-                         <div>
-                           <p className="text-[10px] text-gray-400 font-bold mb-1 tracking-widest uppercase">ACS</p>
-                           <p className="text-xl font-['JetBrains_Mono'] font-bold tabular-nums">{player.acs}</p>
-                         </div>
-                       </div>
+                      </div>
                     </div>
                   </motion.div>
                 );
@@ -283,7 +289,7 @@ export default function Leaderboard() {
                     </td>
                     <td className="py-4 px-3 md:py-6 md:px-6 font-['Archivo_Black'] uppercase text-lg md:text-xl text-theme-text whitespace-nowrap">
                       <div className="flex items-center gap-3 md:gap-4">
-                        <div className="w-10 h-10 md:w-12 md:h-12 bg-theme-bg border-2 border-theme-border rounded-full overflow-hidden shrink-0 flex items-center justify-center shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-theme-bg border-2 border-theme-border overflow-hidden shrink-0 flex items-center justify-center shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
                           {player.photo_url ? (
                             <img src={player.photo_url} alt={player.ign} className="w-full h-full object-cover contrast-125" />
                           ) : (
