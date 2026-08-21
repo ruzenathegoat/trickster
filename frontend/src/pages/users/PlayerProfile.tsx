@@ -368,12 +368,12 @@ export default function PlayerProfile() {
         >
           <div className="bg-[var(--color-primary)] border-4 border-theme-border overflow-hidden relative shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] md:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] flex flex-col min-h-[500px] md:min-h-[700px]">
             {/* Massive Role Badge absolute */}
-            <div className="absolute top-6 -right-6 bg-black text-[var(--color-primary)] font-black px-6 py-2 border-4 border-[var(--color-primary)] text-lg uppercase tracking-widest rotate-6 z-20">
+            <div className="absolute top-6 right-6 bg-black text-[var(--color-primary)] font-black px-6 py-2 border-4 border-[var(--color-primary)] text-lg uppercase tracking-widest z-20">
               {player.role}
             </div>
 
             {/* Photo section */}
-            <div className="relative flex-1 bg-transparent border-b-4 border-theme-border overflow-hidden min-h-[300px] md:min-h-[350px] flex items-end justify-center pt-8">
+            <div className="relative flex-1 bg-white border-b-4 border-theme-border overflow-hidden min-h-[300px] md:min-h-[350px] flex items-end justify-center pt-8">
               {player.photo_url ? (
                 <img 
                   src={player.photo_url} 
