@@ -13,6 +13,9 @@ use App\Models\Event;
 use App\Models\ScrapeJobsLog;
 use Carbon\Carbon;
 
+use Illuminate\Support\Str;
+use App\Models\MatchScrapeQueue;
+
 class SyncVlrEventsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
@@ -69,6 +72,19 @@ class SyncVlrEventsJob implements ShouldQueue
                         // Skip malformed rows
                     }
                 });
+            }
+
+            // Backfill: dispatch SyncEventJob for any DB events with vlr_event_id
+            // that have 0 entries in match_scrape_queues (e.g. pushed off /events pagination)
+            $orphanEvents = Event::whereNotNull('vlr_event_id')
+                ->whereDoesntHave('matchScrapeQueues')
+                ->get();
+
+            foreach ($orphanEvents as $event) {
+                $slug = Str::slug($event->name);
+                $link = "/event/{$event->vlr_event_id}/{$slug}";
+                SyncEventJob::dispatch($event, $link)->onQueue('scrape-low');
+                $records++;
             }
 
             $log->update([
