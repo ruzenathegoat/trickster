@@ -2,74 +2,88 @@
 
 namespace App\Jobs;
 
+use App\Models\MatchData;
+use App\Models\Player;
+use App\Services\ConsistencyIndexService;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Player;
-use App\Models\PlayerMapStat;
-use App\Models\MatchData;
+use Illuminate\Support\Facades\DB;
 
 class CalculateMetricJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $matchId;
+
     public $players;
 
-    public function __construct(string $matchId, array $players)
+    public $dispatchDownstream;
+
+    public function __construct(string $matchId, array $players, bool $dispatchDownstream = true)
     {
         $this->matchId = $matchId;
         $this->players = $players;
+        $this->dispatchDownstream = $dispatchDownstream;
     }
 
-    public function handle(): void
+    public function handle(ConsistencyIndexService $consistencyIndexService): void
     {
         foreach ($this->players as $playerModel) {
             $player = Player::find($playerModel->id);
-            if (!$player) continue;
+            if (! $player) {
+                continue;
+            }
 
-            $stats = PlayerMapStat::where("player_id", $player->id)->get();
-            if ($stats->isEmpty()) continue;
+            // One completed-match aggregate per player is the canonical grain.
+            // Invalid ACS rows are excluded from every aggregate until rescraped.
+            $stats = $consistencyIndexService->validMatchStatsForPlayer($player->id);
+            $consistency = $consistencyIndexService->calculateForStats($stats);
+
+            if ($stats->isEmpty()) {
+                $player->update([
+                    'total_matches' => 0,
+                    'total_wins' => 0,
+                    'win_rate' => 0,
+                    'avg_acs' => 0,
+                    'avg_kd' => 0,
+                    'avg_kast' => 0,
+                    'avg_adr' => 0,
+                    'avg_rating' => 0,
+                    'total_kills' => 0,
+                    'total_deaths' => 0,
+                    'total_assists' => 0,
+                    'avg_fk' => 0,
+                    'avg_fd' => 0,
+                    'consistency_index' => null,
+                    'consistency_provisional_index' => null,
+                    'consistency_sample_size' => 0,
+                    'consistency_event_count' => 0,
+                    'consistency_method' => $consistency['method'],
+                    'consistency_calculated_at' => now(),
+                    'competition_quality_index' => null,
+                ]);
+
+                continue;
+            }
 
             $totalMatches = $stats->count();
-            $totalKills = $stats->sum("kills");
-            $totalDeaths = $stats->sum("deaths");
-            $totalAssists = $stats->sum("assists");
+            $totalKills = $stats->sum('kills');
+            $totalDeaths = $stats->sum('deaths');
+            $totalAssists = $stats->sum('assists');
 
             // Count wins: matches where this player's team won
-            $matchIds = $stats->pluck("match_id")->unique();
-            $totalWins = MatchData::whereIn("id", $matchIds)
-                ->where("winner_team_id", $player->team_id)
+            $matchIds = $stats->pluck('match_id')->unique();
+            $totalWins = MatchData::whereIn('id', $matchIds)
+                ->where('winner_team_id', $player->team_id)
                 ->count();
-
-            // Calculate Consistency Index (CI)
-            $consistencyIndex = null;
-            if ($totalMatches >= 20) {
-                // Calculate standard deviation of ACS
-                $avgAcs = $stats->avg("acs");
-                if ($avgAcs > 0) {
-                    $variance = 0;
-                    foreach ($stats as $stat) {
-                        $variance += pow($stat->acs - $avgAcs, 2);
-                    }
-                    $variance /= $totalMatches;
-                    $stdDev = sqrt($variance);
-                    
-                    // Coefficient of Variation = (StdDev / Mean)
-                    // Consistency Index = 100 - (CV * 100)
-                    $cv = $stdDev / $avgAcs;
-                    $ciValue = 100 - ($cv * 100);
-                    // Ensure CI is between 0 and 100
-                    $consistencyIndex = round(max(0, min(100, $ciValue)), 2);
-                }
-            }
 
             // Calculate Competition Quality Index (CQI)
             $cqi = null;
             if ($totalMatches > 0) {
-                $matchRegions = \Illuminate\Support\Facades\DB::table('matches')
+                $matchRegions = DB::table('matches')
                     ->join('events', 'matches.event_id', '=', 'events.id')
                     ->whereIn('matches.id', $matchIds)
                     ->pluck('events.region');
@@ -86,15 +100,15 @@ class CalculateMetricJob implements ShouldQueue
                     };
                     $totalCqiScore += $score;
                 }
-                
+
                 $cqi = round($totalCqiScore / $totalMatches, 2);
             }
 
             // Calculate Current Role
-            $agentPicks = \Illuminate\Support\Facades\DB::table('player_match_agents')
+            $agentPicks = DB::table('player_match_agents')
                 ->join('matches', 'player_match_agents.match_id', '=', 'matches.id')
                 ->where('player_match_agents.player_id', $player->id)
-                ->select('player_match_agents.agent_name', 'matches.event_id', \Illuminate\Support\Facades\DB::raw('count(*) as count'))
+                ->select('player_match_agents.agent_name', 'matches.event_id', DB::raw('count(*) as count'))
                 ->groupBy('player_match_agents.agent_name', 'matches.event_id')
                 ->get();
 
@@ -104,28 +118,28 @@ class CalculateMetricJob implements ShouldQueue
                 $overallRoles = [];
 
                 foreach ($agentPicks as $pick) {
-                    $roleRecord = \Illuminate\Support\Facades\DB::table('agent_role_maps')
+                    $roleRecord = DB::table('agent_role_maps')
                         ->where('agent_name', strtolower($pick->agent_name))
                         ->first();
-                        
+
                     if ($roleRecord) {
                         $roleName = ucfirst($roleRecord->role_name);
-                        
+
                         // Track per event
                         $eventId = $pick->event_id;
-                        if (!isset($rolesPerEvent[$eventId])) {
+                        if (! isset($rolesPerEvent[$eventId])) {
                             $rolesPerEvent[$eventId] = [];
                         }
                         $rolesPerEvent[$eventId][$roleName] = true;
-                        
+
                         // Track overall
-                        if (!isset($overallRoles[$roleName])) {
+                        if (! isset($overallRoles[$roleName])) {
                             $overallRoles[$roleName] = 0;
                         }
                         $overallRoles[$roleName] += $pick->count;
                     }
                 }
-                
+
                 $isFlex = false;
                 foreach ($rolesPerEvent as $eventId => $roles) {
                     if (count($roles) > 2) { // Played more than 2 distinct roles in this event
@@ -133,7 +147,7 @@ class CalculateMetricJob implements ShouldQueue
                         break;
                     }
                 }
-                
+
                 if ($isFlex) {
                     $currentRole = 'Flex';
                 } elseif (count($overallRoles) > 0) {
@@ -143,28 +157,35 @@ class CalculateMetricJob implements ShouldQueue
             }
 
             $player->update([
-                "total_matches" => $totalMatches,
-                "total_wins" => $totalWins,
-                "win_rate" => $totalMatches > 0 ? round(($totalWins / $totalMatches) * 100, 2) : 0,
-                "avg_acs" => round($stats->avg("acs"), 1),
-                "avg_kd" => $totalDeaths > 0 ? round($totalKills / $totalDeaths, 2) : $totalKills,
-                "avg_kast" => round($stats->avg("kast"), 1),
-                "avg_adr" => round($stats->avg("adr"), 1),
-                "avg_rating" => round($stats->filter(fn($s) => $s->rating > 0)->avg("rating") ?? 0, 2),
-                "total_kills" => $totalKills,
-                "total_deaths" => $totalDeaths,
-                "total_assists" => $totalAssists,
-                "avg_fk" => round($stats->avg("fk"), 2),
-                "avg_fd" => round($stats->avg("fd"), 2),
-                "consistency_index" => $consistencyIndex,
-                "competition_quality_index" => $cqi,
-                "current_role" => $currentRole ?? $player->current_role,
+                'total_matches' => $totalMatches,
+                'total_wins' => $totalWins,
+                'win_rate' => $totalMatches > 0 ? round(($totalWins / $totalMatches) * 100, 2) : 0,
+                'avg_acs' => round($stats->avg('acs'), 1),
+                'avg_kd' => $totalDeaths > 0 ? round($totalKills / $totalDeaths, 2) : $totalKills,
+                'avg_kast' => round($stats->avg('kast'), 1),
+                'avg_adr' => round($stats->avg('adr'), 1),
+                'avg_rating' => round($stats->filter(fn ($s) => $s->rating > 0)->avg('rating') ?? 0, 2),
+                'total_kills' => $totalKills,
+                'total_deaths' => $totalDeaths,
+                'total_assists' => $totalAssists,
+                'avg_fk' => round($stats->avg('fk'), 2),
+                'avg_fd' => round($stats->avg('fd'), 2),
+                'consistency_index' => $consistency['value'],
+                'consistency_provisional_index' => $consistency['provisional_value'],
+                'consistency_sample_size' => $consistency['sample_size'],
+                'consistency_event_count' => $consistency['event_count'],
+                'consistency_method' => $consistency['method'],
+                'consistency_calculated_at' => now(),
+                'competition_quality_index' => $cqi,
+                'current_role' => $currentRole ?? $player->current_role,
             ]);
         }
-        // Calculate Meta Adaptability Index for the involved players first
-        \App\Jobs\CalculateMetaAdaptabilityJob::dispatch($this->players);
+        if ($this->dispatchDownstream) {
+            // Calculate Meta Adaptability Index for the involved players first
+            CalculateMetaAdaptabilityJob::dispatch($this->players);
 
-        // Pass to the next phase: AI Smart Results
-        CalculateSmartJob::dispatch($this->matchId, $this->players);
+            // Pass to the next phase: AI Smart Results
+            CalculateSmartJob::dispatch($this->matchId, $this->players);
+        }
     }
 }

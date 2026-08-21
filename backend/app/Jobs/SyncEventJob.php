@@ -2,21 +2,22 @@
 
 namespace App\Jobs;
 
+use App\Models\Event;
+use App\Models\MatchScrapeQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\DomCrawler\Crawler;
-use App\Models\Event;
-use App\Models\MatchScrapeQueue;
 
 class SyncEventJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $event;
+
     public $eventLink;
 
     public function __construct(Event $event, string $eventLink)
@@ -27,55 +28,63 @@ class SyncEventJob implements ShouldQueue
 
     public function handle(): void
     {
-        $baseUrl = "https://www.vlr.gg";
+        $baseUrl = 'https://www.vlr.gg';
         $headers = [
-            "User-Agent" => "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         ];
 
-        $url = str_replace("/event/", "/event/matches/", $this->eventLink);
-        
+        $url = str_replace('/event/', '/event/matches/', $this->eventLink);
+
         try {
-            $response = Http::timeout(30)->withoutVerifying()->withHeaders($headers)->get($baseUrl . $url);
+            $response = Http::timeout(30)->withoutVerifying()->withHeaders($headers)->get($baseUrl.$url);
+            $response->throw();
             $crawler = new Crawler($response->body());
 
-            $crawler->filter(".wf-card a.match-item")->each(function (Crawler $node) {
+            $matchCount = $crawler->filter('.wf-card a.match-item')->count();
+            if ($matchCount === 0) {
+                throw new \RuntimeException("No matches discovered for VLR event {$this->event->vlr_event_id}");
+            }
+
+            $crawler->filter('.wf-card a.match-item')->each(function (Crawler $node) {
                 try {
-                    $link = $node->attr("href");
-                    $matchId = explode("/", $link)[1] ?? null;
-                    
+                    $link = $node->attr('href');
+                    $matchId = explode('/', $link)[1] ?? null;
+
                     if ($matchId) {
                         $queueItem = MatchScrapeQueue::firstOrCreate(
-                            ["vlr_match_id" => $matchId],
+                            ['vlr_match_id' => $matchId],
                             [
-                                "vlr_event_id" => $this->event->vlr_event_id,
-                                "url" => "https://www.vlr.gg" . $link,
-                                "status" => "pending"
+                                'vlr_event_id' => $this->event->vlr_event_id,
+                                'url' => 'https://www.vlr.gg'.$link,
+                                'status' => 'pending',
                             ]
                         );
-                        
-                        if ($queueItem->status === "pending") {
+
+                        if ($queueItem->status === 'pending') {
                             $eventName = strtolower($this->event->name);
-                            $queue = "scrape-low";
-                            
-                            if (str_contains($eventName, "champions") || str_contains($eventName, "masters")) {
-                                $queue = "scrape-high";
-                            } elseif (str_contains($eventName, "kickoff")) {
-                                $queue = "scrape-low";
-                            } elseif (str_contains($eventName, "stage") || str_contains($eventName, "split")) {
-                                $queue = "scrape-default";
+                            $queue = 'scrape-low';
+
+                            if (str_contains($eventName, 'champions') || str_contains($eventName, 'masters')) {
+                                $queue = 'scrape-high';
+                            } elseif (str_contains($eventName, 'kickoff')) {
+                                $queue = 'scrape-low';
+                            } elseif (str_contains($eventName, 'stage') || str_contains($eventName, 'split')) {
+                                $queue = 'scrape-default';
                             }
 
                             SyncMatchJob::dispatch($queueItem)->onQueue($queue);
                         }
                     }
                 } catch (\Exception $e) {
-                    // skip malformed link
+                    \Log::warning('Skipped malformed VLR match link', [
+                        'vlr_event_id' => $this->event->vlr_event_id,
+                        'error' => $e->getMessage(),
+                    ]);
                 }
             });
         } catch (\Exception $e) {
-            \Log::error("Failed to sync event matches: " . $e->getMessage());
+            \Log::error('Failed to sync event matches: '.$e->getMessage());
             throw $e;
         }
     }
 }
-

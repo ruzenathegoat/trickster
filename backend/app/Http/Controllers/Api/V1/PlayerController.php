@@ -1,12 +1,40 @@
 <?php
+
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Player;
+use App\Services\ConsistencyIndexCalculator;
+use App\Services\PlayerMomentumService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class PlayerController extends Controller
 {
+    public function momentum(Request $request, PlayerMomentumService $service)
+    {
+        $eventId = $request->filled('event_id') ? (string) $request->get('event_id') : null;
+        $season = max(2020, min(2100, (int) $request->get('season', 2026)));
+        $page = max(1, (int) $request->get('page', 1));
+        $perPage = max(10, min(50, (int) $request->get('per_page', 25)));
+        $filters = [
+            'q' => trim((string) $request->get('q', '')),
+            'role' => (string) $request->get('role', 'All'),
+            'region' => (string) $request->get('region', 'All'),
+            'category' => (string) $request->get('category', 'All'),
+        ];
+        $version = Cache::get('api_admin_cache_version', 'v1');
+        $datasetCacheKey = 'api_player_momentum_dataset_'.$version.'_'.md5(json_encode(compact('eventId', 'season')));
+        $dataset = Cache::remember(
+            $datasetCacheKey,
+            3600,
+            fn (): array => $service->build($eventId, $season)
+        );
+
+        return response()->json($service->paginate($dataset, $page, $perPage, $filters));
+    }
+
     public function index(Request $request)
     {
         // Layer 1 & 2 Caching: dynamic cache key based on query parameters
@@ -16,21 +44,21 @@ class PlayerController extends Controller
         $sortBy = strtolower($request->get('sort_by', 'smart'));
         $sortDir = strtolower($request->get('sort_dir', 'desc'));
         $limit = (int) $request->get('limit', 20);
-        
+
         $validSortDirs = ['asc', 'desc'];
-        if (!in_array($sortDir, $validSortDirs)) {
+        if (! in_array($sortDir, $validSortDirs)) {
             $sortDir = 'desc';
         }
 
-        $version = \Illuminate\Support\Facades\Cache::get('api_admin_cache_version', 'v1');
-        $cacheKey = 'api_players_explorer_' . $version . '_' . md5(json_encode(compact('page', 'q', 'role', 'sortBy', 'sortDir', 'limit')));
+        $version = Cache::get('api_admin_cache_version', 'v1');
+        $cacheKey = 'api_players_explorer_'.$version.'_'.md5(json_encode(compact('page', 'q', 'role', 'sortBy', 'sortDir', 'limit')));
 
-        $paginatorArray = \Illuminate\Support\Facades\Cache::remember($cacheKey, 3600, function() use ($q, $role, $sortBy, $sortDir, $limit) {
-            $query = \Illuminate\Support\Facades\DB::table('players')
+        $paginatorArray = Cache::remember($cacheKey, 3600, function () use ($q, $role, $sortBy, $sortDir, $limit) {
+            $query = DB::table('players')
                 ->leftJoin('teams', 'teams.id', '=', 'players.team_id')
-                ->leftJoin('player_smart_results', function($join) {
+                ->leftJoin('player_smart_results', function ($join) {
                     $join->on('players.id', '=', 'player_smart_results.player_id')
-                         ->where('player_smart_results.mode', '=', 'career');
+                        ->where('player_smart_results.mode', '=', 'career');
                 })
                 ->select(
                     'players.id',
@@ -45,19 +73,26 @@ class PlayerController extends Controller
                     'players.avg_fk',
                     'players.avg_fd',
                     'players.avg_rating',
+                    'players.consistency_index',
+                    'players.consistency_provisional_index',
+                    'players.consistency_sample_size',
+                    'players.consistency_event_count',
                     'teams.name as team_name',
                     'teams.region as team_region',
-                    'player_smart_results.final_score as smart_final_score'
+                    'player_smart_results.final_score as smart_final_score',
+                    'player_smart_results.rank as smart_rank',
+                    'player_smart_results.is_provisional as smart_is_provisional',
+                    'player_smart_results.smart_confidence'
                 );
 
-            if (!empty($q)) {
+            if (! empty($q)) {
                 $leetspeakMap = ['0' => 'o', '1' => 'i', '3' => 'e', '4' => 'a', '5' => 's', '7' => 't'];
                 $normalizedQ = str_replace(array_keys($leetspeakMap), array_values($leetspeakMap), strtolower($q));
 
-                $query->where(function($qBuilder) use ($q, $normalizedQ) {
-                    $qBuilder->where('players.ign', 'ilike', '%' . $q . '%')
-                             ->orWhere('players.name', 'ilike', '%' . $q . '%')
-                             ->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(players.ign), '0', 'o'), '1', 'i'), '3', 'e'), '4', 'a'), '5', 's'), '7', 't') LIKE ?", ['%' . $normalizedQ . '%']);
+                $query->where(function ($qBuilder) use ($q, $normalizedQ) {
+                    $qBuilder->where('players.ign', 'ilike', '%'.$q.'%')
+                        ->orWhere('players.name', 'ilike', '%'.$q.'%')
+                        ->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(players.ign), '0', 'o'), '1', 'i'), '3', 'e'), '4', 'a'), '5', 's'), '7', 't') LIKE ?", ['%'.$normalizedQ.'%']);
                 });
             }
 
@@ -76,12 +111,13 @@ class PlayerController extends Controller
                     $query->orderBy('players.avg_adr', $sortDir);
                     break;
                 case 'fkfd':
-                    $query->orderByRaw('(players.avg_fk - players.avg_fd) ' . $sortDir);
+                    $query->orderByRaw('(players.avg_fk - players.avg_fd) '.$sortDir);
                     break;
                 case 'smart':
                 default:
-                    $query->orderBy('player_smart_results.final_score', $sortDir)
-                          ->orderBy('players.ign', 'asc');
+                    $query->orderByRaw('CASE WHEN player_smart_results.final_score IS NULL THEN 1 ELSE 0 END')
+                        ->orderBy('player_smart_results.final_score', $sortDir)
+                        ->orderBy('players.ign', 'asc');
                     break;
             }
 
@@ -102,16 +138,23 @@ class PlayerController extends Controller
                     'avg_fk' => $result->avg_fk,
                     'avg_fd' => $result->avg_fd,
                     'avg_rating' => $result->avg_rating,
+                    'consistency_index' => $result->consistency_index,
+                    'consistency_provisional_index' => $result->consistency_provisional_index,
+                    'consistency_sample_size' => $result->consistency_sample_size,
+                    'consistency_event_count' => $result->consistency_event_count,
                     'team' => [
                         'name' => $result->team_name,
-                        'region' => $result->team_region
+                        'region' => $result->team_region,
                     ],
-                    'smart_results' => [
-                        [
+                    'smart_results' => $result->smart_final_score === null
+                        ? []
+                        : [[
                             'mode' => 'career',
-                            'final_score' => $result->smart_final_score
-                        ]
-                    ]
+                            'final_score' => $result->smart_final_score,
+                            'rank' => $result->smart_rank,
+                            'is_provisional' => (bool) $result->smart_is_provisional,
+                            'confidence' => (float) $result->smart_confidence,
+                        ]],
                 ];
             });
 
@@ -123,48 +166,52 @@ class PlayerController extends Controller
 
     public function show($id)
     {
-        $cacheKey = 'api_player_profile_' . $id;
+        $cacheKey = 'api_player_profile_'.$id;
 
-        $playerData = \Illuminate\Support\Facades\Cache::remember($cacheKey, 3600, function() use ($id) {
+        $playerData = Cache::remember($cacheKey, 3600, function () use ($id) {
             $player = Player::with([
                 'team',
-                'smartResults' => function ($q) { $q->where('mode', 'career'); }
+                'smartResults' => function ($q) {
+                    $q->where('mode', 'career');
+                },
             ])->findOrFail($id);
 
-            $smartScore = $player->smartResults->first()?->final_score;
-            
-            $agents = \Illuminate\Support\Facades\DB::table('player_match_agents')
+            $smartResult = $player->smartResults->first();
+            $smartScore = $smartResult?->final_score;
+
+            $agents = DB::table('player_match_agents')
                 ->where('player_id', $id)
-                ->select('agent_name', \Illuminate\Support\Facades\DB::raw('count(*) as count'))
+                ->select('agent_name', DB::raw('count(*) as count'))
                 ->groupBy('agent_name')
                 ->orderBy('count', 'desc')
                 ->get();
-                
+
             $totalMatches = $player->total_matches > 0 ? $player->total_matches : 1;
 
             // Preload all agent definitions once, keyed by normalized name
             // (lowercase, slashes removed) to avoid an N+1 query per agent.
-            $agentDefs = \Illuminate\Support\Facades\DB::table('valorant_agents')
+            $agentDefs = DB::table('valorant_agents')
                 ->select('name', 'icon_url')
                 ->get()
-                ->keyBy(fn($agent) => strtolower(str_replace('/', '', $agent->name)));
+                ->keyBy(fn ($agent) => strtolower(str_replace('/', '', $agent->name)));
 
-            $mostPickedAgents = $agents->map(function($a) use ($totalMatches, $agentDefs) {
+            $mostPickedAgents = $agents->map(function ($a) use ($totalMatches, $agentDefs) {
                 $agentDef = $agentDefs->get(strtolower(str_replace('/', '', $a->agent_name)));
+
                 return [
                     'name' => $a->agent_name,
                     'count' => $a->count,
-                    'percentage' => round(($a->count / $totalMatches) * 100, 1) . '%',
-                    'icon_url' => $agentDef ? $agentDef->icon_url : null
+                    'percentage' => round(($a->count / $totalMatches) * 100, 1).'%',
+                    'icon_url' => $agentDef ? $agentDef->icon_url : null,
                 ];
             })->values()->toArray();
 
-            $defaultProfile = \Illuminate\Support\Facades\DB::table('smart_weight_profiles')
+            $defaultProfile = DB::table('smart_weight_profiles')
                 ->where('is_public', true)
                 ->orderBy('created_at', 'asc')
                 ->first();
 
-            $historyQuery = \Illuminate\Support\Facades\DB::table('player_smart_rank_history')
+            $historyQuery = DB::table('player_smart_rank_history')
                 ->where('player_id', $id)
                 ->where('mode', 'career');
 
@@ -173,12 +220,12 @@ class PlayerController extends Controller
             }
 
             $history = $historyQuery->orderBy('snapshot_date', 'asc')->get();
-                
-            $rankHistory = $history->map(function($h) {
+
+            $rankHistory = $history->map(function ($h) {
                 return [
                     'date' => date('Y-m-d', strtotime($h->snapshot_date)),
-                    'rank' => (int)$h->rank,
-                    'score' => round((float)$h->final_score, 1)
+                    'rank' => (int) $h->rank,
+                    'score' => round((float) $h->final_score, 1),
                 ];
             })->values()->toArray();
 
@@ -188,8 +235,11 @@ class PlayerController extends Controller
                 $last = $rankHistory[count($rankHistory) - 1]['rank'];
                 $prev = $rankHistory[count($rankHistory) - 2]['rank'];
                 $diff = $prev - $last; // if prev was 5 and last is 2, diff is +3
-                if ($diff > 0) $rankShift = '+' . $diff;
-                else if ($diff < 0) $rankShift = (string)$diff;
+                if ($diff > 0) {
+                    $rankShift = '+'.$diff;
+                } elseif ($diff < 0) {
+                    $rankShift = (string) $diff;
+                }
             }
 
             $radarStats = [
@@ -201,6 +251,10 @@ class PlayerController extends Controller
                 'Flexibility' => round($player->flexibility_score ?? 50),
             ];
 
+            if ($player->consistency_index !== null) {
+                $radarStats['Consistency'] = round($player->consistency_index);
+            }
+
             return [
                 'id' => $player->id,
                 'ign' => $player->ign,
@@ -210,24 +264,43 @@ class PlayerController extends Controller
                 'team_logo' => $player->team ? $player->team->logo_url : null,
                 'photo_url' => $player->photo_url,
                 'role' => $player->current_role,
-                'smart_score' => $smartScore ? round($smartScore, 1) : null,
-                'smart_rank' => count($rankHistory) > 0 ? $rankHistory[count($rankHistory) - 1]['rank'] : null,
+                'smart_score' => $smartScore !== null ? round($smartScore, 1) : null,
+                'smart_rank' => $smartResult?->rank,
+                'smart_status' => $smartResult === null
+                    ? null
+                    : ($smartResult->is_provisional ? 'provisional' : 'verified'),
+                'smart_confidence' => $smartResult?->smart_confidence,
                 'smart_rank_history' => $rankHistory,
                 'rank_shift' => $rankShift,
                 'raw_stats' => [
                     'matches' => $player->total_matches,
-                    'win_rate' => round($player->win_rate, 1) . '%',
+                    'win_rate' => round($player->win_rate, 1).'%',
                     'rating' => round($player->avg_rating, 2),
                     'acs' => round($player->avg_acs, 1),
                     'kd' => round($player->avg_kd, 2),
-                    'kast' => round($player->avg_kast, 1) . '%',
+                    'kast' => round($player->avg_kast, 1).'%',
                     'adr' => round($player->avg_adr, 1),
                 ],
+                'consistency' => [
+                    'value' => $player->consistency_index === null ? null : round($player->consistency_index, 2),
+                    'provisional_value' => $player->consistency_provisional_index === null
+                        ? null
+                        : round($player->consistency_provisional_index, 2),
+                    'eligible' => $player->consistency_index !== null
+                        && $player->consistency_sample_size >= ConsistencyIndexCalculator::MINIMUM_SAMPLE_SIZE
+                        && $player->consistency_event_count >= ConsistencyIndexCalculator::MINIMUM_EVENT_COUNT,
+                    'sample_size' => $player->consistency_sample_size,
+                    'minimum_sample_size' => ConsistencyIndexCalculator::MINIMUM_SAMPLE_SIZE,
+                    'event_count' => $player->consistency_event_count,
+                    'minimum_event_count' => ConsistencyIndexCalculator::MINIMUM_EVENT_COUNT,
+                    'method' => $player->consistency_method,
+                    'calculated_at' => $player->consistency_calculated_at?->toIso8601String(),
+                ],
                 'radar_stats' => $radarStats,
-                'most_picked_agents' => $mostPickedAgents
+                'most_picked_agents' => $mostPickedAgents,
             ];
         });
-        
+
         return response()->json($playerData);
     }
 }

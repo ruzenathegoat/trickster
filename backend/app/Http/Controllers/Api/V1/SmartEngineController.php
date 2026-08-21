@@ -1,31 +1,36 @@
 <?php
+
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\Player;
+use App\Models\PlayerSmartResult;
 use App\Models\SmartCriteria;
 use App\Models\SmartWeightProfile;
-use App\Models\Player;
-use App\Models\PlayerCriteriaScore;
+use App\Models\User;
+use App\Services\ConsistencyIndexCalculator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class SmartEngineController extends Controller
 {
     public function criteria()
     {
-        return response()->json(\Illuminate\Support\Facades\Cache::remember('api_smart_criteria', 3600, function() {
+        return response()->json(Cache::remember('api_smart_criteria', 3600, function () {
             return SmartCriteria::all()->toArray();
         }));
     }
 
     public function bounds()
     {
-        return response()->json(\Illuminate\Support\Facades\Cache::remember('api_smart_bounds', 3600, function() {
-            $min = \App\Models\PlayerSmartResult::where('mode', 'career')->min('final_score') ?? 0;
-            $max = \App\Models\PlayerSmartResult::where('mode', 'career')->max('final_score') ?? 100;
+        return response()->json(Cache::remember('api_smart_bounds', 3600, function () {
+            $min = PlayerSmartResult::where('mode', 'career')->min('final_score') ?? 0;
+            $max = PlayerSmartResult::where('mode', 'career')->max('final_score') ?? 100;
+
             return [
-                'min' => round((float)$min, 1),
-                'max' => round((float)$max, 1),
+                'min' => round((float) $min, 1),
+                'max' => round((float) $max, 1),
             ];
         }));
     }
@@ -38,16 +43,19 @@ class SmartEngineController extends Controller
         $preferredAgents = $request->input('agent_preferences', []);
         $mode = $request->input('mode', 'career');
 
-        $cacheKey = 'scout_' . md5(json_encode([$role, $minScore, $playstyle, $preferredAgents, $mode]));
+        $version = Cache::get('api_smart_calc_version', 'v1');
+        $cacheKey = 'scout_'.$version.'_'.md5(json_encode([$role, $minScore, $playstyle, $preferredAgents, $mode]));
 
-        $finalResponse = \Illuminate\Support\Facades\Cache::remember($cacheKey, 3600, function() use ($role, $minScore, $playstyle, $preferredAgents, $mode) {
-            $results = \Illuminate\Support\Facades\DB::table('player_smart_results')
+        $finalResponse = Cache::remember($cacheKey, 3600, function () use ($role, $minScore, $playstyle, $preferredAgents, $mode) {
+            $results = DB::table('player_smart_results')
                 ->join('players', 'player_smart_results.player_id', '=', 'players.id')
                 ->where('player_smart_results.mode', $mode)
                 ->where('player_smart_results.final_score', '>=', $minScore)
                 ->where('players.current_role', $role)
                 ->select(
                     'player_smart_results.final_score',
+                    'player_smart_results.is_provisional',
+                    'player_smart_results.smart_confidence',
                     'players.id',
                     'players.ign',
                     'players.current_role',
@@ -59,21 +67,22 @@ class SmartEngineController extends Controller
             $playerIds = $results->pluck('id')->toArray();
 
             // 1. BATCH QUERY: Database Level Grouping
-            $allAgentPicks = \Illuminate\Support\Facades\DB::table('player_match_agents')
+            $allAgentPicks = DB::table('player_match_agents')
                 ->whereIn('player_id', $playerIds)
-                ->select('player_id', 'agent_name', \Illuminate\Support\Facades\DB::raw('count(*) as count'))
+                ->select('player_id', 'agent_name', DB::raw('count(*) as count'))
                 ->groupBy('player_id', 'agent_name')
                 ->get()
                 ->groupBy('player_id');
 
             // 2. CACHE METADATA
-            $agentsMap = \Illuminate\Support\Facades\Cache::rememberForever('valorant_agents_map_array', function() {
-                $agents = \Illuminate\Support\Facades\DB::table('valorant_agents')->get();
+            $agentsMap = Cache::rememberForever('valorant_agents_map_array', function () {
+                $agents = DB::table('valorant_agents')->get();
                 $map = [];
                 foreach ($agents as $item) {
                     $key = preg_replace('/[^a-z0-9]/', '', strtolower($item->name));
                     $map[$key] = (array) $item;
                 }
+
                 return $map;
             });
 
@@ -83,7 +92,9 @@ class SmartEngineController extends Controller
                 $agentPicks = $picks->sortByDesc('count')->values();
 
                 $totalPicks = $agentPicks->sum('count');
-                if ($totalPicks == 0) continue;
+                if ($totalPicks == 0) {
+                    continue;
+                }
 
                 $playedOutsideRole = false;
                 $topAgentUrls = [];
@@ -92,9 +103,9 @@ class SmartEngineController extends Controller
                 foreach ($agentPicks as $pick) {
                     $normalizedPick = preg_replace('/[^a-z0-9]/', '', strtolower($pick->agent_name));
                     $agentMeta = $agentsMap[$normalizedPick] ?? null;
-                    
+
                     $topAgentNames[] = $agentMeta ? $agentMeta['name'] : ucfirst($pick->agent_name);
-                    
+
                     if (count($topAgentUrls) < 3 && $agentMeta && $agentMeta['icon_url']) {
                         $topAgentUrls[] = $agentMeta['icon_url'];
                     }
@@ -105,12 +116,16 @@ class SmartEngineController extends Controller
                     }
                 }
 
-                $isSpecialist = !$playedOutsideRole;
-                
-                if ($playstyle === 'Specialist' && !$isSpecialist) continue;
-                if ($playstyle === 'Adaptable' && $isSpecialist) continue;
+                $isSpecialist = ! $playedOutsideRole;
 
-                if (!empty($preferredAgents)) {
+                if ($playstyle === 'Specialist' && ! $isSpecialist) {
+                    continue;
+                }
+                if ($playstyle === 'Adaptable' && $isSpecialist) {
+                    continue;
+                }
+
+                if (! empty($preferredAgents)) {
                     $top3Names = array_slice($topAgentNames, 0, 3);
                     $hasPreference = false;
                     foreach ($preferredAgents as $pref) {
@@ -119,8 +134,10 @@ class SmartEngineController extends Controller
                             break;
                         }
                     }
-                    
-                    if (!$hasPreference) continue;
+
+                    if (! $hasPreference) {
+                        continue;
+                    }
                 }
 
                 $finalResults[] = [
@@ -128,12 +145,14 @@ class SmartEngineController extends Controller
                     'name' => $player->ign,
                     'role' => $player->current_role,
                     'smart_score' => round($player->final_score, 1),
+                    'smart_status' => $player->is_provisional ? 'provisional' : 'verified',
+                    'smart_confidence' => round(((float) $player->smart_confidence) * 100),
                     'adaptability' => $isSpecialist ? 'Specialist' : 'Adaptable',
                     'photo_url' => $player->photo_url,
                     'top_agents' => $topAgentUrls,
                 ];
             }
-            
+
             return array_slice($finalResults, 0, 20);
         });
 
@@ -142,23 +161,27 @@ class SmartEngineController extends Controller
 
     public function profiles(Request $request)
     {
-        $userId = $request->header('X-User-Id') ?? \App\Models\User::first()->id ?? null;
-        if (!$userId) return response()->json(['error' => 'No user found'], 400);
-        
-        $profiles = \Illuminate\Support\Facades\Cache::remember('api_smart_profiles_' . $userId, 3600, function() use ($userId) {
+        $userId = $request->header('X-User-Id') ?? User::first()->id ?? null;
+        if (! $userId) {
+            return response()->json(['error' => 'No user found'], 400);
+        }
+
+        $profiles = Cache::remember('api_smart_profiles_'.$userId, 3600, function () use ($userId) {
             return SmartWeightProfile::with(['weightValues.criteria', 'queryFilters.criteria'])
                 ->where('user_id', $userId)
                 ->get()->toArray();
         });
-            
+
         return response()->json($profiles);
     }
 
     public function storeProfile(Request $request)
     {
-        $userId = $request->header('X-User-Id') ?? \App\Models\User::first()->id ?? null;
-        if (!$userId) return response()->json(['error' => 'No user found'], 400);
-        
+        $userId = $request->header('X-User-Id') ?? User::first()->id ?? null;
+        if (! $userId) {
+            return response()->json(['error' => 'No user found'], 400);
+        }
+
         DB::beginTransaction();
         try {
             $profile = SmartWeightProfile::create([
@@ -166,7 +189,7 @@ class SmartEngineController extends Controller
                 'name' => $request->name,
                 'is_public' => $request->is_public ?? false,
             ]);
-            
+
             if ($request->has('weights')) {
                 foreach ($request->weights as $weight) {
                     $profile->weightValues()->create([
@@ -176,7 +199,7 @@ class SmartEngineController extends Controller
                     ]);
                 }
             }
-            
+
             if ($request->has('filters')) {
                 foreach ($request->filters as $filter) {
                     $profile->queryFilters()->create([
@@ -187,12 +210,13 @@ class SmartEngineController extends Controller
                 }
             }
             DB::commit();
-            
-            \Illuminate\Support\Facades\Cache::forget('api_smart_profiles_' . $userId);
-            
+
+            Cache::forget('api_smart_profiles_'.$userId);
+
             return response()->json($profile->load(['weightValues', 'queryFilters']), 201);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
@@ -201,40 +225,59 @@ class SmartEngineController extends Controller
     {
         $weights = collect($request->weights);
         $criteriaIds = $weights->pluck('criteria_id')->toArray();
-        
-        $cacheKey = 'api_smart_calc_' . md5(json_encode($request->weights));
-        
-        $results = \Illuminate\Support\Facades\Cache::remember($cacheKey, 3600, function() use ($weights, $criteriaIds) {
-            $players = Player::with(['team', 'criteriaScores' => function($q) use ($criteriaIds) {
+
+        $cacheVersion = Cache::get('api_smart_calc_version', 'v1');
+        $cacheKey = 'api_smart_calc_'.$cacheVersion.'_'.md5(json_encode($request->weights));
+
+        $results = Cache::remember($cacheKey, 3600, function () use ($weights, $criteriaIds) {
+            $criteriaMeta = SmartCriteria::whereIn('id', $criteriaIds)->get()->keyBy('id');
+            $players = Player::with(['team', 'criteriaScores' => function ($q) use ($criteriaIds) {
                 $q->whereIn('criteria_id', $criteriaIds);
-            }])->get();
-            
+            }])
+                ->where('consistency_sample_size', '>=', ConsistencyIndexCalculator::MINIMUM_SAMPLE_SIZE)
+                ->where('consistency_event_count', '>=', ConsistencyIndexCalculator::MINIMUM_EVENT_COUNT)
+                ->whereNotNull('consistency_index')
+                ->get();
+
             $minMax = [];
             foreach ($criteriaIds as $cId) {
                 $scores = $players->flatMap->criteriaScores->where('criteria_id', $cId)->pluck('raw_value');
                 if ($scores->isNotEmpty()) {
                     $minMax[$cId] = [
                         'min' => $scores->min(),
-                        'max' => $scores->max()
+                        'max' => $scores->max(),
                     ];
                 }
             }
-            
-            return $players->map(function($player) use ($weights, $minMax) {
+
+            return $players->map(function ($player) use ($weights, $minMax, $criteriaMeta) {
                 $score = 0;
                 foreach ($weights as $w) {
                     $cId = $w['criteria_id'];
                     $ps = $player->criteriaScores->where('criteria_id', $cId)->first();
                     if ($ps && isset($minMax[$cId])) {
-                        $min = $minMax[$cId]['min'];
-                        $max = $minMax[$cId]['max'];
-                        $norm = ($max - $min) > 0 ? ($ps->raw_value - $min) / ($max - $min) : 0;
+                        $criterion = $criteriaMeta->get($cId);
+
+                        if ($criterion?->name === 'Consistency Index') {
+                            $norm = max(0, min(1, (float) $ps->raw_value / 100));
+                        } else {
+                            $min = $minMax[$cId]['min'];
+                            $max = $minMax[$cId]['max'];
+                            $range = $max - $min;
+                            $norm = $range > 0 ? ($ps->raw_value - $min) / $range : 0;
+
+                            if ($criterion?->type === 'cost') {
+                                $norm = 1 - $norm;
+                            }
+                        }
+
                         $score += ($norm * $w['weight']);
                     }
                 }
-                
+
                 $playerData = $player->toArray();
                 $playerData['selection_score'] = $score;
+
                 return $playerData;
             })->sortByDesc('selection_score')->values()->toArray();
         });

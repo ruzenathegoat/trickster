@@ -199,7 +199,7 @@ export default function MetaExplorer() {
                 <img 
                   src={heroMap.image} 
                   alt={heroMap.name}
-                  className="absolute inset-0 w-full h-full object-cover grayscale contrast-125 brightness-50 hover:grayscale-0 transition-all duration-700"
+                  className="absolute inset-0 w-full h-full object-cover brightness-75 hover:brightness-100 transition-all duration-700"
                 />
                 <div className="relative z-10 p-6 md:p-8 lg:p-10 flex flex-col justify-end h-full min-h-[200px] md:min-h-[300px]">
                   <span className="font-label text-[10px] md:text-[11px] font-bold text-white/50 uppercase tracking-widest mb-2">Featured Map</span>
@@ -250,7 +250,7 @@ export default function MetaExplorer() {
                       <img 
                         src={map.image} 
                         alt={map.name}
-                        className="absolute inset-0 w-full h-full object-cover grayscale contrast-125 brightness-50 group-hover:brightness-75 transition-all duration-500"
+                        className="absolute inset-0 w-full h-full object-cover brightness-75 group-hover:brightness-90 transition-all duration-500"
                       />
                       <div className="relative z-10 flex items-end p-4 h-full">
                         <h3 className="font-display text-xl md:text-3xl uppercase tracking-tighter text-white leading-none">

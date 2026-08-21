@@ -18,6 +18,7 @@ const MetaExplorer = lazy(() => import('./pages/users/MetaExplorer'));
 const RecommendFlow = lazy(() => import('./pages/users/RecommendFlow'));
 const Simulation = lazy(() => import('./pages/users/Simulation'));
 const Landing = lazy(() => import('./pages/users/Landing'));
+const Docs = lazy(() => import('./pages/users/Docs'));
 const Login = lazy(() => import('./pages/users/Login'));
 const Register = lazy(() => import('./pages/users/Register'));
 const ForgotPassword = lazy(() => import('./pages/users/ForgotPassword'));
@@ -44,6 +45,7 @@ function App() {
             <Routes>
           {/* Public / Marketing Routes (Layer 1) */}
           <Route path="/" element={<Landing />} />
+          <Route path="/docs" element={<Docs />} />
 
           {/* Authentication Routes */}
           <Route element={<AuthLayout />}>

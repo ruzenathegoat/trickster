@@ -22,6 +22,9 @@ class DashboardController extends Controller
             $topPlayerResult = \Illuminate\Support\Facades\DB::table('player_smart_results')
                 ->join('players', 'players.id', '=', 'player_smart_results.player_id')
                 ->leftJoin('smart_weight_profiles', 'smart_weight_profiles.id', '=', 'player_smart_results.profile_id')
+                ->where('player_smart_results.mode', 'career')
+                ->whereNull('player_smart_results.patch_id')
+                ->where('player_smart_results.is_provisional', false)
                 ->select(
                     'players.id as player_id',
                     'player_smart_results.final_score',

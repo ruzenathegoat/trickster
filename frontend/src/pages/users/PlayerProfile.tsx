@@ -21,6 +21,8 @@ interface PlayerDetails {
   role: string;
   smart_score: number | null;
   smart_rank: number | null;
+  smart_status: 'verified' | 'provisional' | null;
+  smart_confidence: number | null;
   smart_rank_history?: { date: string; rank: number }[];
   rank_shift?: string;
   raw_stats: {
@@ -32,11 +34,23 @@ interface PlayerDetails {
     kast: string;
     adr: number;
   };
+  consistency: {
+    value: number | null;
+    provisional_value: number | null;
+    eligible: boolean;
+    sample_size: number;
+    minimum_sample_size: number;
+    event_count: number;
+    minimum_event_count: number;
+    method: string | null;
+    calculated_at: string | null;
+  };
   radar_stats: {
     'ACS': number;
     'K/D': number;
     'KAST': number;
     'ADR': number;
+    'Consistency'?: number;
     'Adaptability': number;
     'Flexibility': number;
   };
@@ -62,7 +76,7 @@ export default function PlayerProfile() {
     const fetchPlayer = async () => {
       try {
         // Caching Layer 1: Check Session Storage first
-        const cacheKey = `trickster_player_profile_${playerId}`;
+        const cacheKey = `trickster_player_profile_smart_provisional_v1_${playerId}`;
         const cachedData = sessionStorage.getItem(cacheKey);
         if (cachedData) {
           try {
@@ -431,15 +445,36 @@ export default function PlayerProfile() {
                   <span className="text-[11px] font-black text-theme-text/50 uppercase tracking-widest">Win Rate</span>
                   <span className="font-numeric font-black text-[15px] text-theme-text tabular-nums">{player.raw_stats.win_rate}</span>
                 </div>
+                <div className="flex justify-between items-end border-b-2 border-theme-border/20 pb-2">
+                  <span className="text-[11px] font-black text-theme-text/50 uppercase tracking-widest">Consistency</span>
+                  <span className="font-numeric font-black text-[15px] text-theme-text tabular-nums">
+                    {player.consistency?.eligible && player.consistency.value !== null
+                      ? player.consistency.value.toFixed(2)
+                      : (player.consistency?.sample_size ?? 0) < (player.consistency?.minimum_sample_size ?? 20)
+                        ? `Provisional ${player.consistency?.sample_size ?? 0}/${player.consistency?.minimum_sample_size ?? 20} matches`
+                        : `Provisional ${player.consistency?.event_count ?? 0}/${player.consistency?.minimum_event_count ?? 2} events`}
+                  </span>
+                </div>
                 <div className="flex justify-between items-end pt-2">
-                  <span className="text-[11px] font-black text-theme-text uppercase tracking-widest">SMART Rank</span>
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-display text-theme-text text-4xl leading-none">
-                      {player.smart_rank ? `#${player.smart_rank}` : 'N/A'}
-                    </span>
-                    {player.rank_shift && player.rank_shift !== '0' && (
-                      <span className={`font-numeric font-bold text-[16px] ${player.rank_shift.startsWith('+') ? 'text-[#00E676]' : 'text-[#FF3366]'}`}>
-                        {player.rank_shift}
+                  <span className="text-[11px] font-black text-theme-text uppercase tracking-widest">
+                    {player.smart_status === 'provisional' ? 'SMART Score' : 'SMART Rank'}
+                  </span>
+                  <div className="flex flex-col items-end gap-1">
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-display text-theme-text text-4xl leading-none">
+                        {player.smart_status === 'provisional'
+                          ? (player.smart_score?.toFixed(1) ?? 'N/A')
+                          : (player.smart_rank ? `#${player.smart_rank}` : 'N/A')}
+                      </span>
+                      {player.smart_status !== 'provisional' && player.rank_shift && player.rank_shift !== '0' && (
+                        <span className={`font-numeric font-bold text-[16px] ${player.rank_shift.startsWith('+') ? 'text-[#00E676]' : 'text-[#FF3366]'}`}>
+                          {player.rank_shift}
+                        </span>
+                      )}
+                    </div>
+                    {player.smart_status === 'provisional' && (
+                      <span className="font-label text-[9px] font-bold uppercase tracking-widest text-theme-text/50">
+                        Provisional · {Math.round((player.smart_confidence ?? 0) * 100)}% confidence
                       </span>
                     )}
                   </div>

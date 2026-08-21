@@ -1,3 +1,6 @@
+import { DiscordLogo, XLogo } from '@phosphor-icons/react';
+import { Link } from 'react-router-dom';
+
 export default function Footer() {
   return (
     <footer className="bg-[#111111] border-t-8 border-theme-border w-full py-16 px-6 md:px-12 mt-24 relative overflow-hidden">
@@ -26,6 +29,11 @@ export default function Footer() {
         {/* Center: Links */}
         <ul className="flex flex-col md:flex-row gap-6 md:gap-10">
           <li>
+            <Link to="/docs" className="font-label text-[12px] font-bold text-gray-400 hover:text-[var(--color-primary)] uppercase tracking-widest transition-colors">
+              Methodology Docs
+            </Link>
+          </li>
+          <li>
             <a href="#terms" className="font-label text-[12px] font-bold text-gray-400 hover:text-[var(--color-primary)] uppercase tracking-widest transition-colors">
               Terms of Service
             </a>
@@ -37,12 +45,13 @@ export default function Footer() {
           </li>
           <li>
             <a href="#twitter" className="font-label text-[12px] font-bold text-gray-400 hover:text-[var(--color-primary)] uppercase tracking-widest transition-colors flex items-center gap-2">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              <XLogo size={14} weight="bold" />
               Twitter
             </a>
           </li>
           <li>
-            <a href="#discord" className="font-label text-[12px] font-bold text-gray-400 hover:text-[var(--color-primary)] uppercase tracking-widest transition-colors">
+            <a href="#discord" className="font-label text-[12px] font-bold text-gray-400 hover:text-[var(--color-primary)] uppercase tracking-widest transition-colors flex items-center gap-2">
+              <DiscordLogo size={14} weight="bold" />
               Discord
             </a>
           </li>

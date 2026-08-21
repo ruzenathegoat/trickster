@@ -425,6 +425,11 @@ export default function RecommendFlow() {
                       <div className="flex flex-col items-center md:items-end gap-2 shrink-0">
                         <span className="font-label text-[11px] text-theme-text/50 uppercase tracking-widest">SMART Score</span>
                         <span className="font-display text-5xl text-theme-text">{hero.smart_score}</span>
+                        {hero.smart_status === 'provisional' && (
+                          <span className="font-label text-[9px] font-bold text-theme-text/50 uppercase tracking-widest">
+                            Provisional · {hero.smart_confidence}% confidence
+                          </span>
+                        )}
                         <Link 
                           to={`/app/players/${hero.id}`}
                           className="mt-2 font-label text-[11px] font-bold uppercase tracking-widest bg-black text-[var(--color-primary)] px-4 py-2 hover:bg-theme-bg hover:text-theme-text transition-colors flex items-center gap-2"
@@ -469,7 +474,14 @@ export default function RecommendFlow() {
                             <img key={i} src={agent} className="w-9 h-9 bg-black border-2 border-theme-border" alt="agent" />
                           ))}
                         </div>
-                        <span className="font-numeric font-bold text-lg tabular-nums">{player.smart_score}</span>
+                        <div className="flex flex-col items-end">
+                          <span className="font-numeric font-bold text-lg tabular-nums">{player.smart_score}</span>
+                          {player.smart_status === 'provisional' && (
+                            <span className="font-label text-[8px] font-bold uppercase tracking-wider text-theme-text/50">
+                              Provisional · {player.smart_confidence}%
+                            </span>
+                          )}
+                        </div>
                         <Link 
                           to={`/app/players/${player.id}`}
                           className="font-label text-[11px] font-bold uppercase tracking-widest bg-black text-white px-3 py-2 hover:bg-[var(--color-primary)] hover:text-black border-2 border-theme-border transition-colors shrink-0"

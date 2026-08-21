@@ -66,6 +66,7 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function
 });
 
 Route::prefix('v1')->group(function () {
+    Route::get('/players/momentum', [PlayerController::class, 'momentum']);
     Route::get('/players', [PlayerController::class, 'index']);
     Route::get('/players/{id}', [PlayerController::class, 'show']);
 

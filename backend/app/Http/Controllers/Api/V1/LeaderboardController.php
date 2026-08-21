@@ -13,10 +13,14 @@ class LeaderboardController extends Controller
      */
     public function index()
     {
-        $data = \Illuminate\Support\Facades\Cache::remember('api_leaderboard_top', 3600, function() {
+        $version = \Illuminate\Support\Facades\Cache::get('api_smart_calc_version', 'v1');
+        $data = \Illuminate\Support\Facades\Cache::remember('api_leaderboard_top_'.$version, 3600, function() {
             $topResults = \Illuminate\Support\Facades\DB::table('player_smart_results')
                 ->join('players', 'players.id', '=', 'player_smart_results.player_id')
                 ->leftJoin('teams', 'teams.id', '=', 'players.team_id')
+                ->where('player_smart_results.mode', 'career')
+                ->whereNull('player_smart_results.patch_id')
+                ->where('player_smart_results.is_provisional', false)
                 ->select(
                     'player_smart_results.final_score',
                     'player_smart_results.mode',
@@ -59,12 +63,16 @@ class LeaderboardController extends Controller
     {
         $role = $request->role ?? 'All';
         $page = $request->get('page', 1);
-        $cacheKey = 'api_leaderboard_players_role_' . md5($role) . '_page_' . $page;
+        $version = \Illuminate\Support\Facades\Cache::get('api_smart_calc_version', 'v1');
+        $cacheKey = 'api_leaderboard_players_'.$version.'_role_' . md5($role) . '_page_' . $page;
 
         $paginatorArray = \Illuminate\Support\Facades\Cache::remember($cacheKey, 3600, function() use ($role) {
             $query = \Illuminate\Support\Facades\DB::table('player_smart_results')
                 ->join('players', 'players.id', '=', 'player_smart_results.player_id')
                 ->leftJoin('teams', 'teams.id', '=', 'players.team_id')
+                ->where('player_smart_results.mode', 'career')
+                ->whereNull('player_smart_results.patch_id')
+                ->where('player_smart_results.is_provisional', false)
                 ->select(
                     'player_smart_results.final_score',
                     'player_smart_results.mode',
