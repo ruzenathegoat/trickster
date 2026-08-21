@@ -289,7 +289,7 @@ export default function Leaderboard() {
                     </td>
                     <td className="py-4 px-3 md:py-6 md:px-6 font-['Archivo_Black'] uppercase text-lg md:text-xl text-theme-text whitespace-nowrap">
                       <div className="flex items-center gap-3 md:gap-4">
-                        <div className="w-10 h-10 md:w-12 md:h-12 bg-theme-bg border-2 border-theme-border overflow-hidden shrink-0 flex items-center justify-center shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-theme-bg border-2 border-theme-border overflow-hidden shrink-0 flex items-center justify-center">
                           {player.photo_url ? (
                             <img src={player.photo_url} alt={player.ign} className="w-full h-full object-cover contrast-125" />
                           ) : (
@@ -303,7 +303,7 @@ export default function Leaderboard() {
                       {player.team_name}
                     </td>
                     <td className="py-4 px-3 md:py-6 md:px-6 whitespace-nowrap">
-                      <span className="inline-block px-2 py-1 md:px-3 md:py-1.5 bg-theme-bg border-2 border-theme-border text-[10px] md:text-[11px] font-black uppercase tracking-widest shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
+                      <span className="inline-block px-2 py-1 md:px-3 md:py-1.5 bg-theme-bg border-2 border-theme-border text-[10px] md:text-[11px] font-black uppercase tracking-widest">
                         {player.role}
                       </span>
                     </td>
