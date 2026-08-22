@@ -23,6 +23,29 @@ import {
 import clsx from 'clsx';
 import { useAuth } from '../contexts/AuthContext';
 import { ThemeToggle } from '../components/ThemeToggle';
+
+type SearchHistoryItem = { query: string };
+
+type PlayerSearchResult = {
+  id: string;
+  ign: string;
+  name?: string | null;
+  photo_url?: string | null;
+  current_role?: string | null;
+  team?: { name?: string | null } | null;
+};
+
+type TeamSearchResult = {
+  id: string;
+  name: string;
+  logo_url?: string | null;
+  region?: string | null;
+};
+
+type GlobalSearchResult =
+  | ({ type: 'players' } & PlayerSearchResult)
+  | ({ type: 'teams' } & TeamSearchResult);
+
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -33,15 +56,14 @@ export default function AppLayout() {
   const [activePatch, setActivePatch] = useState<string>('...');
 
   // Search History State
-  const [searchType, setSearchType] = useState<'players' | 'teams'>('players');
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchHistory, setSearchHistory] = useState<{type: string, query: string}[]>([]);
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchWrapperRef = useRef<HTMLDivElement>(null);
 
   // Live Search Preview State
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<GlobalSearchResult[]>([]);
 
   // Debounced Search Effect
   useEffect(() => {
@@ -51,23 +73,39 @@ export default function AppLayout() {
       return;
     }
 
+    const controller = new AbortController();
+    const query = searchQuery.trim();
     setIsSearching(true);
-    const timer = setTimeout(() => {
-      const url = searchType === 'players' 
-        ? `/api/v1/players?q=${encodeURIComponent(searchQuery)}`
-        : `/api/v1/teams?q=${encodeURIComponent(searchQuery)}`;
-      
-      axios.get(url)
-        .then(res => {
-          const data = res.data.data ? res.data.data : res.data;
-          setSearchResults(data.slice(0, 5));
-        })
-        .catch(err => console.error(err))
-        .finally(() => setIsSearching(false));
+    setSearchResults([]);
+
+    const timer = setTimeout(async () => {
+      try {
+        const response = await axios.get('/api/v1/search', {
+          params: { q: query, limit: 10 },
+          signal: controller.signal,
+        });
+
+        if (controller.signal.aborted) return;
+
+        const data = response.data.data ?? response.data;
+        setSearchResults(Array.isArray(data) ? data : []);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.error(error);
+          setSearchResults([]);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsSearching(false);
+        }
+      }
     }, 300);
 
-    return () => clearTimeout(timer);
-  }, [searchQuery, searchType]);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [searchQuery]);
 
   useEffect(() => {
     axios.get('/api/v1/active-patch')
@@ -80,14 +118,22 @@ export default function AppLayout() {
     const saved = localStorage.getItem('trickster_search_history');
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
-        if (parsed.length > 0 && typeof parsed[0] === 'string') {
-          // Migration from old array of strings
-          setSearchHistory(parsed.map((q: string) => ({ type: 'players', query: q })));
-        } else {
-          setSearchHistory(parsed);
-        }
-      } catch (e) {
+        const parsed: unknown = JSON.parse(saved);
+        if (!Array.isArray(parsed)) return;
+
+        // Old history entries included a player/team type. Search is now global,
+        // so keep only unique query values during migration.
+        const queries = parsed
+          .map((item): string | null => {
+            if (typeof item === 'string') return item;
+            if (item && typeof item === 'object' && 'query' in item && typeof item.query === 'string') {
+              return item.query;
+            }
+            return null;
+          })
+          .filter((query): query is string => Boolean(query?.trim()));
+        setSearchHistory([...new Set(queries)].slice(0, 5).map(query => ({ query })));
+      } catch {
         setSearchHistory([]);
       }
     }
@@ -104,20 +150,43 @@ export default function AppLayout() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const saveSearchHistory = (query: string) => {
+    const normalizedQuery = query.trim();
+    if (!normalizedQuery) return;
+
+    const updatedHistory = [
+      { query: normalizedQuery },
+      ...searchHistory.filter(item => item.query.toLowerCase() !== normalizedQuery.toLowerCase()),
+    ].slice(0, 5);
+    setSearchHistory(updatedHistory);
+    localStorage.setItem('trickster_search_history', JSON.stringify(updatedHistory));
+  };
+
   const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && searchQuery.trim() !== '') {
-      const newQuery = searchQuery.trim();
-      const updatedHistory = [{ type: searchType, query: newQuery }, ...searchHistory.filter(item => item.query !== newQuery || item.type !== searchType)].slice(0, 5);
-      setSearchHistory(updatedHistory);
-      localStorage.setItem('trickster_search_history', JSON.stringify(updatedHistory));
+    if (e.key !== 'Enter' || !searchQuery.trim() || isSearching) return;
+
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const exactMatches = searchResults.filter(result => (
+      result.type === 'players'
+        ? result.ign.toLowerCase() === normalizedQuery || result.name?.toLowerCase() === normalizedQuery
+        : result.name.toLowerCase() === normalizedQuery
+    ));
+    const destination = exactMatches.length === 1
+      ? exactMatches[0]
+      : searchResults.length === 1
+        ? searchResults[0]
+        : null;
+
+    saveSearchHistory(searchQuery);
+    if (destination) {
       setIsSearchFocused(false);
-      navigate(`/app/${searchType}?search=${encodeURIComponent(newQuery)}`);
+      navigate(`/app/${destination.type}/${destination.id}`);
     }
   };
 
-  const removeHistoryItem = (itemToRemove: {type: string, query: string}, e: React.MouseEvent) => {
+  const removeHistoryItem = (itemToRemove: SearchHistoryItem, e: React.MouseEvent) => {
     e.stopPropagation();
-    const updatedHistory = searchHistory.filter(item => item.query !== itemToRemove.query || item.type !== itemToRemove.type);
+    const updatedHistory = searchHistory.filter(item => item.query !== itemToRemove.query);
     setSearchHistory(updatedHistory);
     localStorage.setItem('trickster_search_history', JSON.stringify(updatedHistory));
   };
@@ -127,20 +196,24 @@ export default function AppLayout() {
     localStorage.removeItem('trickster_search_history');
   };
 
-  const handleHistoryClick = (item: {type: string, query: string}) => {
+  const handleHistoryClick = (item: SearchHistoryItem) => {
     setSearchQuery(item.query);
-    setSearchType(item.type as 'players' | 'teams');
-    setIsSearchFocused(false);
-    navigate(`/app/${item.type}?search=${encodeURIComponent(item.query)}`);
+    setIsSearchFocused(true);
   };
 
-  const handleResultClick = (result: any) => {
-    const queryStr = searchType === 'players' ? result.ign : result.name;
-    const updatedHistory = [{ type: searchType, query: queryStr }, ...searchHistory.filter(item => item.query !== queryStr || item.type !== searchType)].slice(0, 5);
-    setSearchHistory(updatedHistory);
-    localStorage.setItem('trickster_search_history', JSON.stringify(updatedHistory));
+  const handleResultClick = (type: 'players' | 'teams', result: PlayerSearchResult | TeamSearchResult) => {
+    const fallbackQuery = type === 'players'
+      ? (result as PlayerSearchResult).ign
+      : (result as TeamSearchResult).name;
+    saveSearchHistory(searchQuery || fallbackQuery);
     setIsSearchFocused(false);
-    navigate(`/app/${searchType}/${result.id}`);
+    navigate(`/app/${type}/${result.id}`);
+  };
+
+  const handleViewAll = (type: 'players' | 'teams') => {
+    saveSearchHistory(searchQuery);
+    setIsSearchFocused(false);
+    navigate(`/app/${type}?search=${encodeURIComponent(searchQuery.trim())}`);
   };
 
   const handleLogout = async () => {
@@ -369,15 +442,10 @@ export default function AppLayout() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
                 onKeyDown={handleSearchSubmit}
-                placeholder={`SEARCH ${searchType.toUpperCase()}... [ENTER]`} 
-                className="w-full bg-theme-bg border-4 border-theme-border pl-12 pr-28 py-3 text-[13px] font-label font-bold uppercase tracking-widest text-theme-text placeholder-gray-400 focus:outline-none focus:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] transition-all focus:-translate-y-1"
+                placeholder="SEARCH PLAYERS & TEAMS..."
+                aria-label="Search players and teams"
+                className="w-full bg-theme-bg border-4 border-theme-border pl-12 pr-4 py-3 text-[13px] font-label font-bold uppercase tracking-widest text-theme-text placeholder-gray-400 focus:outline-none focus:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] transition-all focus:-translate-y-1"
               />
-              <button
-                onClick={() => setSearchType(t => t === 'players' ? 'teams' : 'players')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black text-[var(--color-primary)] px-2 py-1.5 font-['Archivo_Black'] text-[9px] uppercase tracking-widest hover:bg-gray-800 transition-colors"
-              >
-                {searchType === 'players' ? 'IN: PLAYERS' : 'IN: TEAMS'}
-              </button>
             </div>
             
             {/* Search History & Live Preview Dropdown */}
@@ -398,7 +466,6 @@ export default function AppLayout() {
                         <div className="flex items-center gap-3">
                           <ClockCounterClockwise size={16} className="text-gray-400 group-hover:text-black" />
                           <span className="font-['JetBrains_Mono'] text-sm font-bold text-theme-text group-hover:text-black">{item.query}</span>
-                          <span className="ml-2 font-['Archivo_Black'] text-[9px] bg-theme-bg border-2 border-theme-border px-1.5 py-0.5 uppercase tracking-widest group-hover:bg-black group-hover:text-white transition-colors">{item.type}</span>
                         </div>
                         <button 
                           onClick={(e) => removeHistoryItem(item, e)}
@@ -419,7 +486,7 @@ export default function AppLayout() {
                   // LIVE PREVIEW MODE
                   <>
                     <div className="px-4 py-2 bg-[var(--color-theme-muted)] border-b-4 border-theme-border font-['Archivo_Black'] text-xs text-gray-500 uppercase tracking-widest sticky top-0 z-10 flex justify-between items-center">
-                      <span>Live Results: {searchType.toUpperCase()}</span>
+                      <span>Players &amp; Teams</span>
                       {isSearching && <div className="w-3 h-3 bg-[var(--color-primary)] rounded-full animate-pulse border-2 border-theme-border"></div>}
                     </div>
                     
@@ -433,12 +500,13 @@ export default function AppLayout() {
                       </div>
                     ) : (
                       searchResults.map((result) => (
-                        <div 
-                          key={result.id}
-                          onClick={() => handleResultClick(result)}
-                          className="flex items-center gap-4 px-4 py-3 border-b-2 border-[var(--color-theme-divider)] hover:bg-[var(--color-primary)] cursor-pointer group transition-colors"
+                        <button
+                          type="button"
+                          key={`${result.type}-${result.id}`}
+                          onClick={() => handleResultClick(result.type, result)}
+                          className="w-full flex items-center gap-4 px-4 py-3 border-b-2 border-[var(--color-theme-divider)] hover:bg-[var(--color-primary)] cursor-pointer group transition-colors text-left"
                         >
-                          {searchType === 'players' ? (
+                          {result.type === 'players' ? (
                             <>
                               <div className="w-8 h-8 bg-[var(--color-theme-muted)] border-2 border-theme-border shrink-0 flex items-center justify-center overflow-hidden">
                                 {result.photo_url ? (
@@ -467,20 +535,30 @@ export default function AppLayout() {
                               </div>
                             </>
                           )}
-                        </div>
+                          <span className="shrink-0 bg-black text-[var(--color-primary)] px-2 py-1 font-['Archivo_Black'] text-[8px] uppercase tracking-widest">
+                            {result.type === 'players' ? 'Player' : 'Team'}
+                          </span>
+                        </button>
                       ))
                     )}
                     
                     {!isSearching && searchResults.length > 0 && (
-                      <button 
-                        onClick={() => {
-                          setIsSearchFocused(false);
-                          navigate(`/app/${searchType}?search=${encodeURIComponent(searchQuery)}`);
-                        }}
-                        className="px-4 py-3 bg-black text-[var(--color-primary)] hover:bg-gray-800 font-['Archivo_Black'] text-xs uppercase tracking-widest text-center transition-colors mt-auto flex items-center justify-center gap-2"
-                      >
-                        SEE ALL RESULTS <ArrowRight weight="bold" size={14} />
-                      </button>
+                      <div className="grid grid-cols-2 mt-auto border-t-2 border-theme-border">
+                        <button
+                          type="button"
+                          onClick={() => handleViewAll('players')}
+                          className="px-3 py-3 bg-black text-[var(--color-primary)] hover:bg-gray-800 font-['Archivo_Black'] text-[10px] uppercase tracking-widest text-center transition-colors flex items-center justify-center gap-2 border-r border-gray-700"
+                        >
+                          All Players <ArrowRight weight="bold" size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleViewAll('teams')}
+                          className="px-3 py-3 bg-black text-[var(--color-primary)] hover:bg-gray-800 font-['Archivo_Black'] text-[10px] uppercase tracking-widest text-center transition-colors flex items-center justify-center gap-2 border-l border-gray-700"
+                        >
+                          All Teams <ArrowRight weight="bold" size={13} />
+                        </button>
+                      </div>
                     )}
                   </>
                 )}

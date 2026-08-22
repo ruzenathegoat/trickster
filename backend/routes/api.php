@@ -1,11 +1,11 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\V1\AdminCurationController;
+use App\Http\Controllers\Api\V1\GlobalSearchController;
 use App\Http\Controllers\Api\V1\PlayerController;
 use App\Http\Controllers\Api\V1\SmartEngineController;
-
-use App\Http\Controllers\Api\V1\AdminCurationController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1/auth')->group(function () {
     Route::post('/login', [\App\Http\Controllers\Api\V1\AuthController::class, 'login']);
@@ -66,6 +66,7 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function
 });
 
 Route::prefix('v1')->group(function () {
+    Route::get('/search', GlobalSearchController::class);
     Route::get('/players/momentum', [PlayerController::class, 'momentum']);
     Route::get('/players', [PlayerController::class, 'index']);
     Route::get('/players/{id}', [PlayerController::class, 'show']);

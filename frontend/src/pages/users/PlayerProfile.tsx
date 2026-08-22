@@ -497,19 +497,19 @@ export default function PlayerProfile() {
               Performance Metrics
             </h2>
             <div className="flex flex-wrap gap-6 md:gap-8 lg:gap-12">
-              <div className="flex-1 min-w-[110px] flex flex-col border-l-4 border-theme-border pl-3 md:pl-4 justify-between">
+              <div className="flex-1 min-w-[110px] flex flex-col justify-between">
                 <span className="text-[10px] md:text-[11px] font-black text-theme-text/60 uppercase tracking-widest mb-2 whitespace-nowrap">Rating</span>
                 <span className="text-3xl sm:text-4xl lg:text-5xl font-display text-theme-text tracking-tight leading-none">{player.raw_stats.rating}</span>
               </div>
-              <div className="flex-1 min-w-[110px] flex flex-col border-l-4 border-theme-border pl-3 md:pl-4 justify-between">
+              <div className="flex-1 min-w-[110px] flex flex-col justify-between">
                 <span className="text-[10px] md:text-[11px] font-black text-theme-text/60 uppercase tracking-widest mb-2 whitespace-nowrap">ACS</span>
                 <span className="text-3xl sm:text-4xl lg:text-5xl font-display text-theme-text tracking-tight leading-none">{player.raw_stats.acs}</span>
               </div>
-              <div className="flex-1 min-w-[110px] flex flex-col border-l-4 border-theme-border pl-3 md:pl-4 justify-between">
+              <div className="flex-1 min-w-[110px] flex flex-col justify-between">
                 <span className="text-[10px] md:text-[11px] font-black text-theme-text/60 uppercase tracking-widest mb-2 whitespace-nowrap">K/D Ratio</span>
                 <span className="text-3xl sm:text-4xl lg:text-5xl font-display text-theme-text tracking-tight leading-none">{player.raw_stats.kd}</span>
               </div>
-              <div className="flex-1 min-w-[110px] flex flex-col border-l-4 border-theme-border pl-3 md:pl-4 justify-between">
+              <div className="flex-1 min-w-[110px] flex flex-col justify-between">
                 <span className="text-[10px] md:text-[11px] font-black text-theme-text/60 uppercase tracking-widest mb-2 whitespace-nowrap">ADR</span>
                 <span className="text-3xl sm:text-4xl lg:text-5xl font-display text-theme-text tracking-tight leading-none">{player.raw_stats.adr}</span>
               </div>
