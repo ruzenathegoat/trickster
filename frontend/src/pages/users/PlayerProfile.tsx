@@ -45,6 +45,18 @@ interface PlayerDetails {
     method: string | null;
     calculated_at: string | null;
   };
+  competition_quality: {
+    season: number;
+    exposure_percentile: number;
+    raw_match_quality: number;
+    weighted_performance: number;
+    proven_consistency: number;
+    international_matches: number;
+    international_events: number;
+    validation_status: string;
+    confidence: number;
+    method: string;
+  } | null;
   radar_stats: {
     'ACS': number;
     'K/D': number;
@@ -76,7 +88,7 @@ export default function PlayerProfile() {
     const fetchPlayer = async () => {
       try {
         // Caching Layer 1: Check Session Storage first
-        const cacheKey = `trickster_player_profile_smart_provisional_v1_${playerId}`;
+        const cacheKey = `trickster_player_profile_cqi_v2_${playerId}`;
         const cachedData = sessionStorage.getItem(cacheKey);
         if (cachedData) {
           try {
@@ -446,7 +458,7 @@ export default function PlayerProfile() {
                   <span className="font-numeric font-black text-[15px] text-theme-text tabular-nums">{player.raw_stats.win_rate}</span>
                 </div>
                 <div className="flex justify-between items-end border-b-2 border-theme-border/20 pb-2">
-                  <span className="text-[11px] font-black text-theme-text/50 uppercase tracking-widest">Consistency</span>
+                  <span className="text-[11px] font-black text-theme-text/50 uppercase tracking-widest">Consistency Percentile</span>
                   <span className="font-numeric font-black text-[15px] text-theme-text tabular-nums">
                     {player.consistency?.eligible && player.consistency.value !== null
                       ? player.consistency.value.toFixed(2)
@@ -455,6 +467,25 @@ export default function PlayerProfile() {
                         : `Provisional ${player.consistency?.event_count ?? 0}/${player.consistency?.minimum_event_count ?? 2} events`}
                   </span>
                 </div>
+                {player.competition_quality && (
+                  <>
+                    <div className="flex justify-between items-end border-b-2 border-theme-border/20 pb-2">
+                      <span className="text-[11px] font-black text-theme-text/50 uppercase tracking-widest">CQI Exposure</span>
+                      <span className="font-numeric font-black text-[15px] text-theme-text tabular-nums">
+                        {player.competition_quality.exposure_percentile.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-end border-b-2 border-theme-border/20 pb-2">
+                      <span className="text-[11px] font-black text-theme-text/50 uppercase tracking-widest">Proven Consistency</span>
+                      <span
+                        className="font-numeric font-black text-[15px] text-theme-text tabular-nums"
+                        title={`${player.competition_quality.validation_status} · ${player.competition_quality.international_matches} international matches`}
+                      >
+                        {player.competition_quality.proven_consistency.toFixed(2)}
+                      </span>
+                    </div>
+                  </>
+                )}
                 <div className="flex justify-between items-end pt-2">
                   <span className="text-[11px] font-black text-theme-text uppercase tracking-widest">
                     {player.smart_status === 'provisional' ? 'SMART Score' : 'SMART Rank'}

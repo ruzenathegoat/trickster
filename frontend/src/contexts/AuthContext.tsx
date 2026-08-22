@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (data: any) => {
     await csrf();
-    await axios.post('/login', data);
+    await axios.post('/api/v1/auth/session/login', data);
     // Explicitly fetch user so it throws if session is not established
     const response = await axios.get('/api/user');
     setUser(response.data);
@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (data: any) => {
     await csrf();
-    await axios.post('/register', data);
+    await axios.post('/api/v1/auth/session/register', data);
     // Explicitly fetch user so it throws if session is not established
     const response = await axios.get('/api/user');
     setUser(response.data);
@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     await csrf();
-    await axios.post('/logout');
+    await axios.post('/api/v1/auth/session/logout');
     setUser(null);
   };
 

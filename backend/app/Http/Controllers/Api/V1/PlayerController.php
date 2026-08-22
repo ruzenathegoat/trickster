@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Player;
-use App\Services\ConsistencyIndexCalculator;
+use App\Services\CompetitionQualityConfig;
 use App\Services\PlayerMomentumService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -178,6 +178,10 @@ class PlayerController extends Controller
 
             $smartResult = $player->smartResults->first();
             $smartScore = $smartResult?->final_score;
+            $competition = DB::table('player_competition_metrics')
+                ->where('player_id', $id)
+                ->orderByDesc('season')
+                ->first();
 
             $agents = DB::table('player_match_agents')
                 ->where('player_id', $id)
@@ -287,14 +291,26 @@ class PlayerController extends Controller
                         ? null
                         : round($player->consistency_provisional_index, 2),
                     'eligible' => $player->consistency_index !== null
-                        && $player->consistency_sample_size >= ConsistencyIndexCalculator::MINIMUM_SAMPLE_SIZE
-                        && $player->consistency_event_count >= ConsistencyIndexCalculator::MINIMUM_EVENT_COUNT,
+                        && $player->consistency_sample_size >= CompetitionQualityConfig::MINIMUM_MATCHES
+                        && $player->consistency_event_count >= CompetitionQualityConfig::MINIMUM_EVENTS,
                     'sample_size' => $player->consistency_sample_size,
-                    'minimum_sample_size' => ConsistencyIndexCalculator::MINIMUM_SAMPLE_SIZE,
+                    'minimum_sample_size' => CompetitionQualityConfig::MINIMUM_MATCHES,
                     'event_count' => $player->consistency_event_count,
-                    'minimum_event_count' => ConsistencyIndexCalculator::MINIMUM_EVENT_COUNT,
+                    'minimum_event_count' => CompetitionQualityConfig::MINIMUM_EVENTS,
                     'method' => $player->consistency_method,
                     'calculated_at' => $player->consistency_calculated_at?->toIso8601String(),
+                ],
+                'competition_quality' => $competition === null ? null : [
+                    'season' => (int) $competition->season,
+                    'exposure_percentile' => round((float) $competition->cqi_percentile, 2),
+                    'raw_match_quality' => round((float) $competition->cqi_raw, 3),
+                    'weighted_performance' => round((float) $competition->weighted_performance, 2),
+                    'proven_consistency' => round((float) $competition->proven_consistency, 2),
+                    'international_matches' => (int) $competition->international_matches,
+                    'international_events' => (int) $competition->international_events,
+                    'validation_status' => $competition->validation_status,
+                    'confidence' => round((float) $competition->confidence, 4),
+                    'method' => $competition->method_version,
                 ],
                 'radar_stats' => $radarStats,
                 'most_picked_agents' => $mostPickedAgents,

@@ -80,30 +80,6 @@ class CalculateMetricJob implements ShouldQueue
                 ->where('winner_team_id', $player->team_id)
                 ->count();
 
-            // Calculate Competition Quality Index (CQI)
-            $cqi = null;
-            if ($totalMatches > 0) {
-                $matchRegions = DB::table('matches')
-                    ->join('events', 'matches.event_id', '=', 'events.id')
-                    ->whereIn('matches.id', $matchIds)
-                    ->pluck('events.region');
-
-                $totalCqiScore = 0;
-                foreach ($matchRegions as $region) {
-                    $score = match ($region) {
-                        'International' => 5,
-                        'Americas' => 4,
-                        'Pacific' => 3,
-                        'EMEA' => 2,
-                        'China' => 1,
-                        default => 1,
-                    };
-                    $totalCqiScore += $score;
-                }
-
-                $cqi = round($totalCqiScore / $totalMatches, 2);
-            }
-
             // Calculate Current Role
             $agentPicks = DB::table('player_match_agents')
                 ->join('matches', 'player_match_agents.match_id', '=', 'matches.id')
@@ -176,16 +152,18 @@ class CalculateMetricJob implements ShouldQueue
                 'consistency_event_count' => $consistency['event_count'],
                 'consistency_method' => $consistency['method'],
                 'consistency_calculated_at' => now(),
-                'competition_quality_index' => $cqi,
                 'current_role' => $currentRole ?? $player->current_role,
             ]);
         }
         if ($this->dispatchDownstream) {
             // Calculate Meta Adaptability Index for the involved players first
-            CalculateMetaAdaptabilityJob::dispatch($this->players);
+            CalculateMetaAdaptabilityJob::dispatch($this->players)->onQueue('scrape-default');
 
-            // Pass to the next phase: AI Smart Results
-            CalculateSmartJob::dispatch($this->matchId, $this->players);
+            // CQI v2 is a season-wide percentile model. Rebuild it once in a
+            // unique bulk job, then that job refreshes SMART for the cohort.
+            $matchDate = MatchData::where('id', $this->matchId)->value('match_date');
+            $season = $matchDate ? (int) substr((string) $matchDate, 0, 4) : (int) now()->format('Y');
+            RecalculateCompetitionQualityJob::dispatch($season)->onQueue('scrape-default');
         }
     }
 }

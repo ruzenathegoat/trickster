@@ -8,7 +8,7 @@ use App\Models\PlayerSmartResult;
 use App\Models\SmartCriteria;
 use App\Models\SmartWeightProfile;
 use App\Models\User;
-use App\Services\ConsistencyIndexCalculator;
+use App\Services\CompetitionQualityConfig;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -230,47 +230,23 @@ class SmartEngineController extends Controller
         $cacheKey = 'api_smart_calc_'.$cacheVersion.'_'.md5(json_encode($request->weights));
 
         $results = Cache::remember($cacheKey, 3600, function () use ($weights, $criteriaIds) {
-            $criteriaMeta = SmartCriteria::whereIn('id', $criteriaIds)->get()->keyBy('id');
             $players = Player::with(['team', 'criteriaScores' => function ($q) use ($criteriaIds) {
                 $q->whereIn('criteria_id', $criteriaIds);
             }])
-                ->where('consistency_sample_size', '>=', ConsistencyIndexCalculator::MINIMUM_SAMPLE_SIZE)
-                ->where('consistency_event_count', '>=', ConsistencyIndexCalculator::MINIMUM_EVENT_COUNT)
+                ->where('consistency_sample_size', '>=', CompetitionQualityConfig::MINIMUM_MATCHES)
+                ->where('consistency_event_count', '>=', CompetitionQualityConfig::MINIMUM_EVENTS)
                 ->whereNotNull('consistency_index')
                 ->get();
 
-            $minMax = [];
-            foreach ($criteriaIds as $cId) {
-                $scores = $players->flatMap->criteriaScores->where('criteria_id', $cId)->pluck('raw_value');
-                if ($scores->isNotEmpty()) {
-                    $minMax[$cId] = [
-                        'min' => $scores->min(),
-                        'max' => $scores->max(),
-                    ];
-                }
-            }
-
-            return $players->map(function ($player) use ($weights, $minMax, $criteriaMeta) {
+            return $players->map(function ($player) use ($weights) {
                 $score = 0;
                 foreach ($weights as $w) {
                     $cId = $w['criteria_id'];
                     $ps = $player->criteriaScores->where('criteria_id', $cId)->first();
-                    if ($ps && isset($minMax[$cId])) {
-                        $criterion = $criteriaMeta->get($cId);
-
-                        if ($criterion?->name === 'Consistency Index') {
-                            $norm = max(0, min(1, (float) $ps->raw_value / 100));
-                        } else {
-                            $min = $minMax[$cId]['min'];
-                            $max = $minMax[$cId]['max'];
-                            $range = $max - $min;
-                            $norm = $range > 0 ? ($ps->raw_value - $min) / $range : 0;
-
-                            if ($criterion?->type === 'cost') {
-                                $norm = 1 - $norm;
-                            }
-                        }
-
+                    if ($ps) {
+                        // Persisted utilities already contain the global
+                        // benefit/cost direction and stable CQI v2 percentiles.
+                        $norm = max(0, min(1, (float) $ps->global_normalized_utility / 100));
                         $score += ($norm * $w['weight']);
                     }
                 }

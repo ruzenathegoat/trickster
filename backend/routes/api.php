@@ -1,15 +1,38 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AdminCurationController;
+use App\Http\Controllers\Api\V1\AdminScraperController;
+use App\Http\Controllers\Api\V1\AdminUserController;
+use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\GlobalSearchController;
+use App\Http\Controllers\Api\V1\LeaderboardController;
+use App\Http\Controllers\Api\V1\MetaController;
 use App\Http\Controllers\Api\V1\PlayerController;
+use App\Http\Controllers\Api\V1\SimulationController;
 use App\Http\Controllers\Api\V1\SmartEngineController;
+use App\Http\Controllers\Api\V1\TeamController;
+use App\Http\Controllers\Api\V1\UserProfileController;
+use App\Http\Controllers\Api\V1\ValorantAgentController;
+use App\Http\Controllers\Api\V1\ValorantMapController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Models\Patch;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1/auth')->group(function () {
-    Route::post('/login', [\App\Http\Controllers\Api\V1\AuthController::class, 'login']);
-    Route::post('/logout', [\App\Http\Controllers\Api\V1\AuthController::class, 'logout'])->middleware('auth:sanctum');
+    // Preserve the bearer-token API contract for non-browser clients.
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+
+    // Browser SPA authentication uses Sanctum's stateful session flow.
+    Route::prefix('session')->group(function () {
+        Route::post('/register', [RegisteredUserController::class, 'store'])->middleware('guest');
+        Route::post('/login', [AuthenticatedSessionController::class, 'store'])->middleware('guest');
+        Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->middleware('auth:sanctum');
+    });
 });
 
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -18,12 +41,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     Route::prefix('v1')->group(function () {
-        Route::get('/user/profile', [\App\Http\Controllers\Api\V1\UserProfileController::class, 'getProfile']);
-        Route::put('/user/profile', [\App\Http\Controllers\Api\V1\UserProfileController::class, 'updateProfile']);
-        Route::post('/user/favorites/players/{id}', [\App\Http\Controllers\Api\V1\UserProfileController::class, 'toggleFavoritePlayer']);
-        Route::post('/user/favorites/teams/{id}', [\App\Http\Controllers\Api\V1\UserProfileController::class, 'toggleFavoriteTeam']);
-        Route::post('/user/simulations', [\App\Http\Controllers\Api\V1\UserProfileController::class, 'saveSimulation']);
-        Route::delete('/user/simulations/{id}', [\App\Http\Controllers\Api\V1\UserProfileController::class, 'deleteSimulation']);
+        Route::get('/user/profile', [UserProfileController::class, 'getProfile']);
+        Route::put('/user/profile', [UserProfileController::class, 'updateProfile']);
+        Route::post('/user/favorites/players/{id}', [UserProfileController::class, 'toggleFavoritePlayer']);
+        Route::post('/user/favorites/teams/{id}', [UserProfileController::class, 'toggleFavoriteTeam']);
+        Route::post('/user/simulations', [UserProfileController::class, 'saveSimulation']);
+        Route::delete('/user/simulations/{id}', [UserProfileController::class, 'deleteSimulation']);
     });
 });
 
@@ -50,19 +73,19 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function
     Route::post('/agent-map-ratings/auto-calc', [AdminCurationController::class, 'autoCalculateMapRatings']);
     Route::put('/agent-map-ratings/{id}/supersede', [AdminCurationController::class, 'supersedeMapRating']);
     Route::patch('/players/{id}/toggle-igl', [AdminCurationController::class, 'toggleIgl']);
-    
+
     // Users
-    Route::apiResource('users', \App\Http\Controllers\Api\V1\AdminUserController::class);
-    
+    Route::apiResource('users', AdminUserController::class);
+
     // Events
     Route::get('/events', [AdminCurationController::class, 'getEvents']);
-    
+
     // Scraper
-    Route::post('/scraper/fetch-events', [\App\Http\Controllers\Api\V1\AdminScraperController::class, 'fetchEvents']);
-    Route::post('/scraper/process-queue', [\App\Http\Controllers\Api\V1\AdminScraperController::class, 'processQueue']);
-    Route::get('/scraper/logs', [\App\Http\Controllers\Api\V1\AdminScraperController::class, 'getLogs']);
-    Route::get('/scraper/queue-stats', [\App\Http\Controllers\Api\V1\AdminScraperController::class, 'getQueueStats']);
-    Route::get('/scraper/alerts', [\App\Http\Controllers\Api\V1\AdminScraperController::class, 'getAlerts']);
+    Route::post('/scraper/fetch-events', [AdminScraperController::class, 'fetchEvents']);
+    Route::post('/scraper/process-queue', [AdminScraperController::class, 'processQueue']);
+    Route::get('/scraper/logs', [AdminScraperController::class, 'getLogs']);
+    Route::get('/scraper/queue-stats', [AdminScraperController::class, 'getQueueStats']);
+    Route::get('/scraper/alerts', [AdminScraperController::class, 'getAlerts']);
 });
 
 Route::prefix('v1')->group(function () {
@@ -81,38 +104,40 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::prefix('meta')->group(function () {
-        Route::get('/patches', [\App\Http\Controllers\Api\V1\MetaController::class, 'getPatches']);
-        Route::get('/map-pool/{patchVersion}', [\App\Http\Controllers\Api\V1\MetaController::class, 'getMapMetaByPatch']);
+        Route::get('/patches', [MetaController::class, 'getPatches']);
+        Route::get('/map-pool/{patchVersion}', [MetaController::class, 'getMapMetaByPatch']);
     });
-    
+
     Route::prefix('simulation')->group(function () {
-        Route::post('/recommendations', [\App\Http\Controllers\Api\V1\SimulationController::class, 'getRecommendations']);
+        Route::post('/recommendations', [SimulationController::class, 'getRecommendations']);
     });
-    
+
     // User Dashboard
-    Route::get('/dashboard', [\App\Http\Controllers\Api\V1\DashboardController::class, 'index']);
-    
+    Route::get('/dashboard', [DashboardController::class, 'index']);
+
     // Leaderboard & Players
-    Route::get('/leaderboard/top', [\App\Http\Controllers\Api\V1\LeaderboardController::class, 'index']);
-    Route::get('/leaderboard/players', [\App\Http\Controllers\Api\V1\LeaderboardController::class, 'players']);
+    Route::get('/leaderboard/top', [LeaderboardController::class, 'index']);
+    Route::get('/leaderboard/players', [LeaderboardController::class, 'players']);
 
     // Teams
-    Route::get('/teams/top', [\App\Http\Controllers\Api\V1\TeamController::class, 'top']);
-    Route::get('/teams', [\App\Http\Controllers\Api\V1\TeamController::class, 'index']);
-    Route::get('/teams/{id}', [\App\Http\Controllers\Api\V1\TeamController::class, 'show']);
-    
+    Route::get('/teams/top', [TeamController::class, 'top']);
+    Route::get('/teams', [TeamController::class, 'index']);
+    Route::get('/teams/{id}', [TeamController::class, 'show']);
+
     // Valorant Agents (Photos & Meta)
-    Route::get('/valorant-agents', [\App\Http\Controllers\Api\V1\ValorantAgentController::class, 'index']);
+    Route::get('/valorant-agents', [ValorantAgentController::class, 'index']);
 
     // Valorant Maps (Photos & Meta)
-    Route::get('/valorant-maps', [\App\Http\Controllers\Api\V1\ValorantMapController::class, 'index']);
+    Route::get('/valorant-maps', [ValorantMapController::class, 'index']);
 
     // Active Patch (System)
     Route::get('/active-patch', function () {
-        $version = \Illuminate\Support\Facades\Cache::remember('api_active_patch', 3600, function () {
-            $patch = \App\Models\Patch::orderBy('release_date', 'desc')->first();
+        $version = Cache::remember('api_active_patch', 3600, function () {
+            $patch = Patch::orderBy('release_date', 'desc')->first();
+
             return $patch ? $patch->version : 'N/A';
         });
+
         return response()->json(['version' => $version]);
     });
 });

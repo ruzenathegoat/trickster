@@ -3,8 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Player;
-use App\Services\ConsistencyIndexCalculator;
-use App\Services\ProvisionalConsistencyEstimator;
+use App\Services\CompetitionQualityConfig;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
@@ -30,7 +29,7 @@ class CalculateSmartJob implements ShouldQueue
         $this->refreshPlayerProfiles = $refreshPlayerProfiles;
     }
 
-    public function handle(ProvisionalConsistencyEstimator $consistencyEstimator): void
+    public function handle(): void
     {
         // Get global active weight profiles
         $profiles = DB::table('smart_weight_profiles')->where('is_public', true)->get();
@@ -41,30 +40,29 @@ class CalculateSmartJob implements ShouldQueue
         // Get all criteria
         $criteriaList = DB::table('smart_criteria')->get();
 
-        // Step 1: Pre-calculate global Min & Max for normalization
-        // Only statistically eligible players define the normalization cohort.
-        $statsQuery = DB::table('players')
-            ->where('consistency_sample_size', '>=', ConsistencyIndexCalculator::MINIMUM_SAMPLE_SIZE)
-            ->where('consistency_event_count', '>=', ConsistencyIndexCalculator::MINIMUM_EVENT_COUNT)
-            ->whereNotNull('consistency_index');
-        $verifiedCiValues = (clone $statsQuery)->pluck('consistency_index');
-        $cohortMedianCi = $verifiedCiValues->isEmpty()
-            ? 50.0
-            : (float) $verifiedCiValues->median();
+        $season = DB::table('player_competition_metrics')->max('season');
+        if ($season === null) {
+            return;
+        }
+
+        // Only verified players define min/max bounds for raw-stat criteria.
+        // CQI v2 criteria already arrive as stable 0-100 utilities.
+        $statsQuery = DB::table('players as p')
+            ->join('player_competition_metrics as pcm', 'pcm.player_id', '=', 'p.id')
+            ->where('pcm.season', $season)
+            ->where('pcm.confidence', '>=', 1);
 
         $globalStats = (clone $statsQuery)->selectRaw('
-            MIN(avg_acs) as min_acs, MAX(avg_acs) as max_acs,
-            MIN(avg_kast) as min_kast, MAX(avg_kast) as max_kast,
-            MIN(avg_kd) as min_kd, MAX(avg_kd) as max_kd,
-            MIN(avg_adr) as min_adr, MAX(avg_adr) as max_adr,
-            MIN(avg_fd) as min_fd, MAX(avg_fd) as max_fd,
-            MIN(consistency_index) as min_ci, MAX(consistency_index) as max_ci,
-            MIN(meta_adaptability_index) as min_mai, MAX(meta_adaptability_index) as max_mai,
-            MIN(competition_quality_index) as min_cqi, MAX(competition_quality_index) as max_cqi
+            MIN(p.avg_acs) as min_acs, MAX(p.avg_acs) as max_acs,
+            MIN(p.avg_kast) as min_kast, MAX(p.avg_kast) as max_kast,
+            MIN(p.avg_kd) as min_kd, MAX(p.avg_kd) as max_kd,
+            MIN(p.avg_adr) as min_adr, MAX(p.avg_adr) as max_adr,
+            MIN(p.avg_fd) as min_fd, MAX(p.avg_fd) as max_fd,
+            MIN(p.meta_adaptability_index) as min_mai, MAX(p.meta_adaptability_index) as max_mai
         ')->first();
 
         // Helper function to map criteria name to db column
-        $getRawValueAndBounds = function ($criteriaName, Player $player, float $consistencyValue) use ($globalStats) {
+        $getRawValueAndBounds = function ($criteriaName, Player $player, object $competition) use ($globalStats) {
             switch ($criteriaName) {
                 case 'Average Combat Score (ACS)':
                     return ['raw' => (float) $player->avg_acs, 'min' => (float) $globalStats->min_acs, 'max' => (float) $globalStats->max_acs];
@@ -76,9 +74,9 @@ class CalculateSmartJob implements ShouldQueue
                     return ['raw' => (float) $player->avg_adr, 'min' => (float) $globalStats->min_adr, 'max' => (float) $globalStats->max_adr];
                 case 'First Death Rate':
                     return ['raw' => (float) $player->avg_fd, 'min' => (float) $globalStats->min_fd, 'max' => (float) $globalStats->max_fd];
-                case 'Consistency Index':
+                case 'Consistency Percentile':
                     return [
-                        'raw' => $consistencyValue,
+                        'raw' => (float) $competition->consistency_percentile,
                         'min' => 0.0,
                         'max' => 100.0,
                         'direct_utility' => true,
@@ -87,10 +85,20 @@ class CalculateSmartJob implements ShouldQueue
                     $raw = $player->meta_adaptability_index !== null ? (float) $player->meta_adaptability_index : 0;
 
                     return ['raw' => $raw, 'min' => (float) $globalStats->min_mai, 'max' => (float) $globalStats->max_mai];
-                case 'Competition Quality Index':
-                    $raw = $player->competition_quality_index !== null ? (float) $player->competition_quality_index : 0;
-
-                    return ['raw' => $raw, 'min' => (float) $globalStats->min_cqi, 'max' => (float) $globalStats->max_cqi];
+                case 'CQI / Competition Exposure':
+                    return [
+                        'raw' => (float) $competition->cqi_percentile,
+                        'min' => 0.0,
+                        'max' => 100.0,
+                        'direct_utility' => true,
+                    ];
+                case 'Proven Consistency':
+                    return [
+                        'raw' => (float) $competition->proven_consistency,
+                        'min' => 0.0,
+                        'max' => 100.0,
+                        'direct_utility' => true,
+                    ];
                 default:
                     return null;
             }
@@ -104,12 +112,17 @@ class CalculateSmartJob implements ShouldQueue
         }
 
         $playerIds = collect($this->players)
-            ->pluck('id')
+            ->map(fn ($player) => is_object($player) ? ($player->id ?? null) : $player)
             ->filter()
             ->unique()
             ->values();
 
         $players = Player::whereIn('id', $playerIds)->get();
+        $competitionMetrics = DB::table('player_competition_metrics')
+            ->where('season', $season)
+            ->whereIn('player_id', $playerIds)
+            ->get()
+            ->keyBy('player_id');
 
         // Career-mode values are cache rows. Replace the requested players in
         // bulk so verified and provisional results always use current metrics.
@@ -130,25 +143,16 @@ class CalculateSmartJob implements ShouldQueue
 
         // Process each player
         foreach ($players as $player) {
-            // A player still needs at least one valid completed match. CI itself
-            // can remain unofficial while SMART uses a confidence-shrunk value.
-            if ($player->consistency_sample_size < 1) {
+            $competition = $competitionMetrics->get($player->id);
+            if ($competition === null || (int) $competition->total_matches < 1) {
                 continue;
             }
-
-            $consistencyForSmart = $consistencyEstimator->estimate(
-                $player->consistency_index,
-                $player->consistency_provisional_index,
-                $player->consistency_sample_size,
-                $player->consistency_event_count,
-                $cohortMedianCi,
-            );
 
             $playerCriteriaUtilities = [];
 
             // Step 2 & 3: Calculate Utility for each criteria
             foreach ($criteriaList as $criteria) {
-                $bounds = $getRawValueAndBounds($criteria->name, $player, $consistencyForSmart['value']);
+                $bounds = $getRawValueAndBounds($criteria->name, $player, $competition);
                 if (! $bounds) {
                     continue;
                 }
@@ -159,7 +163,7 @@ class CalculateSmartJob implements ShouldQueue
 
                 $utility = 0;
                 if ($bounds['direct_utility'] ?? false) {
-                    // CI already has a stable and meaningful absolute 0-100 scale.
+                    // CQI v2 percentile criteria already have a stable 0-100 scale.
                     $utility = $raw;
                 } elseif ($max > $min) {
                     if ($criteria->type === 'benefit') {
@@ -180,7 +184,8 @@ class CalculateSmartJob implements ShouldQueue
                     'patch_id' => null,
                     'raw_value' => $raw,
                     'global_normalized_utility' => $utility,
-                    'sample_size' => $player->consistency_sample_size,
+                    'sample_size' => $competition->total_matches,
+                    'method_version' => CompetitionQualityConfig::METHOD_VERSION,
                     'calculated_at' => $calculatedAt,
                 ];
 
@@ -204,8 +209,9 @@ class CalculateSmartJob implements ShouldQueue
                     'final_score' => $finalScore,
                     'calculated_at' => $calculatedAt,
                     'rank' => null,
-                    'is_provisional' => $consistencyForSmart['is_provisional'],
-                    'smart_confidence' => $consistencyForSmart['confidence'],
+                    'is_provisional' => (float) $competition->confidence < 1.0,
+                    'smart_confidence' => (float) $competition->confidence,
+                    'method_version' => CompetitionQualityConfig::METHOD_VERSION,
                 ];
             }
 
@@ -269,6 +275,11 @@ class CalculateSmartJob implements ShouldQueue
         Cache::forget('api_dashboard');
         Cache::forget('api_smart_bounds');
         Cache::forget('api_leaderboard_top');
+        Cache::forget('api_smart_criteria');
+
+        foreach ($profiles->pluck('user_id')->filter()->unique() as $profileUserId) {
+            Cache::forget('api_smart_profiles_'.$profileUserId);
+        }
 
         foreach ($playerIds as $playerId) {
             Cache::forget('api_player_profile_'.$playerId);

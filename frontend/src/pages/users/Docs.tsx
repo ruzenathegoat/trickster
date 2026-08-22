@@ -56,14 +56,15 @@ type MetaMap = {
 };
 
 const criteria: Criterion[] = [
-  { key: 'ci', short: 'CI', name: 'Consistency Index', weight: 0.2, type: 'direct', initial: 72 },
-  { key: 'cqi', short: 'CQI', name: 'Competition Quality Index', weight: 0.15, type: 'benefit', initial: 65 },
-  { key: 'kd', short: 'KD', name: 'Kill / Death Ratio', weight: 0.13, type: 'benefit', initial: 71 },
-  { key: 'kast', short: 'KAST', name: 'KAST %', weight: 0.12, type: 'benefit', initial: 68 },
-  { key: 'fd', short: 'FD', name: 'First Death Rate', weight: 0.11, type: 'cost', initial: 58 },
-  { key: 'acs', short: 'ACS', name: 'Average Combat Score', weight: 0.1, type: 'benefit', initial: 75 },
-  { key: 'adr', short: 'ADR', name: 'Average Damage / Round', weight: 0.1, type: 'benefit', initial: 70 },
-  { key: 'mai', short: 'MAI', name: 'Meta Adaptability Index', weight: 0.09, type: 'benefit', initial: 60 },
+  { key: 'ci', short: 'C-PCT', name: 'Consistency Percentile', weight: 0.15, type: 'direct', initial: 72 },
+  { key: 'kd', short: 'KD', name: 'Kill / Death Ratio', weight: 0.14, type: 'benefit', initial: 71 },
+  { key: 'kast', short: 'KAST', name: 'KAST %', weight: 0.1292, type: 'benefit', initial: 68 },
+  { key: 'fd', short: 'FD', name: 'First Death Rate', weight: 0.1185, type: 'cost', initial: 58 },
+  { key: 'acs', short: 'ACS', name: 'Average Combat Score', weight: 0.1077, type: 'benefit', initial: 75 },
+  { key: 'adr', short: 'ADR', name: 'Average Damage / Round', weight: 0.1077, type: 'benefit', initial: 70 },
+  { key: 'mai', short: 'MAI', name: 'Meta Adaptability Index', weight: 0.0969, type: 'benefit', initial: 60 },
+  { key: 'proven', short: 'PROVEN', name: 'Proven Consistency', weight: 0.08, type: 'direct', initial: 66 },
+  { key: 'cqi', short: 'CQI', name: 'CQI / Competition Exposure', weight: 0.07, type: 'direct', initial: 65 },
 ];
 
 const sections = [
@@ -83,7 +84,7 @@ const stats = [
   ['AVG', 'ACS, KAST, ADR, FK, FD', 'Σ nilai match / n match', 'Rata-rata dari observasi canonical yang lolos gate.'],
   ['WR', 'Win Rate', 'wins / matches × 100', 'Win dibandingkan dengan current_team_id player.'],
   ['R', 'VLR Rating', 'Σ rating positif / n rating positif', 'Rating nol atau negatif tidak masuk rata-rata.'],
-  ['CQI', 'Competition Quality', 'Σ region score / n match', 'International 5, Americas 4, Pacific 3, EMEA 2, China atau default 1.'],
+  ['CQI', 'Competition Exposure', 'percentile(avg match quality)', 'Match quality = event base × stage factor × pre-match opponent factor. Region hanya menjadi prior awal Elo.'],
   ['ROLE', 'Detected Role', 'mode(role picks)', 'Flex jika lebih dari dua role berbeda dipakai dalam satu event.'],
 ];
 
@@ -109,23 +110,25 @@ ORDER BY pms.id DESC;
     id: 'smart',
     label: 'SMART pipeline',
     language: 'PSEUDO',
-    code: `verified = players
-  .where(sample_size >= 20)
-  .where(event_count >= 2)
-  .where(consistency_index IS NOT NULL)
+    code: `P = role_and_level_percentile(ACS, KAST, ADR, KD)
+performance = .33*P.acs + .28*P.kast + .22*P.adr + .17*P.kd
+
+Q = event_base * stage_factor * pre_match_opponent_factor
+weighted_performance = sum(Q * performance) / sum(Q)
+consistency = 100 - percentile(stddev(performance))
+cqi = percentile(reliability_shrunk_average(Q))
+proven = cbrt(consistency * cqi * weighted_performance)
 
 for criterion in criteria:
-  min, max = bounds(verified.raw_value)
-
-  if criterion == ConsistencyIndex:
-    utility = effective_ci
+  if criterion in [consistency, cqi, proven]:
+    utility = criterion.value
   else if criterion.type == benefit:
     utility = 100 * (raw - min) / (max - min)
   else:
     utility = 100 * (max - raw) / (max - min)
 
 SMART = sum(utility * weight)
-rank = RANK() over verified players only`,
+rank = RANK() over players with >=20 matches and >=2 events`,
   },
   {
     id: 'momentum',
@@ -299,7 +302,6 @@ export default function Docs() {
   const [sampleSize, setSampleSize] = useState(8);
   const [eventCount, setEventCount] = useState(1);
   const [observedCi, setObservedCi] = useState(65);
-  const [median, setMedian] = useState(60);
   const [liveStatus, setLiveStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [livePatch, setLivePatch] = useState<PatchOption | null>(null);
   const [liveMap, setLiveMap] = useState<MetaMap | null>(null);
@@ -309,8 +311,9 @@ export default function Docs() {
   const eventConfidence = Math.min(eventCount / 2, 1);
   const confidence = sampleConfidence * eventConfidence;
   const eligible = sampleSize >= 20 && eventCount >= 2;
-  const estimatorObservedCi = sampleSize < 2 ? median : observedCi;
-  const effectiveCi = eligible ? observedCi : confidence * estimatorObservedCi + (1 - confidence) * median;
+  const neutralPrior = 50;
+  const estimatorObservedCi = sampleSize < 2 ? neutralPrior : observedCi;
+  const effectiveCi = eligible ? observedCi : confidence * estimatorObservedCi + (1 - confidence) * neutralPrior;
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -385,7 +388,7 @@ export default function Docs() {
             <div className="sticky top-28">
               <p className="mb-5 font-label text-[10px] font-bold uppercase tracking-[0.2em] text-theme-text/40">On this page</p>
               <nav aria-label="Dokumentasi"><ul className="space-y-1">{sections.map(([id, label]) => <li key={id}><a href={`#${id}`} aria-current={activeSection === id ? 'location' : undefined} className={`block border-l-4 py-2 pl-3 font-label text-[10px] font-bold uppercase tracking-[0.13em] ${activeSection === id ? 'border-[var(--color-primary)] text-theme-text' : 'border-transparent text-theme-text/40 hover:text-theme-text'}`}>{label}</a></li>)}</ul></nav>
-              <div className="mt-8 border-2 border-theme-border bg-theme-muted p-4"><Fingerprint size={24} weight="bold" /><p className="mt-3 font-label text-[9px] font-bold uppercase tracking-widest text-theme-text/50">Core CI method</p><p className="mt-1 font-numeric text-xs font-bold">winsorized-sample-cv-v2</p></div>
+              <div className="mt-8 border-2 border-theme-border bg-theme-muted p-4"><Fingerprint size={24} weight="bold" /><p className="mt-3 font-label text-[9px] font-bold uppercase tracking-widest text-theme-text/50">Core method</p><p className="mt-1 font-numeric text-xs font-bold">competition-quality-v2</p></div>
             </div>
           </aside>
 
@@ -395,7 +398,7 @@ export default function Docs() {
               <div className="mt-8 grid border-4 border-theme-border md:grid-cols-3">
                 {[
                   [Database, 'Observed', 'Match, player, map, agent, dan statistik All Maps yang diekstrak dari halaman pertandingan VLR.', 'Automated'],
-                  [Calculator, 'Derived', 'Aggregate, CI, MAI, utility, SMART, rank, pick rate, dan composition yang dihitung dari observasi.', 'Formula'],
+                  [Calculator, 'Derived', 'Aggregate, role-normalized performance, Elo, CQI, consistency percentile, utility, SMART, dan rank.', 'Formula'],
                   [ClipboardText, 'Curated', 'Tier agent per patch, direction, notes, map pool, dan rating yang dapat ditinjau admin.', 'Human input'],
                 ].map(([Icon, title, body, tag], index) => (
                   <article key={String(title)} className={`p-6 sm:p-7 ${index < 2 ? 'border-b-4 border-theme-border md:border-b-0 md:border-r-4' : ''}`}>
@@ -435,15 +438,15 @@ export default function Docs() {
             </section>
 
             <section id="smart" className="scroll-mt-28 pb-24">
-              <Heading eyebrow="04 / Simple Multi Attribute Rating Technique" title="SMART mengubah raw value menjadi utility.">Benefit memberi nilai lebih tinggi pada angka besar. Cost membalik arah. CI sudah berada pada skala 0 sampai 100.</Heading>
+              <Heading eyebrow="04 / Simple Multi Attribute Rating Technique" title="SMART mengubah raw value menjadi utility.">Benefit memberi nilai lebih tinggi pada angka besar. Cost membalik arah. Consistency, CQI, dan Proven sudah berada pada skala percentile 0 sampai 100.</Heading>
               <div className="mt-8 grid gap-6 xl:grid-cols-[0.58fr_0.42fr]">
-                <div className="border-4 border-theme-border p-5 sm:p-7"><div className="mb-7 flex justify-between"><div><p className="font-label text-[10px] font-bold uppercase tracking-widest text-theme-text/45">Interactive calculator</p><h3 className="mt-1 font-display text-2xl uppercase">Normalized utilities</h3></div><SlidersHorizontal size={30} weight="bold" /></div><div className="space-y-4">{criteria.map((item) => <Slider key={item.key} label={`${item.short} · weight ${item.weight * 100}%`} value={utilities[item.key]} min={0} max={100} onChange={(value) => setUtilities((current) => ({ ...current, [item.key]: value }))} />)}</div></div>
+                <div className="border-4 border-theme-border p-5 sm:p-7"><div className="mb-7 flex justify-between"><div><p className="font-label text-[10px] font-bold uppercase tracking-widest text-theme-text/45">Interactive calculator</p><h3 className="mt-1 font-display text-2xl uppercase">Normalized utilities</h3></div><SlidersHorizontal size={30} weight="bold" /></div><div className="space-y-4">{criteria.map((item) => <Slider key={item.key} label={`${item.short} · weight ${Number((item.weight * 100).toFixed(2))}%`} value={utilities[item.key]} min={0} max={100} onChange={(value) => setUtilities((current) => ({ ...current, [item.key]: value }))} />)}</div></div>
                 <div className="flex flex-col gap-6">
                   <div className="border-4 border-theme-border bg-[var(--color-primary)] p-7 text-black shadow-[8px_8px_0px_0px_var(--color-theme-shadow)]"><p className="font-label text-[10px] font-bold uppercase tracking-widest">Simulated SMART</p><p className="mt-5 font-display text-[clamp(4.5rem,10vw,7.5rem)] leading-none tracking-[-0.08em]">{smartScore.toFixed(1)}</p><p className="mt-4 text-sm font-semibold">Σ utility × weight. Ini simulasi, bukan data player aktual.</p></div>
                   <div className="border-4 border-theme-border p-5"><p className="mb-4 font-label text-[10px] font-bold uppercase tracking-widest text-theme-text/45">Contribution ledger</p><div className="space-y-3">{criteria.map((item) => <div key={item.key} className="grid grid-cols-[42px_1fr_52px] items-center gap-3"><span className="font-label text-[9px] font-bold">{item.short}</span><span className="h-2 bg-theme-divider"><span className="block h-full bg-[var(--color-primary)] transition-[width] motion-reduce:transition-none" style={{ width: `${utilities[item.key]}%` }} /></span><span className="text-right font-numeric text-[10px] font-bold">+{(utilities[item.key] * item.weight).toFixed(2)}</span></div>)}</div></div>
                 </div>
               </div>
-              <div className="mt-8 overflow-x-auto border-4 border-theme-border" data-lenis-prevent="true"><table className="w-full min-w-[720px] text-left"><thead className="bg-[#111] text-white"><tr className="font-label text-[9px] uppercase tracking-widest"><th className="p-4">Criterion</th><th className="p-4">Type</th><th className="p-4">Weight</th><th className="p-4">Normalization</th></tr></thead><tbody>{criteria.map((item) => <tr key={item.key} className="border-t-2 border-theme-divider text-sm"><td className="p-4 font-semibold">{item.name}</td><td className="p-4"><Tag tone={item.type === 'cost' ? 'yellow' : 'dark'}>{item.type}</Tag></td><td className="p-4 font-numeric font-bold">{item.weight * 100}%</td><td className="p-4 font-numeric text-xs text-theme-text/60">{item.type === 'direct' ? 'effective CI' : item.type === 'benefit' ? '(x - min) / (max - min)' : '(max - x) / (max - min)'}</td></tr>)}</tbody></table></div>
+              <div className="mt-8 overflow-x-auto border-4 border-theme-border" data-lenis-prevent="true"><table className="w-full min-w-[720px] text-left"><thead className="bg-[#111] text-white"><tr className="font-label text-[9px] uppercase tracking-widest"><th className="p-4">Criterion</th><th className="p-4">Type</th><th className="p-4">Weight</th><th className="p-4">Normalization</th></tr></thead><tbody>{criteria.map((item) => <tr key={item.key} className="border-t-2 border-theme-divider text-sm"><td className="p-4 font-semibold">{item.name}</td><td className="p-4"><Tag tone={item.type === 'cost' ? 'yellow' : 'dark'}>{item.type}</Tag></td><td className="p-4 font-numeric font-bold">{Number((item.weight * 100).toFixed(2))}%</td><td className="p-4 font-numeric text-xs text-theme-text/60">{item.type === 'direct' ? 'direct utility 0–100' : item.type === 'benefit' ? '(x - min) / (max - min)' : '(max - x) / (max - min)'}</td></tr>)}</tbody></table></div>
               <div className="mt-6 grid gap-4 md:grid-cols-2"><div className="border-4 border-theme-border p-6"><TrendUp size={28} weight="bold" /><h3 className="mt-6 font-display text-xl uppercase">Normalization cohort</h3><p className="mt-3 text-sm leading-6 text-theme-text/60">Min dan max hanya dari verified. Provisional memakai bounds yang sama. Utility dibatasi 0 sampai 100. Jika min sama dengan max dan nilainya positif, utility menjadi 100.</p></div><div className="border-4 border-theme-border p-6"><UsersThree size={28} weight="bold" /><h3 className="mt-6 font-display text-xl uppercase">Ranking cohort</h3><p className="mt-3 text-sm leading-6 text-theme-text/60">RANK() hanya untuk verified, dipisahkan per profile, mode, dan patch. Nilai seri menerima rank sama.</p></div></div>
             </section>
 
@@ -489,12 +492,12 @@ export default function Docs() {
             </section>
 
             <section id="confidence" className="scroll-mt-28 pb-24">
-              <Heading eyebrow="06 / Provisional dan verified" title="Score tersedia lebih cepat. Rank menunggu bukti.">Sample kecil tetap bisa mendapat SMART, tetapi CI ditarik ke median verified cohort dan tidak masuk ranking resmi.</Heading>
+              <Heading eyebrow="06 / Provisional dan verified" title="Score tersedia lebih cepat. Rank menunggu bukti.">Sample kecil tetap bisa mendapat SMART, tetapi percentile ditarik ke titik netral 50 dan tidak masuk ranking resmi.</Heading>
               <div className="mt-8 grid gap-6 xl:grid-cols-2">
-                <div className="border-4 border-theme-border p-5 sm:p-7"><div className="mb-7 flex justify-between"><div><p className="font-label text-[10px] font-bold uppercase tracking-widest text-theme-text/45">Confidence simulator</p><h3 className="mt-1 font-display text-2xl uppercase">Shrinkage estimator</h3></div><Gauge size={30} weight="bold" /></div><div className="space-y-5"><Slider label="Sample matches" value={sampleSize} min={1} max={30} onChange={setSampleSize} /><Slider label="Distinct events" value={eventCount} min={0} max={4} onChange={setEventCount} /><Slider label="Observed CI" value={observedCi} min={0} max={100} onChange={setObservedCi} /><Slider label="Verified cohort median" value={median} min={0} max={100} onChange={setMedian} /></div>{sampleSize < 2 ? <p className="mt-5 border-l-4 border-[var(--color-primary)] pl-3 text-xs leading-5 text-theme-text/60">Sample standard deviation belum terdefinisi. Observed CI diabaikan dan estimator memakai median verified cohort.</p> : null}</div>
-                <div className={`border-4 border-theme-border p-7 ${eligible ? 'bg-emerald-500 text-black' : 'bg-[#111] text-white'}`}><div className="flex justify-between"><Tag tone={eligible ? 'dark' : 'yellow'}>{eligible ? 'Verified' : 'Provisional'}</Tag>{eligible ? <CheckCircle size={31} weight="fill" /> : <Warning size={31} weight="fill" className="text-[var(--color-primary)]" />}</div><div className="mt-10 grid grid-cols-2 gap-5 border-y-2 border-current/25 py-6"><div><p className="font-label text-[9px] font-bold uppercase tracking-widest opacity-55">Confidence</p><p className="mt-2 font-display text-4xl">{(confidence * 100).toFixed(0)}%</p></div><div><p className="font-label text-[9px] font-bold uppercase tracking-widest opacity-55">Effective CI</p><p className="mt-2 font-display text-4xl">{effectiveCi.toFixed(1)}</p></div></div><div className="mt-6 space-y-2 font-numeric text-[11px] leading-5 opacity-75"><p>sample confidence = min({sampleSize} / 20, 1) = {sampleConfidence.toFixed(2)}</p><p>event confidence = min({eventCount} / 2, 1) = {eventConfidence.toFixed(2)}</p><p>confidence = {sampleConfidence.toFixed(2)} × {eventConfidence.toFixed(2)} = {confidence.toFixed(2)}</p><p>effective CI = confidence × observed + remainder × median</p></div><p className="mt-7 text-sm font-semibold leading-6">{eligible ? 'Threshold 20 match dan 2 event terpenuhi. Official CI dipakai tanpa shrinkage.' : 'Threshold belum terpenuhi. SMART dapat tampil, rank resmi tetap kosong.'}</p></div>
+                <div className="border-4 border-theme-border p-5 sm:p-7"><div className="mb-7 flex justify-between"><div><p className="font-label text-[10px] font-bold uppercase tracking-widest text-theme-text/45">Confidence simulator</p><h3 className="mt-1 font-display text-2xl uppercase">Shrinkage estimator</h3></div><Gauge size={30} weight="bold" /></div><div className="space-y-5"><Slider label="Sample matches" value={sampleSize} min={1} max={30} onChange={setSampleSize} /><Slider label="Distinct events" value={eventCount} min={0} max={4} onChange={setEventCount} /><Slider label="Observed percentile" value={observedCi} min={0} max={100} onChange={setObservedCi} /></div>{sampleSize < 2 ? <p className="mt-5 border-l-4 border-[var(--color-primary)] pl-3 text-xs leading-5 text-theme-text/60">Sample deviation belum terdefinisi. Observed percentile diabaikan dan estimator memakai prior netral 50.</p> : null}</div>
+                <div className={`border-4 border-theme-border p-7 ${eligible ? 'bg-emerald-500 text-black' : 'bg-[#111] text-white'}`}><div className="flex justify-between"><Tag tone={eligible ? 'dark' : 'yellow'}>{eligible ? 'Verified' : 'Provisional'}</Tag>{eligible ? <CheckCircle size={31} weight="fill" /> : <Warning size={31} weight="fill" className="text-[var(--color-primary)]" />}</div><div className="mt-10 grid grid-cols-2 gap-5 border-y-2 border-current/25 py-6"><div><p className="font-label text-[9px] font-bold uppercase tracking-widest opacity-55">Confidence</p><p className="mt-2 font-display text-4xl">{(confidence * 100).toFixed(0)}%</p></div><div><p className="font-label text-[9px] font-bold uppercase tracking-widest opacity-55">Effective percentile</p><p className="mt-2 font-display text-4xl">{effectiveCi.toFixed(1)}</p></div></div><div className="mt-6 space-y-2 font-numeric text-[11px] leading-5 opacity-75"><p>sample confidence = min({sampleSize} / 20, 1) = {sampleConfidence.toFixed(2)}</p><p>event confidence = min({eventCount} / 2, 1) = {eventConfidence.toFixed(2)}</p><p>confidence = {sampleConfidence.toFixed(2)} × {eventConfidence.toFixed(2)} = {confidence.toFixed(2)}</p><p>effective = 50 + confidence × (observed - 50)</p></div><p className="mt-7 text-sm font-semibold leading-6">{eligible ? 'Threshold 20 match dan 2 event terpenuhi. Percentile dipakai tanpa shrinkage.' : 'Threshold belum terpenuhi. SMART dapat tampil, rank resmi tetap kosong.'}</p></div>
               </div>
-              <div className="mt-6 grid border-4 border-theme-border md:grid-cols-2"><div className="border-b-4 border-theme-border p-6 md:border-b-0 md:border-r-4"><p className="font-label text-[10px] font-bold uppercase tracking-widest text-theme-text/40">Why 20 matches?</p><h3 className="mt-3 font-display text-xl uppercase">Variance butuh sample.</h3><p className="mt-3 text-sm leading-6 text-theme-text/60">CI memakai sample standard deviation dengan pembagi n - 1. Dua observasi adalah minimum matematis, tetapi 20 match mengurangi instabilitas.</p></div><div className="p-6"><p className="font-label text-[10px] font-bold uppercase tracking-widest text-theme-text/40">Why 2 events?</p><h3 className="mt-3 font-display text-xl uppercase">Konteks harus beragam.</h3><p className="mt-3 text-sm leading-6 text-theme-text/60">Dua event mencegah verified hanya merefleksikan satu bracket, lawan, format, atau periode kompetisi.</p></div></div>
+              <div className="mt-6 grid border-4 border-theme-border md:grid-cols-2"><div className="border-b-4 border-theme-border p-6 md:border-b-0 md:border-r-4"><p className="font-label text-[10px] font-bold uppercase tracking-widest text-theme-text/40">Why 20 matches?</p><h3 className="mt-3 font-display text-xl uppercase">Variance butuh sample.</h3><p className="mt-3 text-sm leading-6 text-theme-text/60">Consistency memakai sample deviation dari performance utility per match. Dua observasi adalah minimum matematis, tetapi 20 match mengurangi instabilitas.</p></div><div className="p-6"><p className="font-label text-[10px] font-bold uppercase tracking-widest text-theme-text/40">Why 2 events?</p><h3 className="mt-3 font-display text-xl uppercase">Konteks harus beragam.</h3><p className="mt-3 text-sm leading-6 text-theme-text/60">Dua event mencegah verified hanya merefleksikan satu bracket, lawan, format, atau periode kompetisi.</p></div></div>
             </section>
 
             <section id="meta" className="scroll-mt-28 pb-24">
@@ -513,7 +516,7 @@ export default function Docs() {
               <Heading eyebrow="08 / Reproducible queries" title="Logika inti, dalam bentuk yang bisa diperiksa.">Snippet diringkas agar mudah dibaca, tetapi mempertahankan filter, cohort, arah utility, dan grouping yang menentukan hasil.</Heading>
               <div className="mt-8"><CodeWorkbench /></div>
               <div className="mt-7 grid gap-4 md:grid-cols-3">{[
-                [Fingerprint, 'Consistency', 'ACS di-winsorize pada P5 dan P95. Sample CV = s / mean. CI = clamp(100 × (1 - CV), 0, 100).'],
+                [Fingerprint, 'Consistency', 'Per-match performance dinormalisasi menurut role dan level event. Consistency = kebalikan percentile dari winsorized sample dispersion.'],
                 [FlowArrow, 'Deduplication', 'Row terbaru lalu unique(match_id), sehingga satu completed match hanya memberi satu observasi.'],
                 [Database, 'Cache', 'Endpoint utama dicache sampai satu jam. Kalkulasi SMART mengubah cache version.'],
               ].map(([Icon, title, body]) => <div key={String(title)} className="border-4 border-theme-border p-5"><Icon size={25} weight="bold" /><h3 className="mt-6 font-display text-lg uppercase">{String(title)}</h3><p className="mt-3 text-xs leading-5 text-theme-text/55">{String(body)}</p></div>)}</div>
@@ -532,10 +535,10 @@ export default function Docs() {
                 ['Baca label', 'Periksa provisional, confidence, rank, source reference, patch, dan catatan kurasi.'],
               ].map(([title, body], index) => <li key={title} className="grid border-b-2 border-theme-divider last:border-b-0 md:grid-cols-[80px_230px_1fr]"><div className="flex min-h-16 items-center justify-center bg-theme-muted font-display text-2xl">{String(index + 1).padStart(2, '0')}</div><div className="flex items-center border-y-2 border-theme-divider px-5 py-4 font-display text-base uppercase md:border-y-0 md:border-x-2">{title}</div><p className="flex items-center px-5 py-4 text-sm leading-6 text-theme-text/60">{body}</p></li>)}</ol>
               <div className="mt-8 grid gap-6 lg:grid-cols-[0.64fr_0.36fr]">
-                <div className="border-4 border-theme-border bg-[#111] p-6 text-white sm:p-8"><div className="flex items-center gap-3 text-[var(--color-primary)]"><Warning size={28} weight="fill" /><h3 className="font-display text-2xl uppercase">Known limitations</h3></div><ul className="mt-6 space-y-4 text-sm leading-6 text-white/60"><li className="border-l-2 border-[var(--color-primary)] pl-4">VLR adalah sumber pihak ketiga. Perubahan HTML dapat menunda ingest.</li><li className="border-l-2 border-[var(--color-primary)] pl-4">Min-max relatif. Perubahan cohort dapat mengubah SMART tanpa perubahan raw statistic.</li><li className="border-l-2 border-[var(--color-primary)] pl-4">Current team assignment dapat memengaruhi win rate dan composition historis.</li><li className="border-l-2 border-[var(--color-primary)] pl-4">Patch tier memuat judgment kurator. Proposal map rating memiliki denominator khusus.</li><li className="border-l-2 border-[var(--color-primary)] pl-4">SMART tidak mengukur komunikasi, leadership, role fit, kondisi roster, atau hasil trial langsung.</li></ul></div>
+                <div className="border-4 border-theme-border bg-[#111] p-6 text-white sm:p-8"><div className="flex items-center gap-3 text-[var(--color-primary)]"><Warning size={28} weight="fill" /><h3 className="font-display text-2xl uppercase">Known limitations</h3></div><ul className="mt-6 space-y-4 text-sm leading-6 text-white/60"><li className="border-l-2 border-[var(--color-primary)] pl-4">VLR adalah sumber pihak ketiga. Perubahan HTML dapat menunda ingest.</li><li className="border-l-2 border-[var(--color-primary)] pl-4">Percentile bersifat relatif; perubahan cohort dapat mengubah utility tanpa perubahan raw statistic.</li><li className="border-l-2 border-[var(--color-primary)] pl-4">Baris historis tanpa roster anchor dikeluarkan dari CQI agar konteks tim tidak ditebak.</li><li className="border-l-2 border-[var(--color-primary)] pl-4">Region hanya menjadi prior awal Elo dan tidak mengukur kualitas taktis secara langsung.</li><li className="border-l-2 border-[var(--color-primary)] pl-4">SMART tidak mengukur komunikasi, leadership, role fit, kondisi roster, atau hasil trial langsung.</li></ul></div>
                 <div className="flex flex-col justify-between border-4 border-theme-border bg-[var(--color-primary)] p-6 text-black sm:p-8"><BookOpenText size={38} weight="fill" /><div className="mt-16"><p className="font-display text-3xl uppercase leading-none">Verification rule</p><p className="mt-4 text-sm font-semibold leading-6">Jika score tidak dapat ditelusuri ke raw observation, transformasi, cohort, weight, dan waktu kalkulasi, jangan gunakan score itu sendirian.</p></div><Link to="/app/players" className="mt-8 flex min-h-12 items-center justify-between border-4 border-black bg-black px-4 font-display text-xs uppercase tracking-widest text-white hover:bg-white hover:text-black">Inspect players <ArrowRight size={17} weight="bold" /></Link></div>
               </div>
-              <div className="mt-8 flex flex-col items-start justify-between gap-5 border-t-4 border-theme-border pt-7 sm:flex-row sm:items-center"><p className="max-w-xl font-label text-[10px] font-bold uppercase leading-5 tracking-widest text-theme-text/45">Method: winsorized-sample-cv-v2 · Balanced weights total 1.00</p><Link to="/" className="flex min-h-11 items-center gap-2 font-label text-[10px] font-bold uppercase tracking-widest hover:text-[var(--color-primary)]"><ArrowLeft size={16} weight="bold" /> Back to Trickster</Link></div>
+              <div className="mt-8 flex flex-col items-start justify-between gap-5 border-t-4 border-theme-border pt-7 sm:flex-row sm:items-center"><p className="max-w-xl font-label text-[10px] font-bold uppercase leading-5 tracking-widest text-theme-text/45">Method: competition-quality-v2 · pre-match-elo-v1 · Balanced weights total 1.00</p><Link to="/" className="flex min-h-11 items-center gap-2 font-label text-[10px] font-bold uppercase tracking-widest hover:text-[var(--color-primary)]"><ArrowLeft size={16} weight="bold" /> Back to Trickster</Link></div>
             </section>
           </div>
         </div>

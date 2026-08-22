@@ -1,9 +1,13 @@
 <?php
 
+use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\EnsureEmailIsVerified;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,13 +18,23 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->api(prepend: [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            EnsureFrontendRequestsAreStateful::class,
         ]);
 
         $middleware->alias([
-            'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
-            'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'verified' => EnsureEmailIsVerified::class,
+            'admin' => AdminMiddleware::class,
         ]);
+
+        // API consumers must receive a 401 response. They must never be
+        // redirected to the browser login page, even when Accept is missing.
+        $middleware->redirectGuestsTo(function (Request $request): ?string {
+            if ($request->is('api/*')) {
+                return null;
+            }
+
+            return rtrim((string) config('app.frontend_url'), '/').'/login';
+        });
 
         //
     })
@@ -28,7 +42,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
-        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, Request $request) {
+        $exceptions->render(function (AuthenticationException $e, Request $request) {
             if ($request->is('api/*')) {
                 return response()->json([
                     'message' => $e->getMessage(),

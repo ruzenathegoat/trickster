@@ -7,6 +7,7 @@ use App\Models\MatchData;
 use App\Models\MatchScrapeQueue;
 use App\Models\Player;
 use App\Models\PlayerMapStat;
+use App\Services\HistoricalMatchContextService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
@@ -30,7 +31,7 @@ class ParseMatchJob implements ShouldQueue
         $this->fileName = $fileName;
     }
 
-    public function handle(): void
+    public function handle(HistoricalMatchContextService $historicalContext): void
     {
         if (! Storage::exists($this->fileName)) {
             // If data already parsed by a prior job, just mark completed
@@ -105,7 +106,6 @@ class ParseMatchJob implements ShouldQueue
                                     [
                                         'ign' => $name,
                                         'name' => $name,
-                                        'team_id' => $teamId,
                                         'country' => $country,
                                     ]
                                 );
@@ -149,6 +149,8 @@ class ParseMatchJob implements ShouldQueue
                                             'map_id' => $map->id,
                                         ],
                                         [
+                                            'team_id_at_match' => $teamId,
+                                            'team_context_source' => 'scraped',
                                             'kills' => $kills,
                                             'deaths' => $deaths,
                                             'assists' => $assists,
@@ -236,6 +238,10 @@ class ParseMatchJob implements ShouldQueue
                         }
                     });
                 });
+            }
+
+            if ($matchData && $hasCompleteStats) {
+                $historicalContext->backfillMatch($matchData->id);
             }
 
             // Delete temporary HTML

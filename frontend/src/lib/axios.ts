@@ -2,7 +2,7 @@ import Axios from 'axios';
 
 const axios = Axios.create({
     // Relative base URL: the Vite dev proxy (see vite.config.ts) forwards
-    // /api, /sanctum, /login, etc. to the backend, keeping requests same-origin
+    // /api and /sanctum to the backend, keeping requests same-origin
     // and eliminating the CORS preflight round trip.
     baseURL: '',
     headers: {
