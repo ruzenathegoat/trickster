@@ -5,12 +5,12 @@ namespace App\Jobs;
 use App\Models\MatchData;
 use App\Models\Player;
 use App\Services\ConsistencyIndexService;
+use App\Services\PlayerRoleProfileService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\DB;
 
 class CalculateMetricJob implements ShouldQueue
 {
@@ -29,13 +29,17 @@ class CalculateMetricJob implements ShouldQueue
         $this->dispatchDownstream = $dispatchDownstream;
     }
 
-    public function handle(ConsistencyIndexService $consistencyIndexService): void
-    {
+    public function handle(
+        ConsistencyIndexService $consistencyIndexService,
+        PlayerRoleProfileService $roleProfileService
+    ): void {
         foreach ($this->players as $playerModel) {
             $player = Player::find($playerModel->id);
             if (! $player) {
                 continue;
             }
+
+            $roleProfileService->refresh($player);
 
             // One completed-match aggregate per player is the canonical grain.
             // Invalid ACS rows are excluded from every aggregate until rescraped.
@@ -80,58 +84,6 @@ class CalculateMetricJob implements ShouldQueue
                 ->where('winner_team_id', $player->team_id)
                 ->count();
 
-            // Calculate Current Role
-            $agentPicks = DB::table('player_match_agents')
-                ->join('matches', 'player_match_agents.match_id', '=', 'matches.id')
-                ->where('player_match_agents.player_id', $player->id)
-                ->select('player_match_agents.agent_name', 'matches.event_id', DB::raw('count(*) as count'))
-                ->groupBy('player_match_agents.agent_name', 'matches.event_id')
-                ->get();
-
-            $currentRole = null;
-            if ($agentPicks->isNotEmpty()) {
-                $rolesPerEvent = [];
-                $overallRoles = [];
-
-                foreach ($agentPicks as $pick) {
-                    $roleRecord = DB::table('agent_role_maps')
-                        ->where('agent_name', strtolower($pick->agent_name))
-                        ->first();
-
-                    if ($roleRecord) {
-                        $roleName = ucfirst($roleRecord->role_name);
-
-                        // Track per event
-                        $eventId = $pick->event_id;
-                        if (! isset($rolesPerEvent[$eventId])) {
-                            $rolesPerEvent[$eventId] = [];
-                        }
-                        $rolesPerEvent[$eventId][$roleName] = true;
-
-                        // Track overall
-                        if (! isset($overallRoles[$roleName])) {
-                            $overallRoles[$roleName] = 0;
-                        }
-                        $overallRoles[$roleName] += $pick->count;
-                    }
-                }
-
-                $isFlex = false;
-                foreach ($rolesPerEvent as $eventId => $roles) {
-                    if (count($roles) > 2) { // Played more than 2 distinct roles in this event
-                        $isFlex = true;
-                        break;
-                    }
-                }
-
-                if ($isFlex) {
-                    $currentRole = 'Flex';
-                } elseif (count($overallRoles) > 0) {
-                    arsort($overallRoles);
-                    $currentRole = array_key_first($overallRoles);
-                }
-            }
-
             $player->update([
                 'total_matches' => $totalMatches,
                 'total_wins' => $totalWins,
@@ -152,7 +104,6 @@ class CalculateMetricJob implements ShouldQueue
                 'consistency_event_count' => $consistency['event_count'],
                 'consistency_method' => $consistency['method'],
                 'consistency_calculated_at' => now(),
-                'current_role' => $currentRole ?? $player->current_role,
             ]);
         }
         if ($this->dispatchDownstream) {
@@ -161,7 +112,7 @@ class CalculateMetricJob implements ShouldQueue
 
             // CQI v2 is a season-wide percentile model. Rebuild it once in a
             // unique bulk job, then that job refreshes SMART for the cohort.
-            $matchDate = MatchData::where('id', $this->matchId)->value('match_date');
+            $matchDate = MatchData::where('vlr_match_id', $this->matchId)->value('match_date');
             $season = $matchDate ? (int) substr((string) $matchDate, 0, 4) : (int) now()->format('Y');
             RecalculateCompetitionQualityJob::dispatch($season)->onQueue('scrape-default');
         }

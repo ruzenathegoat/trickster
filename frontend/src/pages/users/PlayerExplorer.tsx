@@ -647,7 +647,7 @@ export default function PlayerExplorer() {
             ign: player.ign || 'Unknown',
             name: player.name || '',
             team: player.team?.name || 'Free Agent',
-            role: player.current_role || 'Flex',
+            role: player.current_role || 'Unknown',
             region: player.team?.region || 'Global',
             headlineStat: String(statValue),
             photo_url: player.photo_url || null,

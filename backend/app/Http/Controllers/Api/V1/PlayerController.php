@@ -66,6 +66,9 @@ class PlayerController extends Controller
                     'players.name',
                     'players.is_igl',
                     'players.current_role',
+                    'players.role_archetype',
+                    'players.flexibility_score',
+                    'players.flex_confidence',
                     'players.photo_url',
                     'players.avg_acs',
                     'players.avg_kd',
@@ -97,7 +100,11 @@ class PlayerController extends Controller
             }
 
             if ($role !== 'All') {
-                $query->where('players.current_role', $role);
+                if ($role === 'Flex') {
+                    $query->whereIn('players.role_archetype', ['Flex', 'Elite Flex']);
+                } else {
+                    $query->where('players.current_role', $role);
+                }
             }
 
             switch ($sortBy) {
@@ -131,6 +138,9 @@ class PlayerController extends Controller
                     'name' => $result->name,
                     'is_igl' => (bool) $result->is_igl,
                     'current_role' => $result->current_role,
+                    'role_archetype' => $result->role_archetype ?? 'Specialist',
+                    'flexibility_score' => round((float) ($result->flexibility_score ?? 0), 1),
+                    'flex_confidence' => $result->flex_confidence ?? 'low',
                     'photo_url' => $result->photo_url,
                     'avg_acs' => $result->avg_acs,
                     'avg_kd' => $result->avg_kd,
@@ -190,7 +200,7 @@ class PlayerController extends Controller
                 ->orderBy('count', 'desc')
                 ->get();
 
-            $totalMatches = $player->total_matches > 0 ? $player->total_matches : 1;
+            $totalAgentPicks = max(1, (int) $agents->sum('count'));
 
             // Preload all agent definitions once, keyed by normalized name
             // (lowercase, slashes removed) to avoid an N+1 query per agent.
@@ -199,13 +209,13 @@ class PlayerController extends Controller
                 ->get()
                 ->keyBy(fn ($agent) => strtolower(str_replace('/', '', $agent->name)));
 
-            $mostPickedAgents = $agents->map(function ($a) use ($totalMatches, $agentDefs) {
+            $mostPickedAgents = $agents->map(function ($a) use ($totalAgentPicks, $agentDefs) {
                 $agentDef = $agentDefs->get(strtolower(str_replace('/', '', $a->agent_name)));
 
                 return [
                     'name' => $a->agent_name,
                     'count' => $a->count,
-                    'percentage' => round(($a->count / $totalMatches) * 100, 1).'%',
+                    'percentage' => round(($a->count / $totalAgentPicks) * 100, 1).'%',
                     'icon_url' => $agentDef ? $agentDef->icon_url : null,
                 ];
             })->values()->toArray();
@@ -268,6 +278,23 @@ class PlayerController extends Controller
                 'team_logo' => $player->team ? $player->team->logo_url : null,
                 'photo_url' => $player->photo_url,
                 'role' => $player->current_role,
+                'primary_role' => $player->current_role,
+                'role_archetype' => $player->role_archetype ?? 'Specialist',
+                'role_profile' => $player->flex_profile ?? [
+                    'primary_role' => $player->current_role ?? 'Unknown',
+                    'archetype' => $player->role_archetype ?? 'Specialist',
+                    'flex_score' => round((float) ($player->flexibility_score ?? 0), 1),
+                    'confidence' => $player->flex_confidence ?? 'low',
+                    'components' => [],
+                    'evidence' => [],
+                    'role_distribution' => [],
+                ],
+                'adaptability' => $player->meta_adaptability_profile ?? [
+                    'score' => round((float) ($player->meta_adaptability_index ?? 0), 1),
+                    'confidence' => $player->meta_adaptability_confidence ?? 'low',
+                    'components' => [],
+                    'evidence' => [],
+                ],
                 'smart_score' => $smartScore !== null ? round($smartScore, 1) : null,
                 'smart_rank' => $smartResult?->rank,
                 'smart_status' => $smartResult === null

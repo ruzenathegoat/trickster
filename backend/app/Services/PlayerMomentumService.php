@@ -107,8 +107,13 @@ final class PlayerMomentumService
                 $player['team_name'],
             ]));
 
+            $matchesRole = $role === 'All'
+                || ($role === 'Flex'
+                    ? in_array($player['role_archetype'] ?? null, ['Flex', 'Elite Flex'], true)
+                    : $player['role'] === $role);
+
             return ($query === '' || str_contains($haystack, $query))
-                && ($role === 'All' || $player['role'] === $role)
+                && $matchesRole
                 && ($region === 'All' || $player['region'] === $region)
                 && ($category === 'All' || $player['category'] === $category);
         }));
@@ -166,6 +171,7 @@ final class PlayerMomentumService
                 'momentum_players.name',
                 'momentum_players.photo_url',
                 'momentum_players.current_role',
+                'momentum_players.role_archetype',
                 'momentum_teams.name as team_name',
                 'momentum_teams.region as team_region',
                 'momentum_events.id as event_id',
@@ -188,6 +194,7 @@ final class PlayerMomentumService
                 'momentum_players.name',
                 'momentum_players.photo_url',
                 'momentum_players.current_role',
+                'momentum_players.role_archetype',
                 'momentum_teams.name',
                 'momentum_teams.region',
                 'momentum_events.id',
@@ -199,7 +206,7 @@ final class PlayerMomentumService
             ->filter(fn (object $row): bool => $row->last_match_date
                 && Carbon::parse($row->last_match_date)->year === $season)
             ->map(function (object $row) use ($eventRoles): array {
-                $role = $eventRoles[$row->player_id][$row->event_id] ?? $row->current_role ?? 'Flex';
+                $role = $eventRoles[$row->player_id][$row->event_id] ?? $row->current_role ?? 'Unknown';
                 $deaths = (int) $row->total_deaths;
 
                 return [
@@ -210,6 +217,7 @@ final class PlayerMomentumService
                     'team_name' => (string) ($row->team_name ?? 'Free Agent'),
                     'team_region' => $row->team_region,
                     'role' => $role,
+                    'role_archetype' => $row->role_archetype ?? 'Specialist',
                     'event_id' => (string) $row->event_id,
                     'event_name' => (string) $row->event_name,
                     'event_region' => (string) ($row->event_region ?? 'Unknown'),
@@ -260,11 +268,6 @@ final class PlayerMomentumService
         $result = [];
         foreach ($counts as $playerId => $events) {
             foreach ($events as $eventId => $roles) {
-                if (count($roles) > 2) {
-                    $result[$playerId][$eventId] = 'Flex';
-
-                    continue;
-                }
                 arsort($roles);
                 $result[$playerId][$eventId] = (string) array_key_first($roles);
             }
@@ -400,6 +403,7 @@ final class PlayerMomentumService
             'photo_url' => $current['photo_url'],
             'team_name' => $current['team_name'],
             'role' => $current['role'],
+            'role_archetype' => $current['role_archetype'] ?? 'Specialist',
             'region' => $homeRegion,
             'current_event' => $this->eventPayload($current),
             'comparator_event' => $comparator ? $this->eventPayload($comparator) : null,

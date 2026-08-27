@@ -257,7 +257,6 @@ final class HistoricalMatchContextService
             ranked_roles AS (
                 SELECT
                     role_counts.*,
-                    COUNT(*) OVER (PARTITION BY player_id, match_id) AS distinct_roles,
                     ROW_NUMBER() OVER (
                         PARTITION BY player_id, match_id
                         ORDER BY pick_count DESC, role_name ASC
@@ -268,7 +267,7 @@ final class HistoricalMatchContextService
                 SELECT
                     player_id,
                     match_id,
-                    CASE WHEN distinct_roles > 2 THEN 'Flex' ELSE role_name END AS role_name
+                    role_name
                 FROM ranked_roles
                 WHERE role_rank = 1
             )
@@ -287,7 +286,7 @@ final class HistoricalMatchContextService
         return $derived + DB::affectingStatement(<<<SQL
             UPDATE player_map_stats pms
             SET
-                role_at_match = COALESCE(p.current_role, 'Flex'),
+                role_at_match = COALESCE(p.current_role, 'Unknown'),
                 role_context_source = 'current_role_fallback'
             FROM players p
             WHERE p.id = pms.player_id

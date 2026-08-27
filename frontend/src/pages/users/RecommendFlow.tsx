@@ -99,7 +99,7 @@ export default function RecommendFlow() {
     Initiator: 'Information gathering and offensive support',
     Controller: 'Vision blocking and map control',
     Sentinel: 'Flank watching and site anchoring',
-    Flex: 'Multi-role adaptability',
+    Flex: 'Evidence-backed three-role coverage',
   };
 
 

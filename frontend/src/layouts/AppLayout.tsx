@@ -517,7 +517,7 @@ export default function AppLayout() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="font-['Archivo_Black'] text-sm uppercase tracking-tighter truncate text-theme-text group-hover:text-black">{result.ign}</div>
-                                <div className="font-['JetBrains_Mono'] text-[10px] text-gray-500 uppercase tracking-widest truncate group-hover:text-black/70">{result.team?.name || 'Free Agent'} • {result.current_role || 'Flex'}</div>
+                                <div className="font-['JetBrains_Mono'] text-[10px] text-gray-500 uppercase tracking-widest truncate group-hover:text-black/70">{result.team?.name || 'Free Agent'} • {result.current_role || 'Unknown'}</div>
                               </div>
                             </>
                           ) : (

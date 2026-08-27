@@ -271,7 +271,7 @@ final class CompetitionQualityService
                 'event_id' => $row->event_id,
                 'team_id' => $row->team_id,
                 'opponent_id' => $quality['opponent_id'],
-                'role' => $row->role ?: 'Flex',
+                'role' => $row->role ?: 'Unknown',
                 'competition_level' => $row->competition_level,
                 'acs' => (float) $row->acs,
                 'adr' => (float) ($row->adr ?? 0),

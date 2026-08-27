@@ -19,6 +19,8 @@ interface PlayerDetails {
   team_logo: string | null;
   photo_url: string | null;
   role: string;
+  primary_role: string;
+  role_archetype: string;
   smart_score: number | null;
   smart_rank: number | null;
   smart_status: 'verified' | 'provisional' | null;
@@ -57,6 +59,58 @@ interface PlayerDetails {
     confidence: number;
     method: string;
   } | null;
+  role_profile: {
+    method?: string;
+    primary_role: string;
+    archetype: string;
+    flex_score: number;
+    confidence: 'low' | 'medium' | 'high';
+    components: {
+      role_breadth?: number;
+      agent_breadth?: number;
+      usage_balance?: number;
+      cross_role_performance?: number;
+      repeatability?: number;
+    };
+    evidence: {
+      map_count?: number;
+      event_count?: number;
+      patch_count?: number;
+      qualified_role_count?: number;
+      repeatable_role_count?: number;
+      qualified_agent_count?: number;
+      effective_roles?: number;
+      performance_gate_passed?: boolean;
+    };
+    role_distribution: {
+      role: string;
+      map_count: number;
+      share: number;
+      agent_count: number;
+      performance_score: number;
+      qualified: boolean;
+      repeatable: boolean;
+    }[];
+  };
+  adaptability: {
+    method?: string;
+    score: number;
+    confidence: 'low' | 'medium' | 'high';
+    components: {
+      meta_alignment?: number;
+      performance_retention?: number;
+      meta_response?: number;
+      role_flexibility?: number;
+    };
+    evidence: {
+      map_count?: number;
+      active_patch_count?: number;
+      transition_count?: number;
+      adaptation_opportunity_count?: number;
+      tier_coverage?: number;
+      performance_coverage?: number;
+    };
+  };
   radar_stats: {
     'ACS': number;
     'K/D': number;
@@ -393,9 +447,10 @@ export default function PlayerProfile() {
           className="w-full lg:w-[420px] shrink-0"
         >
           <div className="bg-[var(--color-primary)] border-4 border-theme-border overflow-hidden relative shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] md:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] flex flex-col min-h-[500px] md:min-h-[700px]">
-            {/* Massive Role Badge absolute */}
-            <div className="absolute top-6 right-6 bg-black text-[var(--color-primary)] font-black px-6 py-2 border-4 border-[var(--color-primary)] text-lg uppercase tracking-widest z-20">
-              {player.role}
+            {/* Primary role remains separate from the player's Flex archetype. */}
+            <div className="absolute top-6 right-6 bg-black text-[var(--color-primary)] font-black px-5 py-3 border-4 border-[var(--color-primary)] z-20">
+              <span className="block font-label text-[9px] uppercase tracking-widest opacity-70 mb-1">Primary role</span>
+              <span className="block text-base uppercase tracking-widest leading-none">{player.primary_role || player.role}</span>
             </div>
 
             {/* Photo section */}
@@ -517,6 +572,115 @@ export default function PlayerProfile() {
 
         {/* Right Column: Stats & Radar */}
         <div className="flex-1 flex flex-col gap-16 pt-4">
+
+          {/* Role and adaptability evidence, intentionally presented without nested cards. */}
+          <section className="border-b-4 border-theme-border pb-12">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-10">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-display uppercase tracking-tight text-theme-text">
+                  Role Profile
+                </h2>
+                <p className="mt-2 max-w-xl text-sm leading-6 text-theme-text/55">
+                  Flex labels require meaningful volume, repeatability, agent breadth, and retained performance.
+                </p>
+              </div>
+              <span className="font-label text-[11px] font-bold uppercase tracking-widest text-theme-text/50">
+                {player.role_profile?.confidence || 'low'} confidence
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 gap-10 md:grid-cols-[minmax(180px,0.75fr)_minmax(0,1.4fr)] md:gap-14">
+              <div className="flex flex-col justify-between">
+                <div>
+                  <p className="font-label text-xs font-bold text-theme-text/50">Archetype</p>
+                  <p className="mt-2 font-display text-4xl uppercase leading-none text-theme-text md:text-5xl">
+                    {player.role_profile?.archetype || player.role_archetype || 'Specialist'}
+                  </p>
+                </div>
+                <div className="mt-10">
+                  <div className="flex items-end gap-2">
+                    <span className="font-numeric text-5xl font-black tabular-nums text-theme-text">
+                      {Number(player.role_profile?.flex_score ?? 0).toFixed(1)}
+                    </span>
+                    <span className="pb-1 font-label text-xs font-bold text-theme-text/40">/ 100</span>
+                  </div>
+                  <p className="mt-2 font-label text-xs font-bold text-theme-text/50">Flex score</p>
+                </div>
+              </div>
+
+              <div>
+                {(player.role_profile?.role_distribution || []).length > 0 ? (
+                  <div className="space-y-1">
+                    {player.role_profile.role_distribution.map((role) => (
+                      <div
+                        key={role.role}
+                        className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-6 py-3"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                            <span className="font-display text-lg uppercase text-theme-text">{role.role}</span>
+                            {role.qualified && (
+                              <span className="font-label text-[10px] font-bold uppercase tracking-wider text-theme-text/40">
+                                Qualified
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-1 text-xs text-theme-text/45">
+                            {role.agent_count} agents, performance {Number(role.performance_score).toFixed(1)}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-numeric text-lg font-black tabular-nums text-theme-text">{role.share.toFixed(1)}%</p>
+                          <p className="text-xs text-theme-text/45">{role.map_count} maps</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="py-8 text-sm leading-6 text-theme-text/50">
+                    Not enough mapped agent data is available to establish a role distribution yet.
+                  </p>
+                )}
+
+                <dl className="mt-7 grid grid-cols-2 gap-x-8 gap-y-5 border-t-2 border-theme-border/20 pt-6 sm:grid-cols-4">
+                  {[
+                    ['Qualified roles', player.role_profile?.evidence?.qualified_role_count ?? 0],
+                    ['Qualified agents', player.role_profile?.evidence?.qualified_agent_count ?? 0],
+                    ['Events', player.role_profile?.evidence?.event_count ?? 0],
+                    ['Patches', player.role_profile?.evidence?.patch_count ?? 0],
+                  ].map(([label, value]) => (
+                    <div key={String(label)}>
+                      <dt className="text-xs leading-5 text-theme-text/45">{label}</dt>
+                      <dd className="mt-1 font-numeric text-xl font-black tabular-nums text-theme-text">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            </div>
+
+            <div className="mt-10 grid grid-cols-1 gap-6 border-t-2 border-theme-border pt-8 sm:grid-cols-[minmax(150px,0.55fr)_minmax(0,1.45fr)] sm:gap-10">
+              <div>
+                <p className="font-label text-xs font-bold text-theme-text/50">Meta adaptability</p>
+                <div className="mt-2 flex items-end gap-2">
+                  <span className="font-numeric text-4xl font-black tabular-nums text-theme-text">
+                    {Number(player.adaptability?.score ?? 0).toFixed(1)}
+                  </span>
+                  <span className="pb-1 font-label text-[10px] font-bold uppercase tracking-wider text-theme-text/40">
+                    {player.adaptability?.confidence || 'low'} confidence
+                  </span>
+                </div>
+              </div>
+              <div className="sm:pt-1">
+                <p className="max-w-2xl text-sm leading-6 text-theme-text/55">
+                  Agent changes are scored only when the previous pool was disrupted by the meta. Staying can still score well when performance holds.
+                </p>
+                <p className="mt-3 font-label text-xs font-bold text-theme-text/45">
+                  {player.adaptability?.evidence?.active_patch_count ?? 0} active patches,{' '}
+                  {player.adaptability?.evidence?.adaptation_opportunity_count ?? 0} measured adaptation opportunities
+                </p>
+              </div>
+            </div>
+          </section>
           
           {/* Typographic Raw Stats Block (No Cards) */}
           <motion.div 

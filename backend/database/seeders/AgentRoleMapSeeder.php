@@ -30,7 +30,6 @@ class AgentRoleMapSeeder extends Seeder
             'KAY/O' => 'Initiator',
             'Fade' => 'Initiator',
             'Gekko' => 'Initiator',
-            'Waylay' => 'Initiator',
 
             // Controllers
             'Omen' => 'Controller',

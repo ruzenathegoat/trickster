@@ -13,7 +13,46 @@ class Player extends Model
 
     const UPDATED_AT = null;
 
-    protected $fillable = ['name', 'ign', 'country', 'team_id', 'current_role', 'vlr_player_id', 'photo_url', 'total_matches', 'total_wins', 'win_rate', 'avg_acs', 'avg_kd', 'avg_kast', 'avg_adr', 'avg_rating', 'total_kills', 'total_deaths', 'total_assists', 'consistency_index', 'consistency_provisional_index', 'consistency_sample_size', 'consistency_event_count', 'consistency_method', 'consistency_calculated_at', 'competition_quality_index', 'avg_fk', 'avg_fd', 'meta_alignment_score', 'flexibility_score', 'meta_adaptability_index', 'is_igl'];
+    protected $fillable = [
+        'name',
+        'ign',
+        'country',
+        'team_id',
+        'current_role',
+        'role_archetype',
+        'vlr_player_id',
+        'photo_url',
+        'total_matches',
+        'total_wins',
+        'win_rate',
+        'avg_acs',
+        'avg_kd',
+        'avg_kast',
+        'avg_adr',
+        'avg_rating',
+        'total_kills',
+        'total_deaths',
+        'total_assists',
+        'consistency_index',
+        'consistency_provisional_index',
+        'consistency_sample_size',
+        'consistency_event_count',
+        'consistency_method',
+        'consistency_calculated_at',
+        'competition_quality_index',
+        'avg_fk',
+        'avg_fd',
+        'meta_alignment_score',
+        'flexibility_score',
+        'flex_confidence',
+        'flex_profile',
+        'role_profile_calculated_at',
+        'meta_adaptability_index',
+        'meta_adaptability_confidence',
+        'meta_adaptability_profile',
+        'meta_adaptability_calculated_at',
+        'is_igl',
+    ];
 
     protected function casts(): array
     {
@@ -23,6 +62,12 @@ class Player extends Model
             'consistency_sample_size' => 'integer',
             'consistency_event_count' => 'integer',
             'consistency_calculated_at' => 'datetime',
+            'flexibility_score' => 'float',
+            'flex_profile' => 'array',
+            'role_profile_calculated_at' => 'datetime',
+            'meta_adaptability_index' => 'float',
+            'meta_adaptability_profile' => 'array',
+            'meta_adaptability_calculated_at' => 'datetime',
         ];
     }
 

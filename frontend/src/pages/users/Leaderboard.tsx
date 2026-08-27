@@ -13,6 +13,7 @@ interface PlayerRank {
   photo_url: string | null;
   rating: number;
   role: string;
+  role_archetype?: string;
   acs: number;
   kd: number;
 }
@@ -303,9 +304,16 @@ export default function Leaderboard() {
                       {player.team_name}
                     </td>
                     <td className="py-4 px-3 md:py-6 md:px-6 whitespace-nowrap">
-                      <span className="inline-block px-2 py-1 md:px-3 md:py-1.5 bg-theme-bg border-2 border-theme-border text-[10px] md:text-[11px] font-black uppercase tracking-widest">
-                        {player.role}
-                      </span>
+                      <div className="flex flex-col items-start gap-1.5">
+                        <span className="inline-block px-2 py-1 md:px-3 md:py-1.5 bg-theme-bg border-2 border-theme-border text-[10px] md:text-[11px] font-black uppercase tracking-widest">
+                          {player.role}
+                        </span>
+                        {['Flex', 'Elite Flex'].includes(player.role_archetype || '') && (
+                          <span className="font-label text-[9px] font-bold uppercase tracking-wider text-theme-text/45">
+                            {player.role_archetype}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-4 px-3 md:py-6 md:px-6 text-right font-['JetBrains_Mono'] font-black text-theme-text text-xl md:text-2xl tabular-nums whitespace-nowrap">
                       {player.rating}

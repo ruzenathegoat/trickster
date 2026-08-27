@@ -51,7 +51,6 @@ class SmartEngineController extends Controller
                 ->join('players', 'player_smart_results.player_id', '=', 'players.id')
                 ->where('player_smart_results.mode', $mode)
                 ->where('player_smart_results.final_score', '>=', $minScore)
-                ->where('players.current_role', $role)
                 ->select(
                     'player_smart_results.final_score',
                     'player_smart_results.is_provisional',
@@ -59,9 +58,15 @@ class SmartEngineController extends Controller
                     'players.id',
                     'players.ign',
                     'players.current_role',
+                    'players.role_archetype',
                     'players.photo_url'
                 )
                 ->orderBy('player_smart_results.final_score', 'desc')
+                ->when(
+                    $role === 'Flex',
+                    fn ($query) => $query->whereIn('players.role_archetype', ['Flex', 'Elite Flex']),
+                    fn ($query) => $query->where('players.current_role', $role)
+                )
                 ->get();
 
             $playerIds = $results->pluck('id')->toArray();
