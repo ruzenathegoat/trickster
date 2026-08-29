@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from '@/lib/axios';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -52,24 +52,32 @@ export default function AdminPlayers() {
     setLoading(false);
   };
 
-  const toggleIgl = async (playerId: string, currentStatus: boolean) => {
+  const toggleIgl = useCallback(async (playerId: string, currentStatus: boolean) => {
     try {
-      setPlayers(players.map(p => p.id === playerId ? { ...p, is_igl: !currentStatus } : p));
+      setPlayers(currentPlayers => currentPlayers.map(p =>
+        p.id === playerId ? { ...p, is_igl: !currentStatus } : p
+      ));
       await axios.patch(`/api/v1/admin/players/${playerId}/toggle-igl`);
       toast.success('IGL status updated');
     } catch (error) {
       toast.error('Failed to update IGL status');
-      setPlayers(players.map(p => p.id === playerId ? { ...p, is_igl: currentStatus } : p));
+      setPlayers(currentPlayers => currentPlayers.map(p =>
+        p.id === playerId ? { ...p, is_igl: currentStatus } : p
+      ));
     }
-  };
+  }, []);
 
-  const filteredPlayers = players.filter(p => 
-    (p.ign || '').toLowerCase().includes(search.toLowerCase()) || 
-    (p.name || '').toLowerCase().includes(search.toLowerCase())
-  );
+  const normalizedSearch = search.toLowerCase();
+  const filteredPlayers = useMemo(() => players.filter(p =>
+    (p.ign || '').toLowerCase().includes(normalizedSearch) ||
+    (p.name || '').toLowerCase().includes(normalizedSearch)
+  ), [players, normalizedSearch]);
 
   const totalPages = Math.ceil(filteredPlayers.length / 10);
-  const paginatedPlayers = filteredPlayers.slice((currentPage - 1) * 10, currentPage * 10);
+  const paginatedPlayers = useMemo(
+    () => filteredPlayers.slice((currentPage - 1) * 10, currentPage * 10),
+    [filteredPlayers, currentPage]
+  );
 
   const columns = useMemo(() => [
     columnHelper.accessor('ign', {
@@ -121,7 +129,7 @@ export default function AdminPlayers() {
         );
       }
     }),
-  ], [players]);
+  ], [toggleIgl]);
 
   const table = useReactTable({
     data: paginatedPlayers,
