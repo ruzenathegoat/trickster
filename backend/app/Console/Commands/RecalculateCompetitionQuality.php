@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Jobs\CalculateSmartJob;
+use App\Services\CompetitionQualityConfig;
 use App\Services\CompetitionQualityService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +14,7 @@ class RecalculateCompetitionQuality extends Command
                             {season? : Four-digit season; defaults to the latest completed match}
                             {--no-smart : Do not refresh SMART results after CQI}';
 
-    protected $description = 'Rebuild CQI v2, consistency percentiles, and proven consistency in bulk';
+    protected $description = 'Rebuild CQI v3, scoped stage evidence, and proven consistency in bulk';
 
     public function handle(CompetitionQualityService $competitionQuality): int
     {
@@ -31,7 +32,7 @@ class RecalculateCompetitionQuality extends Command
             return self::FAILURE;
         }
 
-        $this->info("Recalculating CQI v2 for {$season}...");
+        $this->info("Recalculating CQI v3 for {$season}...");
         $summary = $competitionQuality->recalculateSeason($season);
 
         if (! $this->option('no-smart')) {
@@ -42,7 +43,7 @@ class RecalculateCompetitionQuality extends Command
 
             if ($playerIds !== []) {
                 CalculateSmartJob::dispatchSync(
-                    'competition-quality-v2-'.$season,
+                    CompetitionQualityConfig::METHOD_VERSION.'-'.$season,
                     $playerIds,
                     false
                 );

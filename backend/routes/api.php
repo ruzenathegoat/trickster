@@ -53,6 +53,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
     // Curation GET endpoints
     Route::get('/stage-mappings', [AdminCurationController::class, 'getStageMappings']);
+    Route::get('/stage-format-profiles', [AdminCurationController::class, 'getStageFormatProfiles']);
+    Route::get('/stage-mappings/observed-labels', [AdminCurationController::class, 'getObservedStageLabels']);
+    Route::get('/metrics/runs/{id}', [AdminCurationController::class, 'getMetricRun']);
     Route::get('/agent-patch-ratings', [AdminCurationController::class, 'getPatchRatings']);
     Route::get('/agent-map-ratings', [AdminCurationController::class, 'getMapRatings']);
     Route::get('/agent-map-ratings/by-patch/{patchId}', [AdminCurationController::class, 'getMapRatingsByPatch']);
@@ -63,6 +66,10 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function
 
     // Curation POST/PUT endpoints
     Route::post('/stage-mappings', [AdminCurationController::class, 'storeStageMapping']);
+    Route::put('/stage-mappings/{id}', [AdminCurationController::class, 'updateStageMapping']);
+    Route::patch('/stage-mappings/{id}/toggle', [AdminCurationController::class, 'toggleStageMapping']);
+    Route::post('/stage-mappings/preview-impact', [AdminCurationController::class, 'previewStageMappingImpact']);
+    Route::post('/metrics/recalculate', [AdminCurationController::class, 'recalculateMetrics']);
     Route::post('/valorant-maps', [AdminCurationController::class, 'addValorantMap']);
     Route::patch('/valorant-maps/{id}/toggle', [AdminCurationController::class, 'toggleValorantMap']);
     Route::post('/patch-map-pool', [AdminCurationController::class, 'savePatchMapPool']);

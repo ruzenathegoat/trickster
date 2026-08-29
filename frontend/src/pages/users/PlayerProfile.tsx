@@ -52,7 +52,17 @@ interface PlayerDetails {
     exposure_percentile: number;
     raw_match_quality: number;
     weighted_performance: number;
+    base_proven_consistency: number;
     proven_consistency: number;
+    stage_evidence: number;
+    stage_confidence: number;
+    high_pressure_matches: number;
+    stage_exposure_breakdown: Record<string, {
+      matches: number;
+      high_pressure_matches: number;
+      raw_evidence: number;
+      evidence: number;
+    }>;
     international_matches: number;
     international_events: number;
     validation_status: string;
@@ -534,7 +544,7 @@ export default function PlayerProfile() {
                       <span className="text-[11px] font-black text-theme-text/50 uppercase tracking-widest">Proven Consistency</span>
                       <span
                         className="font-numeric font-black text-[15px] text-theme-text tabular-nums"
-                        title={`${player.competition_quality.validation_status} · ${player.competition_quality.international_matches} international matches`}
+                        title={`${player.competition_quality.validation_status} · ${player.competition_quality.high_pressure_matches} high-pressure matches · ${(player.competition_quality.stage_confidence * 100).toFixed(1)}% stage confidence`}
                       >
                         {player.competition_quality.proven_consistency.toFixed(2)}
                       </span>

@@ -4,9 +4,9 @@ namespace App\Services;
 
 final class CompetitionQualityConfig
 {
-    public const METHOD_VERSION = 'competition-quality-v2';
+    public const METHOD_VERSION = 'competition-quality-v3-stage-profile';
 
-    public const PERFORMANCE_METHOD_VERSION = 'role-match-performance-v2';
+    public const PERFORMANCE_METHOD_VERSION = 'role-match-performance-v3-stage-profile';
 
     public const ELO_METHOD_VERSION = 'pre-match-elo-v1';
 
@@ -23,6 +23,18 @@ final class CompetitionQualityConfig
     public const ELO_K = 32.0;
 
     public const MINIMUM_ROLE_COHORT = 12;
+
+    public const STAGE_PROOF_FLOOR = 0.92;
+
+    public const STAGE_CONFIDENCE_SCALE = 10.0;
+
+    /** @var array<string, float> */
+    public const STAGE_EVIDENCE_CAPS = [
+        'vct_kickoff_triple_elim_2026' => 4.0,
+        'vct_regional_groups_playins_playoffs_2026' => 4.0,
+        'vct_masters_swiss_playoffs_2026' => 5.0,
+        'vct_champions_groups_playoffs_2026' => 6.0,
+    ];
 
     /** @var array<string, float> */
     public const PERFORMANCE_WEIGHTS = [
@@ -88,18 +100,39 @@ final class CompetitionQualityConfig
             return max(0.90, min(1.15, $curatedWeight));
         }
 
-        $stage = mb_strtolower((string) $rawStageLabel);
+        // CQI v3 never infers a cross-format stage from a raw label. Unknown
+        // labels stay neutral and are surfaced to the curation dashboard.
+        return 1.00;
+    }
 
-        return match (true) {
-            str_contains($stage, 'grand final') => 1.10,
-            str_contains($stage, 'lower final'), str_contains($stage, 'elimination') => 1.07,
-            str_contains($stage, 'playoff'),
-            str_contains($stage, 'quarterfinal'),
-            str_contains($stage, 'semifinal'),
-            str_contains($stage, 'upper'),
-            str_contains($stage, 'lower') => 1.04,
-            default => 1.00,
-        };
+    public static function evidenceCap(?string $profileKey): float
+    {
+        return self::STAGE_EVIDENCE_CAPS[$profileKey ?? ''] ?? 4.0;
+    }
+
+    public static function saturateEvidence(float $rawEvidence, float $cap): float
+    {
+        if ($rawEvidence <= 0 || $cap <= 0) {
+            return 0.0;
+        }
+
+        return $cap * (1.0 - exp(-$rawEvidence / $cap));
+    }
+
+    public static function stageConfidence(float $stageEvidence): float
+    {
+        if ($stageEvidence <= 0) {
+            return 0.0;
+        }
+
+        return 1.0 - exp(-$stageEvidence / self::STAGE_CONFIDENCE_SCALE);
+    }
+
+    public static function stageProofFactor(float $stageConfidence): float
+    {
+        $confidence = max(0.0, min(1.0, $stageConfidence));
+
+        return self::STAGE_PROOF_FLOOR + ((1.0 - self::STAGE_PROOF_FLOOR) * $confidence);
     }
 
     public static function regionPrior(?string $region): float

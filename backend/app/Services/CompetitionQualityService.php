@@ -9,10 +9,11 @@ final class CompetitionQualityService
     public function __construct(
         private readonly HistoricalMatchContextService $historicalContext,
         private readonly PreMatchEloCalculator $eloCalculator,
+        private readonly StageContextService $stageContext,
     ) {}
 
     /**
-     * Rebuild every CQI v2 component for one season with a fixed number of
+     * Rebuild every CQI v3 component for one season with a fixed number of
      * bulk queries. No query is executed inside a player or match loop.
      *
      * @return array<string, mixed>
@@ -20,7 +21,7 @@ final class CompetitionQualityService
     public function recalculateSeason(int $season): array
     {
         $contextSummary = $this->historicalContext->backfillAll();
-        $classifiedEvents = $this->classifyEvents();
+        $stageSummary = $this->stageContext->prepareSeason($season);
         $matches = $this->loadMatches($season);
         $calculatedAt = now();
 
@@ -32,7 +33,8 @@ final class CompetitionQualityService
                 'matches' => 0,
                 'players' => 0,
                 'eligible_players' => 0,
-                'classified_events' => $classifiedEvents,
+                'classified_events' => $stageSummary['classified_events'],
+                'stage_context' => $stageSummary,
                 'context' => $contextSummary,
                 'method_version' => CompetitionQualityConfig::METHOD_VERSION,
             ];
@@ -66,7 +68,8 @@ final class CompetitionQualityService
                 $competitionRows,
                 fn (array $row): bool => (float) $row['confidence'] >= 1.0
             )),
-            'classified_events' => $classifiedEvents,
+            'classified_events' => $stageSummary['classified_events'],
+            'stage_context' => $stageSummary,
             'context' => $contextSummary,
             'method_version' => CompetitionQualityConfig::METHOD_VERSION,
         ];
@@ -138,6 +141,7 @@ final class CompetitionQualityService
         return DB::table('matches as m')
             ->join('events as e', 'e.id', '=', 'm.event_id')
             ->leftJoin('stage_label_mapping as slm', 'slm.id', '=', 'm.stage_label_id')
+            ->leftJoin('stage_format_profiles as sfp', 'sfp.id', '=', 'e.stage_format_profile_id')
             ->whereYear('m.match_date', $season)
             ->whereNotNull('m.winner_team_id')
             ->whereNotNull('e.competition_level')
@@ -154,7 +158,12 @@ final class CompetitionQualityService
                 'e.region as event_region',
                 'e.competition_level',
                 'e.competition_base_weight',
-                'slm.pressure_weight',
+                'm.stage_resolution_source',
+                'slm.id as stage_mapping_id',
+                'slm.normalized_stage',
+                'slm.quality_weight',
+                'slm.consistency_evidence_weight',
+                'sfp.key as stage_format_profile',
             ])
             ->orderBy('m.match_date')
             ->orderBy('m.id')
@@ -191,7 +200,7 @@ final class CompetitionQualityService
                 $eventBase = (float) $match['competition_base_weight'];
                 $stageFactor = CompetitionQualityConfig::stageFactor(
                     $match['raw_stage_label'],
-                    $match['pressure_weight'] === null ? null : (float) $match['pressure_weight']
+                    $match['quality_weight'] === null ? null : (float) $match['quality_weight']
                 );
                 $quality = $eventBase * $stageFactor * $opponentFactor;
 
@@ -201,8 +210,13 @@ final class CompetitionQualityService
                     'opponent_id' => $opponentId,
                     'season' => $season,
                     'competition_level' => $match['competition_level'],
+                    'stage_mapping_id' => $match['stage_mapping_id'],
+                    'stage_format_profile' => $match['stage_format_profile'],
+                    'normalized_stage' => $match['normalized_stage'],
                     'event_base' => round($eventBase, 4),
                     'stage_factor' => round($stageFactor, 4),
+                    'stage_evidence_weight' => round((float) ($match['consistency_evidence_weight'] ?? 0), 3),
+                    'stage_resolution_source' => $match['stage_resolution_source'] ?? 'unmapped',
                     'opponent_factor' => round($opponentFactor, 4),
                     'match_quality' => round($quality, 4),
                     'method_version' => CompetitionQualityConfig::METHOD_VERSION,
@@ -273,6 +287,12 @@ final class CompetitionQualityService
                 'opponent_id' => $quality['opponent_id'],
                 'role' => $row->role ?: 'Unknown',
                 'competition_level' => $row->competition_level,
+                'stage_mapping_id' => $quality['stage_mapping_id'],
+                'stage_format_profile' => $quality['stage_format_profile'],
+                'normalized_stage' => $quality['normalized_stage'],
+                'stage_factor' => (float) $quality['stage_factor'],
+                'stage_evidence_weight' => (float) $quality['stage_evidence_weight'],
+                'stage_resolution_source' => $quality['stage_resolution_source'],
                 'acs' => (float) $row->acs,
                 'adr' => (float) ($row->adr ?? 0),
                 'kast' => (float) ($row->kast ?? 0),
@@ -327,6 +347,12 @@ final class CompetitionQualityService
                 'season' => $season,
                 'role' => $observation['role'],
                 'competition_level' => $observation['competition_level'],
+                'stage_mapping_id' => $observation['stage_mapping_id'],
+                'stage_format_profile' => $observation['stage_format_profile'],
+                'normalized_stage' => $observation['normalized_stage'],
+                'stage_factor' => round((float) $observation['stage_factor'], 4),
+                'stage_evidence_weight' => round((float) $observation['stage_evidence_weight'], 3),
+                'stage_resolution_source' => $observation['stage_resolution_source'],
                 'acs_percentile' => round($percentiles['acs'], 3),
                 'adr_percentile' => round($percentiles['adr'], 3),
                 'kast_percentile' => round($percentiles['kast'], 3),
@@ -369,6 +395,7 @@ final class CompetitionQualityService
             $weightedPerformance = 50.0 + ($reliability * ($weightedRaw - 50.0));
             $eligible = $matches >= CompetitionQualityConfig::MINIMUM_MATCHES
                 && $events >= CompetitionQualityConfig::MINIMUM_EVENTS;
+            $stageExposure = $this->calculateStageExposure($rows);
 
             $aggregates[$playerId] = [
                 'player_id' => $playerId,
@@ -379,6 +406,10 @@ final class CompetitionQualityService
                 'event_count' => $events,
                 'international_matches' => count($internationalRows),
                 'international_events' => $internationalEvents,
+                'stage_evidence' => $stageExposure['evidence'],
+                'stage_confidence' => CompetitionQualityConfig::stageConfidence($stageExposure['evidence']),
+                'high_pressure_matches' => $stageExposure['high_pressure_matches'],
+                'stage_exposure_breakdown' => $stageExposure['breakdown'],
                 'reliability' => $reliability,
                 'eligible' => $eligible,
             ];
@@ -443,7 +474,11 @@ final class CompetitionQualityService
             $weightedPerformance = max(0.0, min(100.0, (float) $aggregate['weighted_performance']));
             $consistency = max(0.0, min(100.0, $consistency));
             $cqi = max(0.0, min(100.0, $cqi));
-            $proven = ($consistency * $cqi * $weightedPerformance) ** (1 / 3);
+            $baseProven = ($consistency * $cqi * $weightedPerformance) ** (1 / 3);
+            $proven = min(
+                100.0,
+                $baseProven * CompetitionQualityConfig::stageProofFactor($aggregate['stage_confidence'])
+            );
             $validationStatus = match (true) {
                 $aggregate['eligible']
                     && $aggregate['international_matches'] >= CompetitionQualityConfig::GLOBAL_MINIMUM_MATCHES
@@ -464,6 +499,14 @@ final class CompetitionQualityService
                 'cqi_adjusted' => round((float) $aggregate['cqi_adjusted'], 4),
                 'cqi_percentile' => round($cqi, 3),
                 'weighted_performance' => round($weightedPerformance, 3),
+                'stage_evidence' => round((float) $aggregate['stage_evidence'], 4),
+                'stage_confidence' => round((float) $aggregate['stage_confidence'], 4),
+                'high_pressure_matches' => $aggregate['high_pressure_matches'],
+                'base_proven_consistency' => round($baseProven, 3),
+                'stage_exposure_breakdown' => json_encode(
+                    $aggregate['stage_exposure_breakdown'],
+                    JSON_UNESCAPED_SLASHES
+                ),
                 'proven_consistency' => round($proven, 3),
                 'total_matches' => $aggregate['total_matches'],
                 'event_count' => $aggregate['event_count'],
@@ -476,6 +519,63 @@ final class CompetitionQualityService
         }
 
         return $result;
+    }
+
+    /**
+     * Saturate evidence within each event so long lower-bracket routes add
+     * proof with diminishing returns instead of linearly rewarding losses.
+     *
+     * @param  array<int, array<string, mixed>>  $rows
+     * @return array{evidence: float, high_pressure_matches: int, breakdown: array<string, mixed>}
+     */
+    private function calculateStageExposure(array $rows): array
+    {
+        $events = [];
+        $breakdown = [];
+        $highPressureMatches = 0;
+
+        foreach ($rows as $row) {
+            $profile = (string) ($row['stage_format_profile'] ?? 'unmapped');
+            $eventId = (string) $row['event_id'];
+            $weight = max(0.0, (float) ($row['stage_evidence_weight'] ?? 0));
+
+            $events[$eventId]['profile'] = $profile;
+            $events[$eventId]['raw_evidence'] = ($events[$eventId]['raw_evidence'] ?? 0.0) + $weight;
+
+            $breakdown[$profile]['matches'] = ($breakdown[$profile]['matches'] ?? 0) + 1;
+            $breakdown[$profile]['raw_evidence'] = ($breakdown[$profile]['raw_evidence'] ?? 0.0) + $weight;
+            if ($weight > 0) {
+                $highPressureMatches++;
+                $breakdown[$profile]['high_pressure_matches'] =
+                    ($breakdown[$profile]['high_pressure_matches'] ?? 0) + 1;
+            }
+        }
+
+        $total = 0.0;
+        foreach ($events as $event) {
+            $profile = (string) $event['profile'];
+            $saturated = CompetitionQualityConfig::saturateEvidence(
+                (float) $event['raw_evidence'],
+                CompetitionQualityConfig::evidenceCap($profile)
+            );
+            $total += $saturated;
+            $breakdown[$profile]['evidence'] = ($breakdown[$profile]['evidence'] ?? 0.0) + $saturated;
+        }
+
+        foreach ($breakdown as &$profile) {
+            $profile['raw_evidence'] = round((float) $profile['raw_evidence'], 4);
+            $profile['evidence'] = round((float) ($profile['evidence'] ?? 0), 4);
+            $profile['high_pressure_matches'] = (int) ($profile['high_pressure_matches'] ?? 0);
+        }
+        unset($profile);
+
+        ksort($breakdown);
+
+        return [
+            'evidence' => $total,
+            'high_pressure_matches' => $highPressureMatches,
+            'breakdown' => $breakdown,
+        ];
     }
 
     /**

@@ -117,7 +117,10 @@ Q = event_base * stage_factor * pre_match_opponent_factor
 weighted_performance = sum(Q * performance) / sum(Q)
 consistency = 100 - percentile(stddev(performance))
 cqi = percentile(reliability_shrunk_average(Q))
-proven = cbrt(consistency * cqi * weighted_performance)
+event_stage_evidence = cap * (1 - exp(-sum(stage_evidence) / cap))
+stage_confidence = 1 - exp(-sum(event_stage_evidence) / 10)
+base_proven = cbrt(consistency * cqi * weighted_performance)
+proven = base_proven * (.92 + .08 * stage_confidence)
 
 for criterion in criteria:
   if criterion in [consistency, cqi, proven]:

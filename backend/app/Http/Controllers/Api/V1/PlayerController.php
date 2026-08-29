@@ -332,7 +332,14 @@ class PlayerController extends Controller
                     'exposure_percentile' => round((float) $competition->cqi_percentile, 2),
                     'raw_match_quality' => round((float) $competition->cqi_raw, 3),
                     'weighted_performance' => round((float) $competition->weighted_performance, 2),
+                    'base_proven_consistency' => round((float) $competition->base_proven_consistency, 2),
                     'proven_consistency' => round((float) $competition->proven_consistency, 2),
+                    'stage_evidence' => round((float) $competition->stage_evidence, 3),
+                    'stage_confidence' => round((float) $competition->stage_confidence, 4),
+                    'high_pressure_matches' => (int) $competition->high_pressure_matches,
+                    'stage_exposure_breakdown' => is_string($competition->stage_exposure_breakdown)
+                        ? json_decode($competition->stage_exposure_breakdown, true)
+                        : $competition->stage_exposure_breakdown,
                     'international_matches' => (int) $competition->international_matches,
                     'international_events' => (int) $competition->international_events,
                     'validation_status' => $competition->validation_status,
