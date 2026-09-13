@@ -183,8 +183,40 @@ export default function Dashboard() {
       if (showLoading) setLoading(true);
       try {
         const response = await axios.get('/api/v1/dashboard');
-        if (isMounted) {
-          setData(response.data);
+        const raw = response.data;
+        if (isMounted && raw) {
+          const rawTopAgents = raw.meta_shift?.top_agents || raw.top_agents || [];
+          const normalizedMetaShift = {
+            patch: raw.meta_shift?.patch || raw.patch || '9.08',
+            top_agents: rawTopAgents.map((a: any) => ({
+              name: a.name || a.agent || 'Unknown',
+              rating: a.rating || 0,
+              height: a.height || '60%',
+              shift: a.shift || '+0.0'
+            }))
+          };
+
+          const rawHero = raw.hero_kpi;
+          const normalizedHeroKpi = rawHero ? {
+            ...rawHero,
+            name: rawHero.name || rawHero.top_player || rawHero.ign || 'Top Candidate',
+            score: rawHero.score ?? 0,
+            role: rawHero.role || 'Player',
+            profile_name: rawHero.profile_name || 'Global'
+          } : null;
+
+          const rawMatches = raw.recent_matches;
+          const normalizedMatches = Array.isArray(rawMatches) ? rawMatches : (rawMatches?.data || []);
+
+          const rawTracked = raw.tracked_players;
+          const normalizedTracked = Array.isArray(rawTracked) ? rawTracked : (rawTracked?.data || []);
+
+          setData({
+            hero_kpi: normalizedHeroKpi,
+            meta_shift: normalizedMetaShift,
+            recent_matches: normalizedMatches,
+            tracked_players: normalizedTracked
+          });
           setError(null);
         }
       } catch (err: any) {

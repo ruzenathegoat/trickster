@@ -144,6 +144,8 @@ export default function AdminLayout() {
           <button 
             onClick={handleLogout} 
             disabled={isLoggingOut}
+            aria-label="Logout"
+            title="Logout from Admin Portal"
             className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-4 md:py-0 font-display text-sm font-black uppercase tracking-widest transition-all ${
               isLoggingOut 
                 ? "bg-gray-300 text-gray-500 animate-pulse cursor-not-allowed" 
@@ -155,7 +157,7 @@ export default function AdminLayout() {
             ) : (
               <SignOut weight="bold" className="text-xl" />
             )}
-            <span className="hidden md:inline">{isLoggingOut ? "TERMINATING..." : "Terminate"}</span>
+            <span className="hidden md:inline">{isLoggingOut ? "LOGGING OUT..." : "Logout"}</span>
           </button>
         </div>
 

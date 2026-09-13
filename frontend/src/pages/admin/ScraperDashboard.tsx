@@ -203,6 +203,31 @@ export default function ScraperDashboard() {
         </motion.button>
       </div>
 
+      {/* Active Scraper Providers & Live Telemetry */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-theme-bg border-4 border-theme-border p-6 flex items-center justify-between shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
+          <div className="flex items-center gap-4">
+            <span className="w-3.5 h-3.5 rounded-full bg-[#10b981] animate-pulse"></span>
+            <div>
+              <span className="font-label text-xs font-black uppercase tracking-widest text-gray-500">PRIMARY SOURCE</span>
+              <h4 className="font-display text-2xl font-black uppercase tracking-tight text-theme-text">VLR.GG PIPELINE</h4>
+            </div>
+          </div>
+          <span className="font-label text-xs font-black uppercase px-3.5 py-1.5 bg-[#10b981] text-theme-text border-2 border-theme-border shadow-[2px_2px_0px_#000]">LIVE SYNC</span>
+        </div>
+
+        <div className="bg-theme-bg border-4 border-theme-border p-6 flex items-center justify-between shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
+          <div className="flex items-center gap-4">
+            <span className="w-3.5 h-3.5 rounded-full bg-[var(--color-primary)]"></span>
+            <div>
+              <span className="font-label text-xs font-black uppercase tracking-widest text-gray-500">SECONDARY SOURCE</span>
+              <h4 className="font-display text-2xl font-black uppercase tracking-tight text-theme-text">LIQUIPEDIA CRAWLER</h4>
+            </div>
+          </div>
+          <span className="font-label text-xs font-black uppercase px-3.5 py-1.5 bg-[var(--color-primary)] text-black border-2 border-theme-border shadow-[2px_2px_0px_#000]">STANDBY</span>
+        </div>
+      </div>
+
       {/* Queue Stats Widget */}
       <div className="space-y-4">
         <div className="inline-block bg-black text-white px-4 py-2 border-4 border-theme-border">

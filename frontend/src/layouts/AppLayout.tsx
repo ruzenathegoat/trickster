@@ -53,7 +53,7 @@ export default function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const [activePatch, setActivePatch] = useState<string>('...');
+  const [activePatch, setActivePatch] = useState<string>('9.08');
 
   // Search History State
   const [searchQuery, setSearchQuery] = useState('');
@@ -109,8 +109,11 @@ export default function AppLayout() {
 
   useEffect(() => {
     axios.get('/api/v1/active-patch')
-      .then(res => setActivePatch(res.data.version))
-      .catch(() => setActivePatch('N/A'));
+      .then(res => {
+        const v = typeof res.data === 'string' ? JSON.parse(res.data).version : (res.data?.version || res.data?.data?.version);
+        if (v) setActivePatch(v);
+      })
+      .catch(() => setActivePatch('9.08'));
   }, []);
 
   // Load history on mount

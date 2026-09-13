@@ -8,10 +8,12 @@
 [![Motion](https://img.shields.io/badge/Motion-v13-EA4C89?style=flat&logo=framer&logoColor=white)](https://motion.dev/)
 [![Laravel](https://img.shields.io/badge/Laravel-11.x-FF2D20?style=flat&logo=laravel&logoColor=white)](https://laravel.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16.x-4169E1?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Playwright](https://img.shields.io/badge/Playwright-E2E-2EAD33?style=flat&logo=playwright&logoColor=white)](https://playwright.dev/)
+[![Discord](https://img.shields.io/badge/Discord-Alerts-5865F2?style=flat&logo=discord&logoColor=white)](https://discord.com/)
 
 **Data-driven Valorant talent decision-support platform for scouts, analysts, and roster builders who don't want to rely on subjective opinions.**
 
-[Platform Architecture](#key-features--interactive-systems) · [Design System](#design-philosophy--aesthetic-foundation) · [Getting Started](#getting-started)
+[Platform Architecture](#key-features--interactive-systems) · [Design System](#design-philosophy--aesthetic-foundation) · [Testing Platform](#6-automated-e2e-qa--testing-dashboard-testing-dashboard) · [Getting Started](#getting-started)
 
 </div>
 
@@ -23,6 +25,7 @@
 
 - **Frontend**: A fast, strictly typed React 18 SPA powered by Vite.
 - **Backend**: Laravel 11 handles REST APIs, async scraping queues, and database caching.
+- **Testing Engine**: Standalone local Playwright test platform with live visual runner, real-time SSE log streaming, dual Excel/PDF reporting, and Discord webhook alerting.
 
 ---
 
@@ -47,6 +50,20 @@
 ### 5. High-Performance Dashboard API
 - Lean telemetry fetching with separate global caching and user-specific trackers.
 - Tracked players update in real time instead of waiting on shared cache invalidation.
+
+### 6. Automated E2E QA & Testing Dashboard (`/testing-dashboard`)
+- **Visual Suite Runner**: Real-time test orchestration across 151 test cases categorized by `@auth`, `@admin`, and `@user`.
+- **Live Terminal Streaming**: Server-Sent Events (SSE) pipe real-time Playwright terminal logs directly to the brutalist console.
+- **SQLite Historical Persistence**: Tracks runs, pass rates, durations, and status chronologically via Node.js native `DatabaseSync`.
+- **Dual Enterprise Reporting**:
+  - **Excel QA Matrix (`.xlsx`)**: Full traceability matrix with preconditions, expected/actual outputs, and pass metrics.
+  - **Printable / PDF QA Sign-off Report**: Clean printable layout with embedded screenshot failure evidence.
+- **Documentation Centralized**: `TESTCASES.md` and `PRD_TESTING_PLATFORM.md` located in `testing-dashboard/`.
+
+### 7. Discord QA Sentinel Alert System
+- Outbound webhook integration pushing automated alerts directly to Discord channels upon test run completion.
+- Dynamic visual embeds: 🟢 Neon Green for 100% passes, 🔴 Neon Red for failures with instant error snippets and failure breakdowns.
+- One-click testing trigger badge in the dashboard navigation header.
 
 ---
 
@@ -74,6 +91,9 @@ Trickster employs a stark 3-layer design philosophy, pairing brutalism with math
 | **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) |
 | **Motion & Scrolling** | [Framer Motion](https://motion.dev/) + [Lenis](https://github.com/darkroomengineering/lenis) |
 | **Database** | [Supabase](https://supabase.com/) / PostgreSQL |
+| **End-to-End Testing** | [Playwright](https://playwright.dev/) |
+| **Testing Platform** | Node.js, [Express](https://expressjs.com/), SQLite (`node:sqlite`), [ExcelJS](https://github.com/exceljs/exceljs) |
+| **Alerts & Integrations** | Discord Webhooks |
 
 ---
 
@@ -83,7 +103,7 @@ Built as a split monolith. You will need to spin up both the backend and fronten
 
 ### Prerequisites
 - PHP 8.2+, Composer
-- Node.js 18.x+, npm / yarn / pnpm
+- Node.js 20.x+, npm / yarn / pnpm
 
 ### Backend (Laravel)
 
@@ -118,6 +138,23 @@ Built as a split monolith. You will need to spin up both the backend and fronten
 2. **Start Dev Server**:
    ```bash
    npm run dev
+   # App runs at: http://localhost:5173
+   ```
+
+### Testing Platform (Optional)
+
+1. **Start Dashboard Server**:
+   ```bash
+   cd testing-dashboard
+   npm install
+   npm run dev
+   # Dashboard runs at: http://localhost:3500
+   ```
+
+2. **Discord Webhook Configuration** (Optional):
+   Create `testing-dashboard/.env` and add:
+   ```env
+   DISCORD_WEBHOOK_URL=https://discordapp.com/api/webhooks/...
    ```
 
 ---
@@ -136,11 +173,27 @@ trickster/
 ├── frontend/                   # React 18 SPA
 │   ├── src/
 │   │   ├── components/         # Reusable brutalist & product UI
-│   │   ├── pages/              # Dashboard, The Lab, Meta Explorer
+│   │   ├── pages/              # Dashboard, The Lab, Meta Explorer, Admin
 │   │   ├── lib/                # Utility functions & API clients
 │   │   └── styles/             # Tailwind v4 configuration & tokens
 │   ├── package.json
 │   └── vite.config.ts
+├── e2e/                        # Playwright automated test suites
+│   ├── tests/
+│   │   ├── auth/               # @auth: Login, Register, Gateways, Route Protection
+│   │   ├── admin/              # @admin: Scraper, Ratings, Users, Players
+│   │   └── user/               # @user: Dashboard, Players, Teams, The Lab, Meta
+│   └── playwright.config.ts
+├── testing-dashboard/          # Visual runner, history & reporting platform (:3500)
+│   ├── TESTCASES.md            # Complete 151 E2E test cases specification
+│   ├── PRD_TESTING_PLATFORM.md # Product Requirement Document for testing engine
+│   ├── lib/
+│   │   ├── testcase-registry.js# Parser for TESTCASES.md metadata
+│   │   ├── report-generator.js # Excel (.xlsx) QA matrix generator
+│   │   ├── html-report.js      # Printable / PDF QA sign-off renderer
+│   │   └── discord-notify.js   # Discord Incoming Webhook alert dispatcher
+│   ├── public/                 # Brutalist dashboard web client
+│   └── server.js               # Express + SSE runner server
 └── README.md                   # Project documentation
 ```
 

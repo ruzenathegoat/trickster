@@ -68,3 +68,6 @@ storage/
 temp/
 .agents
 PETUNJUK_RESTORE.txt
+
+e2e
+testing-dashboard

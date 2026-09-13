@@ -50,12 +50,16 @@ export default function Users() {
 
   const fetchData = async () => {
     try {
+      setLoading(true);
       const res = await axios.get('/api/v1/admin/users');
-      setUsers(res.data);
-      if (initialFetch) setInitialFetch(false);
+      const list = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+      setUsers(list);
     } catch (err) {
       toast.error('Failed to fetch users');
       console.error(err);
+    } finally {
+      setLoading(false);
+      if (initialFetch) setInitialFetch(false);
     }
   };
 

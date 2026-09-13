@@ -73,8 +73,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    await csrf();
-    await axios.post('/api/v1/auth/session/logout');
+    try {
+      await csrf();
+      await axios.post('/api/v1/auth/session/logout');
+    } catch {
+      // Ignored to ensure local state is cleared even if server is unreachable
+    }
     setUser(null);
   };
 

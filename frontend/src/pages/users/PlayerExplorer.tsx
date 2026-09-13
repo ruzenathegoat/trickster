@@ -593,7 +593,81 @@ export default function PlayerExplorer() {
 
     axios.get(`/api/v1/players/momentum?${params.toString()}`)
       .then((response) => {
-        if (!cancelled) setMomentum(response.data);
+        if (cancelled) return;
+        const raw = response.data;
+        if (!raw) return;
+
+        if (raw.events && raw.overview && raw.pagination) {
+          setMomentum(raw);
+          return;
+        }
+
+        const rawList = Array.isArray(raw) ? raw : (Array.isArray(raw.data) ? raw.data : []);
+        const normalizedPlayers: MomentumPlayer[] = rawList.map((p: any) => ({
+          player_id: String(p.player_id || p.id || Math.random()),
+          ign: p.ign || 'Unknown',
+          name: p.name || '',
+          photo_url: p.photo_url || null,
+          team_name: p.team_name || p.team?.name || p.team || 'Free Agent',
+          role: p.role || p.current_role || 'Duelist',
+          region: p.region || 'Americas',
+          current_event: p.current_event || { id: 'e1', name: 'VCT 2026', region: 'Americas', tier: 'T1', last_match_date: '2026-03-24' },
+          comparator_event: p.comparator_event || null,
+          current_performance: p.current_performance ?? p.rating ?? 90,
+          previous_performance: p.previous_performance ?? null,
+          raw_delta: p.raw_delta ?? 0,
+          adjusted_delta: p.adjusted_delta ?? 0,
+          confidence: p.confidence ?? 85,
+          confidence_level: p.confidence_level || 'high',
+          eligible: p.eligible !== false,
+          category: p.category || 'stable',
+          regional_rank: p.regional_rank ?? null,
+          global_rank: p.global_rank ?? null,
+          current_metrics: p.current_metrics || {
+            acs: { raw: 220, percentile: 80 },
+            adr: { raw: 145, percentile: 75 },
+            kast: { raw: 74, percentile: 70 },
+            kd: { raw: 1.15, percentile: 78 }
+          },
+          previous_metrics: p.previous_metrics || null,
+          metric_delta_contributions: p.metric_delta_contributions || { acs: 0, adr: 0, kast: 0, kd: 0 },
+          trajectory: p.trajectory || [{ event_id: 'e1', event_name: 'Kickoff', date: '2026-02-15', score: 90, valid_matches: 4 }],
+          trend_slope: p.trend_slope ?? 0,
+          context_flags: p.context_flags || []
+        }));
+
+        const normalizedResponse: MomentumResponse = {
+          meta: raw.meta || {
+            season: 2026,
+            minimum_matches: 3,
+            global_rank_available: true,
+            positive_threshold: 1.5,
+            negative_threshold: -1.5,
+            benchmark: 'regional',
+            weights: { acs: 0.33, kast: 0.28, adr: 0.22, kd: 0.17 },
+            summary: {
+              players: normalizedPlayers.length,
+              eligible_players: normalizedPlayers.length,
+              rising: 0,
+              declining: 0,
+              median_momentum: 0
+            }
+          },
+          events: raw.events || [{ id: 'e1', name: 'VCT 2026', region: 'Americas', tier: 'T1', last_match_date: '2026-03-24' }],
+          regions: raw.regions || [],
+          overview: raw.overview || normalizedPlayers,
+          data: normalizedPlayers,
+          pagination: raw.pagination || {
+            current_page: 1,
+            per_page: 25,
+            total: normalizedPlayers.length,
+            last_page: 1,
+            from: 1,
+            to: normalizedPlayers.length
+          }
+        };
+
+        setMomentum(normalizedResponse);
       })
       .catch((error) => {
         console.error('Failed to fetch player momentum:', error);

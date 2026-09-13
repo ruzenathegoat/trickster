@@ -47,6 +47,9 @@ export default function AuthLayout() {
   }
 
   if (user) {
+    if (user.role === 'admin') {
+      return <Navigate to="/admin/login" replace />;
+    }
     return <Navigate to="/app/dashboard" state={{ from: location }} replace />;
   }
 

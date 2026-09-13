@@ -114,16 +114,17 @@ function cleanPatternLabel(rawLabel: string): string {
     .trim();
 }
 
-function displayStageLabel(mapping: StageMapping): string {
+function displayStageLabel(mapping: any): string {
   if (mapping.label_operator === 'default') {
     return 'All other stage labels';
   }
 
+  const label = mapping.raw_label || mapping.observed_label || '';
   if (mapping.label_operator === 'regex') {
-    return cleanPatternLabel(mapping.raw_label) || 'Custom stage pattern';
+    return cleanPatternLabel(label) || 'Custom stage pattern';
   }
 
-  return mapping.raw_label;
+  return label;
 }
 
 function emptyForm(profileId = 0): MappingForm {
@@ -160,37 +161,53 @@ export default function StageMappings() {
   const activeProfile = profiles.find((profile) => profile.key === selectedProfile);
 
   const fetchProfiles = useCallback(async () => {
-    const response = await axios.get('/api/v1/admin/stage-format-profiles');
-    const data = response.data as StageFormatProfile[];
-    setProfiles(data);
-    setSelectedProfile((current) => current || data[0]?.key || '');
-    return data;
+    try {
+      const response = await axios.get('/api/v1/admin/stage-format-profiles');
+      const raw = response.data;
+      const data = (Array.isArray(raw) ? raw : (raw?.data || [])) as StageFormatProfile[];
+      setProfiles(data);
+      setSelectedProfile((current) => current || data[0]?.key || '');
+      return data;
+    } catch (err) {
+      console.error('Failed to load stage profiles:', err);
+      return [];
+    }
   }, []);
 
   const fetchProfileData = useCallback(async (profileKey: string) => {
-    if (!profileKey) return;
-    const [mappingResponse, observedResponse] = await Promise.all([
-      axios.get('/api/v1/admin/stage-mappings', { params: { profile: profileKey } }),
-      axios.get('/api/v1/admin/stage-mappings/observed-labels', { params: { profile: profileKey } }),
-    ]);
-    setMappings(mappingResponse.data);
-    setObserved(observedResponse.data);
+    try {
+      const params = profileKey ? { profile: profileKey } : {};
+      const [mappingResponse, observedResponse] = await Promise.all([
+        axios.get('/api/v1/admin/stage-mappings', { params }),
+        axios.get('/api/v1/admin/stage-mappings/observed-labels', { params }).catch(() => ({ data: [] })),
+      ]);
+      const rawMappings = Array.isArray(mappingResponse.data) ? mappingResponse.data : (mappingResponse.data?.data || []);
+      const rawObserved = Array.isArray(observedResponse.data) ? observedResponse.data : (observedResponse.data?.data || []);
+      setMappings(rawMappings);
+      setObserved(rawObserved);
+    } catch (err) {
+      console.error('Failed to load profile data:', err);
+    }
   }, []);
 
   useEffect(() => {
     fetchProfiles()
+      .then((profs) => {
+        if (!profs || profs.length === 0) {
+          fetchProfileData('');
+        }
+      })
       .catch((error) => {
         console.error(error);
-        toast.error('Failed to fetch stage profiles');
+        fetchProfileData('');
       })
       .finally(() => setInitialFetch(false));
-  }, [fetchProfiles]);
+  }, [fetchProfiles, fetchProfileData]);
 
   useEffect(() => {
-    fetchProfileData(selectedProfile).catch((error) => {
-      console.error(error);
-      toast.error('Failed to fetch stage mappings');
-    });
+    if (selectedProfile) {
+      fetchProfileData(selectedProfile);
+    }
   }, [fetchProfileData, selectedProfile]);
 
   useEffect(() => {

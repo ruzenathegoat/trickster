@@ -70,14 +70,19 @@ export default function PatchRatings() {
 
   const fetchData = async () => {
     try {
-      const [patchesRes, agentsRes, ratingsRes] = await Promise.all([
-        axios.get('/api/v1/admin/patches'),
-        axios.get('/api/v1/admin/agents'),
-        axios.get('/api/v1/admin/agent-patch-ratings')
+      const [patchesRes, agentsRes, ratingsRes] = await Promise.allSettled([
+        axios.get('/api/v1/admin/patches').catch(() => axios.get('/api/v1/patches')),
+        axios.get('/api/v1/admin/agents').catch(() => ({ data: [] })),
+        axios.get('/api/v1/admin/agent-patch-ratings').catch(() => ({ data: [] }))
       ]);
-      setPatches(patchesRes.data);
-      setAgents(agentsRes.data);
-      setExistingRatings(ratingsRes.data);
+
+      const rawPatches = patchesRes.status === 'fulfilled' ? patchesRes.value.data : [];
+      const rawAgents = agentsRes.status === 'fulfilled' ? agentsRes.value.data : [];
+      const rawRatings = ratingsRes.status === 'fulfilled' ? ratingsRes.value.data : [];
+
+      setPatches(Array.isArray(rawPatches) ? rawPatches : (rawPatches?.data || []));
+      setAgents(Array.isArray(rawAgents) ? rawAgents : (rawAgents?.data || []));
+      setExistingRatings(Array.isArray(rawRatings) ? rawRatings : (rawRatings?.data || []));
       
       if (initialFetch) setInitialFetch(false);
     } catch (err) {
@@ -144,7 +149,37 @@ export default function PatchRatings() {
     }),
     columnHelper.accessor('release_date', {
       header: 'DEPLOYMENT_DATE',
-      cell: info => <span className="font-label text-sm font-bold text-gray-700 tracking-widest uppercase">{new Date(info.getValue()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+      cell: info => {
+        const val = info.getValue();
+        const dateStr = val && !isNaN(new Date(val).getTime())
+          ? new Date(val).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+          : 'ACTIVE / SYSTEM';
+        return <span className="font-label text-sm font-bold text-gray-700 tracking-widest uppercase">{dateStr}</span>;
+      }
+    }),
+    columnHelper.display({
+      id: 'curation_status',
+      header: 'CURATION_STATUS',
+      cell: info => {
+        const patch = info.row.original;
+        const configuredCount = existingRatings.filter(
+          r => r.patch?.version === patch.version || r.patch_id === patch.id
+        ).length;
+        const isFullyConfigured = configuredCount >= 20;
+
+        return (
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 border-2 border-theme-border font-label text-[10px] font-black uppercase tracking-widest ${
+              configuredCount > 0 
+                ? (isFullyConfigured ? 'bg-[#10b981] text-theme-text shadow-[2px_2px_0px_#000]' : 'bg-yellow-400 text-theme-text shadow-[2px_2px_0px_#000]') 
+                : 'bg-gray-200 text-gray-500'
+            }`}>
+              <span className={`w-2 h-2 rounded-full ${configuredCount > 0 ? (isFullyConfigured ? 'bg-emerald-950' : 'bg-amber-950') : 'bg-gray-400'}`}></span>
+              {configuredCount > 0 ? `${configuredCount} AGENTS RATED` : 'PENDING CONFIG'}
+            </span>
+          </div>
+        );
+      }
     }),
     columnHelper.display({
       id: 'actions',

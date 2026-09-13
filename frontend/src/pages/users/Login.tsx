@@ -24,10 +24,10 @@ export default function Login() {
       const user = await login({ email, password });
       
       if (user.role === 'admin') {
-        await logout();
         toast.error('Access Denied', {
           description: 'Admin accounts cannot access the user dashboard. Please use the Admin Gateway.',
         });
+        await logout();
         navigate('/admin/login', { replace: true });
         return;
       }
