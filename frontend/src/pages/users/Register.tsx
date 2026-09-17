@@ -18,6 +18,11 @@ export default function Register() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (password.length < 8) {
+      toast.error('Validation Error', { description: 'Password must be at least 8 characters.' });
+      return;
+    }
+
     if (password !== passwordConfirmation) {
       toast.error('Validation Error', { description: 'Passwords do not match.' });
       return;

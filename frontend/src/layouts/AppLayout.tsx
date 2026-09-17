@@ -64,18 +64,21 @@ export default function AppLayout() {
   // Live Search Preview State
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<GlobalSearchResult[]>([]);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   // Debounced Search Effect
   useEffect(() => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
       setIsSearching(false);
+      setSearchError(null);
       return;
     }
 
     const controller = new AbortController();
     const query = searchQuery.trim();
     setIsSearching(true);
+    setSearchError(null);
     setSearchResults([]);
 
     const timer = setTimeout(async () => {
@@ -89,10 +92,12 @@ export default function AppLayout() {
 
         const data = response.data.data ?? response.data;
         setSearchResults(Array.isArray(data) ? data : []);
-      } catch (error) {
+        setSearchError(null);
+      } catch (error: any) {
         if (!controller.signal.aborted) {
           console.error(error);
           setSearchResults([]);
+          setSearchError(error?.response?.data?.message || 'Search Failed: Internal Search Service Failure');
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -496,6 +501,10 @@ export default function AppLayout() {
                     {isSearching ? (
                       <div className="px-4 py-8 text-center font-['JetBrains_Mono'] text-sm font-bold text-gray-400 animate-pulse">
                         [ SEARCHING... ]
+                      </div>
+                    ) : searchError ? (
+                      <div className="px-4 py-8 text-center font-['JetBrains_Mono'] text-sm font-bold text-red-500 border-b-2 border-theme-border">
+                        Error: {searchError}
                       </div>
                     ) : searchResults.length === 0 ? (
                       <div className="px-4 py-8 text-center font-['JetBrains_Mono'] text-sm font-bold text-gray-400">
