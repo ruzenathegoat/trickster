@@ -2,7 +2,7 @@
 
 @theme {
   --color-primary: var(--color-primary, #f5d90a);
-  --color-primary-hover: #e5c908;
+  --color-primary-hover: var(--color-primary-hover, color-mix(in srgb, var(--color-primary, #f5d90a) 85%, black));
   --color-theme-bg: var(--theme-bg);
   --color-theme-text: var(--theme-text);
   --color-theme-border: var(--theme-border);
@@ -52,6 +52,8 @@
 
 @layer base {
   :root {
+    --color-primary: #FFEB00;
+    --color-primary-hover: color-mix(in srgb, var(--color-primary) 85%, black);
     --theme-bg: #ffffff;
     --theme-text: #000000;
     --theme-border: #000000;

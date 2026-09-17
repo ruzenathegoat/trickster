@@ -21,7 +21,7 @@ class User extends Authenticatable
     public function getProfilePhotoUrlAttribute()
     {
         return $this->profile_photo_path
-                    ? url(\Illuminate\Support\Facades\Storage::url($this->profile_photo_path))
+                    ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->profile_photo_path)
                     : null;
     }
 

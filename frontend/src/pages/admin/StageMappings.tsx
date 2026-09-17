@@ -191,17 +191,14 @@ export default function StageMappings() {
   }, []);
 
   useEffect(() => {
-    fetchProfiles()
-      .then((profs) => {
-        if (!profs || profs.length === 0) {
-          fetchProfileData('');
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        fetchProfileData('');
-      })
-      .finally(() => setInitialFetch(false));
+    let mounted = true;
+    Promise.all([
+      fetchProfiles(),
+      fetchProfileData(selectedProfile)
+    ]).finally(() => {
+      if (mounted) setInitialFetch(false);
+    });
+    return () => { mounted = false; };
   }, [fetchProfiles, fetchProfileData]);
 
   useEffect(() => {

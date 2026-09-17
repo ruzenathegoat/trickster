@@ -198,8 +198,13 @@ export default function ScraperDashboard() {
         >
           <Lightning weight="fill" size={24} className={loading ? 'animate-pulse' : ''} />
           <span className="font-display text-lg font-black uppercase tracking-tight">
-            {loading ? 'Executing...' : 'Force Sync'}
+            Force Sync
           </span>
+          {loading && (
+            <span className="font-display text-sm font-bold uppercase tracking-tight">
+              Executing...
+            </span>
+          )}
         </motion.button>
       </div>
 

@@ -138,8 +138,8 @@ export default function Users() {
   };
 
   const confirmDelete = (user: User) => {
-    if (currentUser?.id === user.id) {
-      toast.error('Critical Error: You cannot revoke your own clearance.');
+    if (String(currentUser?.id) === String(user.id) || (currentUser?.email && currentUser.email === user.email)) {
+      toast.error('You cannot revoke your own clearance');
       return;
     }
     setUserToDelete(user);
@@ -200,16 +200,11 @@ export default function Users() {
             <PencilSimple size={18} weight="bold" />
           </motion.button>
           <motion.button
-            whileHover={currentUser?.id !== info.row.original.id ? { scale: 1.1, y: -2, boxShadow: "2px 2px 0px 0px #111111" } : {}}
-            whileTap={currentUser?.id !== info.row.original.id ? { scale: 0.9, y: 0, boxShadow: "0px 0px 0px 0px #111111" } : {}}
+            whileHover={{ scale: 1.1, y: -2, boxShadow: "2px 2px 0px 0px #111111" }}
+            whileTap={{ scale: 0.9, y: 0, boxShadow: "0px 0px 0px 0px #111111" }}
             onClick={() => confirmDelete(info.row.original)}
-            className={`p-2 border-2 border-theme-border transition-colors ${
-              currentUser?.id === info.row.original.id 
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-50' 
-                : 'bg-theme-bg hover:bg-red-500 hover:text-white'
-            }`}
-            title={currentUser?.id === info.row.original.id ? "Cannot delete yourself" : "Purge User"}
-            disabled={currentUser?.id === info.row.original.id}
+            className="p-2 border-2 border-theme-border transition-colors bg-theme-bg hover:bg-red-500 hover:text-white"
+            title="Delete User"
           >
             <Trash size={18} weight="bold" />
           </motion.button>
@@ -502,7 +497,7 @@ export default function Users() {
               onClick={e => e.stopPropagation()}
             >
               <div className="p-8 text-center space-y-6 bg-theme-bg border-b-8 border-theme-border">
-                 <h2 className="text-4xl font-display font-black uppercase text-red-600">CRITICAL WARNING</h2>
+                 <h2 className="text-4xl font-display font-black uppercase text-red-600">CRITICAL WARNING: Purge User Clearance</h2>
                  <p className="font-label text-lg font-bold text-theme-text uppercase tracking-widest">
                    You are about to permanently purge the clearance for operative: <br/>
                    <span className="text-3xl font-display font-black bg-black text-white px-4 py-2 inline-block mt-4">{userToDelete.name}</span>

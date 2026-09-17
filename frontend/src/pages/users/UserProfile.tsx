@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import axios from '../../lib/axios';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { User, Palette, Crosshair, Users, Trophy, Trash, FloppyDisk } from '@phosphor-icons/react';
+import { User, Palette, Crosshair, Users, Trophy, Trash, FloppyDisk, Camera } from '@phosphor-icons/react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
 
@@ -22,7 +22,14 @@ export default function UserProfile() {
   
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [activeTab, setActiveTab] = useState<'account' | 'favorites' | 'simulations'>('account');
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [profileData?.profile_photo_url]);
 
   useEffect(() => {
     fetchProfile();
@@ -33,6 +40,10 @@ export default function UserProfile() {
     try {
       const response = await axios.get(`/api/v1/user/profile?_t=${new Date().getTime()}`);
       setProfileData(response.data.user);
+      if (response.data.user?.theme_color) {
+        document.documentElement.style.setProperty('--color-primary', response.data.user.theme_color);
+        document.documentElement.style.setProperty('--color-primary-hover', `color-mix(in srgb, ${response.data.user.theme_color} 85%, black)`);
+      }
       setFormData(prev => ({
         ...prev,
         theme_color: response.data.user.theme_color || '',
@@ -57,12 +68,24 @@ export default function UserProfile() {
       if (formData.password) payload.append('password', formData.password);
       if (photoFile) payload.append('profile_photo', photoFile);
 
-      await axios.post('/api/v1/user/profile', payload, {
+      const response = await axios.post('/api/v1/user/profile', payload, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       toast.success('Profile updated successfully');
       setPhotoFile(null);
       setPhotoPreview(null);
+      setImageError(false);
+      if (response.data?.user) {
+        setProfileData((prev: any) => ({
+          ...prev,
+          ...response.data.user,
+          profile_photo_url: response.data.user.profile_photo_url,
+        }));
+        if (response.data.user.theme_color) {
+          document.documentElement.style.setProperty('--color-primary', response.data.user.theme_color);
+          document.documentElement.style.setProperty('--color-primary-hover', `color-mix(in srgb, ${response.data.user.theme_color} 85%, black)`);
+        }
+      }
       await checkAuth(); // Refresh global auth state to apply theme
       fetchProfile();
     } catch (error: any) {
@@ -75,6 +98,41 @@ export default function UserProfile() {
       const file = e.target.files[0];
       setPhotoFile(file);
       setPhotoPreview(URL.createObjectURL(file));
+      setImageError(false);
+    }
+  };
+
+  const handleAvatarFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setPhotoFile(file);
+      setPhotoPreview(URL.createObjectURL(file));
+      setImageError(false);
+      setIsUploadingAvatar(true);
+
+      const payload = new FormData();
+      payload.append('_method', 'PUT');
+      payload.append('profile_photo', file);
+
+      try {
+        const response = await axios.post('/api/v1/user/profile', payload, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        toast.success('Profile photo updated successfully');
+        if (response.data?.user) {
+          setProfileData((prev: any) => ({
+            ...prev,
+            ...response.data.user,
+            profile_photo_url: response.data.user.profile_photo_url,
+          }));
+        }
+        await checkAuth();
+        fetchProfile();
+      } catch (error: any) {
+        toast.error(error.response?.data?.message || 'Failed to update profile photo');
+      } finally {
+        setIsUploadingAvatar(false);
+      }
     }
   };
 
@@ -123,12 +181,50 @@ export default function UserProfile() {
         className="bg-black text-white p-6 md:p-12 border-4 border-theme-border shadow-[8px_8px_0px_0px_var(--color-primary)] mb-12 relative overflow-hidden"
       >
         <div className="relative z-10 flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8">
-          <div className="w-24 h-24 md:w-40 md:h-40 bg-theme-bg border-4 border-theme-border rounded-full overflow-hidden shrink-0 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] relative z-20 flex items-center justify-center">
-            {photoPreview || profileData.profile_photo_url ? (
-              <img src={photoPreview || profileData.profile_photo_url} alt={profileData.name} className="w-full h-full object-cover" />
-            ) : (
-              <User size={64} weight="fill" className="text-gray-300 w-12 h-12 md:w-16 md:h-16" />
-            )}
+          <div className="relative group/avatar shrink-0 z-20">
+            <input 
+              ref={avatarInputRef}
+              type="file" 
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarFileSelect}
+              data-testid="hero-avatar-input"
+              aria-label="Change profile photo"
+            />
+            <button 
+              type="button"
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={isUploadingAvatar}
+              className="relative cursor-pointer focus:outline-none focus:ring-4 focus:ring-[var(--color-primary)] rounded-full text-left"
+              title="Click to change profile photo"
+              aria-label="Click to change profile photo"
+            >
+              {/* Main Avatar Frame */}
+              <div className="w-24 h-24 md:w-40 md:h-40 bg-theme-bg border-4 border-theme-border rounded-full overflow-hidden shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] flex items-center justify-center group-hover/avatar:border-[var(--color-primary)] transition-colors duration-150">
+                {photoPreview || (profileData.profile_photo_url && !imageError) ? (
+                  <img 
+                    src={photoPreview || profileData.profile_photo_url} 
+                    alt={profileData.name} 
+                    className="w-full h-full object-cover" 
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  <User size={64} weight="fill" className="text-gray-300 w-12 h-12 md:w-16 md:h-16" />
+                )}
+              </div>
+
+              {/* Trickster Neobrutalist Corner Action Badge */}
+              <div
+                className="absolute bottom-0 right-0 md:bottom-1 md:right-1 w-8 h-8 md:w-10 md:h-10 bg-[var(--color-primary)] text-black border-2 md:border-3 border-theme-border rounded-full flex items-center justify-center shadow-[2px_2px_0px_0px_var(--color-theme-shadow)] group-hover/avatar:bg-[var(--color-primary-hover)] transition-colors duration-150"
+                aria-hidden="true"
+              >
+                {isUploadingAvatar ? (
+                  <div className="w-3.5 h-3.5 md:w-4 md:h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Camera size={18} weight="bold" />
+                )}
+              </div>
+            </button>
           </div>
           <div className="flex flex-col items-center md:items-start gap-3 md:gap-4">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-display uppercase tracking-tighter text-center md:text-left break-words max-w-full">
@@ -254,7 +350,11 @@ export default function UserProfile() {
                       <button
                         key={color.val}
                         type="button"
-                        onClick={() => setFormData({...formData, theme_color: color.val})}
+                        onClick={() => {
+                          setFormData({...formData, theme_color: color.val});
+                          document.documentElement.style.setProperty('--color-primary', color.val);
+                          document.documentElement.style.setProperty('--color-primary-hover', `color-mix(in srgb, ${color.val} 85%, black)`);
+                        }}
                         className={`w-12 h-12 border-4 border-theme-border transition-transform ${formData.theme_color === color.val || (!formData.theme_color && color.val === '#FFEB00') ? 'scale-110 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] ring-2 ring-black ring-offset-2' : 'hover:scale-105'}`}
                         style={{ backgroundColor: color.val }}
                         title={color.label}

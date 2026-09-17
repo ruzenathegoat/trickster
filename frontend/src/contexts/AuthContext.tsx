@@ -48,9 +48,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (user?.theme_color) {
       document.documentElement.style.setProperty('--color-primary', user.theme_color);
+      document.documentElement.style.setProperty('--color-primary-hover', `color-mix(in srgb, ${user.theme_color} 85%, black)`);
     } else {
       // Revert to default Trickster Yellow
       document.documentElement.style.setProperty('--color-primary', '#FFEB00');
+      document.documentElement.style.setProperty('--color-primary-hover', '#e5c908');
     }
   }, [user?.theme_color]);
 

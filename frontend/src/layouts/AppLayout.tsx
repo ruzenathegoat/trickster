@@ -54,6 +54,11 @@ export default function AppLayout() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [activePatch, setActivePatch] = useState<string>('9.08');
+  const [avatarError, setAvatarError] = useState(false);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [user?.profile_photo_url]);
 
   // Search History State
   const [searchQuery, setSearchQuery] = useState('');
@@ -400,8 +405,13 @@ export default function AppLayout() {
                 "bg-black text-[var(--color-primary)] border-2 border-theme-border overflow-hidden flex items-center justify-center shrink-0 group-hover:bg-[var(--color-primary)] group-hover:text-black transition-colors",
                 collapsed ? "w-8 h-8 rounded-full" : "w-8 h-8 rounded-full"
               )}>
-                {user?.profile_photo_url ? (
-                  <img src={user.profile_photo_url} alt={user.name} className="w-full h-full object-cover" />
+                {user?.profile_photo_url && !avatarError ? (
+                  <img 
+                    src={user.profile_photo_url} 
+                    alt={user.name} 
+                    className="w-full h-full object-cover" 
+                    onError={() => setAvatarError(true)}
+                  />
                 ) : (
                   <UserCircle weight="fill" size={24} />
                 )}
