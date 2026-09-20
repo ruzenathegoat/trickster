@@ -193,9 +193,9 @@ export default function UserProfile() {
             />
             <button 
               type="button"
-              onClick={() => avatarInputRef.current?.click()}
+              onClick={(e) => { avatarInputRef.current?.click(); e.currentTarget.blur(); }}
               disabled={isUploadingAvatar}
-              className="relative cursor-pointer focus:outline-none focus:ring-4 focus:ring-[var(--color-primary)] rounded-full text-left"
+              className="relative cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-[var(--color-primary)] rounded-full text-left"
               title="Click to change profile photo"
               aria-label="Click to change profile photo"
             >
