@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
-import { Envelope, Lock, ArrowRight, DiscordLogo, ChartBar } from '@phosphor-icons/react';
+import { Envelope, Lock, ArrowRight, DiscordLogo, ChartBar, ArrowLeft } from '@phosphor-icons/react';
 import { motion } from 'framer-motion';
 
 export default function Login() {
@@ -57,11 +57,22 @@ export default function Login() {
 
         <div className="w-full max-w-md relative z-10">
           
-          <Link to="/" className="inline-block mb-12 group">
-            <div className="w-12 h-12 bg-black text-white flex items-center justify-center font-display text-2xl font-black group-hover:bg-[var(--color-primary)] group-hover:text-black transition-colors border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
-              T
-            </div>
-          </Link>
+          <div className="flex items-center justify-between mb-8">
+            <Link to="/" className="inline-block group" title="Trickster Home">
+              <div className="w-12 h-12 bg-black text-white flex items-center justify-center font-display text-2xl font-black group-hover:bg-[var(--color-primary)] group-hover:text-black transition-colors border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
+                T
+              </div>
+            </Link>
+            <Link 
+              to="/" 
+              data-testid="back-to-landing-btn"
+              className="inline-flex items-center gap-2 font-label text-xs font-bold uppercase tracking-widest px-3 py-2 border-2 border-theme-border bg-theme-bg text-theme-text shadow-[2px_2px_0px_0px_var(--color-theme-shadow)] hover:bg-[var(--color-primary)] hover:text-black transition-colors"
+              aria-label="Back to landing page"
+            >
+              <ArrowLeft size={16} weight="bold" />
+              <span>Back to Home</span>
+            </Link>
+          </div>
 
           <div className="mb-8">
             <h1 className="font-display text-[2.5rem] md:text-[3rem] font-black text-theme-text leading-none uppercase tracking-tighter mb-4 break-words">

@@ -201,12 +201,19 @@ export default function UserProfile() {
             >
               {/* Main Avatar Frame */}
               <div className="w-24 h-24 md:w-40 md:h-40 bg-theme-bg border-4 border-theme-border rounded-full overflow-hidden shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] flex items-center justify-center group-hover/avatar:border-[var(--color-primary)] transition-colors duration-150">
-                {photoPreview || (profileData.profile_photo_url && !imageError) ? (
+                {!imageError ? (
                   <img 
-                    src={photoPreview || profileData.profile_photo_url} 
-                    alt={profileData.name} 
+                    src={photoPreview || profileData?.profile_photo_url || '/default-avatar.svg'} 
+                    alt={profileData?.name || 'User avatar'} 
                     className="w-full h-full object-cover" 
-                    onError={() => setImageError(true)}
+                    onError={(e) => {
+                      if (e.currentTarget.src !== window.location.origin + '/default-avatar.svg' && !e.currentTarget.src.endsWith('/default-avatar.svg')) {
+                        e.currentTarget.src = '/default-avatar.svg';
+                      } else {
+                        setImageError(true);
+                      }
+                    }}
+                    data-testid="user-avatar-image"
                   />
                 ) : (
                   <User size={64} weight="fill" className="text-gray-300 w-12 h-12 md:w-16 md:h-16" />

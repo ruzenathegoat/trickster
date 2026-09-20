@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'react';
 import { motion, useScroll, useTransform, useSpring, useMotionValue } from 'framer-motion';
 import { ArrowRight, Crosshair, TerminalWindow, TrendUp } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 const easeOut: [number, number, number, number] = [0.23, 1, 0.32, 1]; // Strong custom ease-out per Emil's principles
 
@@ -26,6 +27,7 @@ const itemVariants = {
 
 export default function HeroSection() {
   const containerRef = useRef<HTMLElement>(null);
+  const { user } = useAuth();
   
   // Parallax on scroll for the background grid
   const { scrollYProgress } = useScroll({
@@ -117,7 +119,7 @@ export default function HeroSection() {
           <motion.div variants={itemVariants} className="pt-6">
             {/* Compound Button */}
             <div className="relative group inline-block">
-              <Link to="/app/dashboard" className="flex items-stretch hover:-translate-y-1 transition-transform active:scale-[0.97]">
+              <Link to={user ? "/app/dashboard" : "/register"} data-testid="hero-cta-btn" className="flex items-stretch hover:-translate-y-1 transition-transform active:scale-[0.97]">
                 {/* Label Segment */}
                 <div className="bg-[#111111] text-white px-8 md:px-10 py-5 rounded-l-full font-display text-xl md:text-2xl uppercase tracking-tighter shadow-[8px_8px_0px_rgba(0,0,0,0.2)] flex items-center justify-center border-y-4 border-l-4 border-theme-border">
                   START EVALUATING

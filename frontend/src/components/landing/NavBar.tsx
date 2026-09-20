@@ -2,9 +2,11 @@ import { Link } from 'react-router-dom';
 import { List, ArrowRight } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function NavBar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <div className="w-full px-4 md:px-8 pt-6 fixed top-0 left-0 right-0 z-50 pointer-events-none">
@@ -35,25 +37,50 @@ export default function NavBar() {
           </nav>
 
           {/* Right: Desktop CTA & Mobile Toggle */}
-          <div className="flex-1 flex justify-end items-center gap-4">
+          <div className="flex-1 flex justify-end items-center gap-3 md:gap-4">
             {/* Desktop CTA */}
-            <Link to="/app/dashboard" className="hidden md:block">
-              <motion.div 
-                whileTap={{ scale: 0.96 }}
-                transition={{ duration: 0.15, ease: "easeOut" }}
-                className="bg-[var(--color-primary)] border-2 border-[var(--color-primary)] px-6 py-2 flex items-center gap-2 cursor-pointer hover:bg-white hover:border-white transition-colors duration-200"
-              >
-                <span className="font-['Archivo_Black'] text-black text-sm uppercase tracking-widest mt-1">
-                  ENTER_APP
-                </span>
-                <ArrowRight weight="bold" size={16} className="text-black" />
-              </motion.div>
-            </Link>
+            {user ? (
+              <Link to="/app/dashboard" data-testid="nav-enter-app-btn" className="hidden md:block">
+                <motion.div 
+                  whileTap={{ scale: 0.96 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
+                  className="bg-[var(--color-primary)] border-2 border-[var(--color-primary)] px-6 py-2 flex items-center gap-2 cursor-pointer hover:bg-white hover:border-white transition-colors duration-200 shadow-[2px_2px_0px_0px_#000000]"
+                >
+                  <span className="font-['Archivo_Black'] text-black text-sm uppercase tracking-widest mt-1">
+                    ENTER_APP
+                  </span>
+                  <ArrowRight weight="bold" size={16} className="text-black" />
+                </motion.div>
+              </Link>
+            ) : (
+              <div className="hidden md:flex items-center gap-3">
+                <Link 
+                  to="/login"
+                  data-testid="nav-signin-btn"
+                  className="text-white font-['JetBrains_Mono'] text-xs font-bold uppercase tracking-widest px-4 py-2 border-2 border-theme-border bg-black/40 hover:bg-white hover:text-black hover:border-white transition-colors duration-150"
+                >
+                  SIGN_IN
+                </Link>
+                <Link to="/register" data-testid="nav-register-btn">
+                  <motion.div 
+                    whileTap={{ scale: 0.96 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
+                    className="bg-[var(--color-primary)] border-2 border-[var(--color-primary)] px-5 py-2 flex items-center gap-2 cursor-pointer hover:bg-white hover:border-white transition-colors duration-200 shadow-[2px_2px_0px_0px_#000000]"
+                  >
+                    <span className="font-['Archivo_Black'] text-black text-sm uppercase tracking-widest mt-0.5">
+                      GET_STARTED
+                    </span>
+                    <ArrowRight weight="bold" size={16} className="text-black" />
+                  </motion.div>
+                </Link>
+              </div>
+            )}
 
             {/* Mobile Toggle */}
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden text-[var(--color-primary)] p-2 active:scale-95 transition-transform"
+              aria-label="Toggle mobile menu"
             >
               <List weight="bold" size={28} />
             </button>
@@ -72,12 +99,35 @@ export default function NavBar() {
             <a href="#talent" onClick={() => setMobileMenuOpen(false)} className="text-white font-['JetBrains_Mono'] text-sm font-bold uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">
               <span className="text-[var(--color-primary)] mr-2">//</span> ARCHITECTURE
             </a>
-            <Link 
-              to="/app/dashboard"
-              className="mt-4 flex justify-between items-center bg-[var(--color-primary)] px-4 py-3 font-['Archivo_Black'] text-sm uppercase tracking-widest text-black active:scale-[0.97] hover:bg-white transition-colors"
-            >
-              ENTER_APP <ArrowRight weight="bold" />
-            </Link>
+            {user ? (
+              <Link 
+                to="/app/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                data-testid="mobile-nav-enter-app-btn"
+                className="mt-4 flex justify-between items-center bg-[var(--color-primary)] px-4 py-3 font-['Archivo_Black'] text-sm uppercase tracking-widest text-black active:scale-[0.97] hover:bg-white transition-colors"
+              >
+                ENTER_APP <ArrowRight weight="bold" />
+              </Link>
+            ) : (
+              <div className="mt-4 flex flex-col gap-3">
+                <Link 
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  data-testid="mobile-nav-signin-btn"
+                  className="flex justify-center items-center border-2 border-white px-4 py-2.5 font-['JetBrains_Mono'] text-xs font-bold uppercase tracking-widest text-white hover:bg-white hover:text-black transition-colors"
+                >
+                  SIGN_IN
+                </Link>
+                <Link 
+                  to="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  data-testid="mobile-nav-register-btn"
+                  className="flex justify-between items-center bg-[var(--color-primary)] px-4 py-3 font-['Archivo_Black'] text-sm uppercase tracking-widest text-black active:scale-[0.97] hover:bg-white transition-colors"
+                >
+                  GET_STARTED <ArrowRight weight="bold" />
+                </Link>
+              </div>
+            )}
           </div>
         )}
 

@@ -197,18 +197,6 @@ export default function AdminLayout() {
                 );
               })}
             </nav>
-
-            <div className="p-4 border-t-4 border-theme-border mt-auto bg-[#f4f4f4]">
-              <Link to="/">
-                <motion.div
-                  whileHover={{ x: 4, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-theme-bg border-2 border-theme-border text-theme-text hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] font-label text-xs font-bold uppercase tracking-widest transition-all"
-                >
-                  Return to Public
-                </motion.div>
-              </Link>
-            </div>
           </div>
         </aside>
 

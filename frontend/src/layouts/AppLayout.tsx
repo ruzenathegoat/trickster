@@ -405,12 +405,19 @@ export default function AppLayout() {
                 "bg-black text-[var(--color-primary)] border-2 border-theme-border overflow-hidden flex items-center justify-center shrink-0 group-hover:bg-[var(--color-primary)] group-hover:text-black transition-colors",
                 collapsed ? "w-8 h-8 rounded-full" : "w-8 h-8 rounded-full"
               )}>
-                {user?.profile_photo_url && !avatarError ? (
+                {!avatarError ? (
                   <img 
-                    src={user.profile_photo_url} 
-                    alt={user.name} 
+                    src={user?.profile_photo_url || '/default-avatar.svg'} 
+                    alt={user?.name || 'User'} 
                     className="w-full h-full object-cover" 
-                    onError={() => setAvatarError(true)}
+                    onError={(e) => {
+                      if (e.currentTarget.src !== window.location.origin + '/default-avatar.svg' && !e.currentTarget.src.endsWith('/default-avatar.svg')) {
+                        e.currentTarget.src = '/default-avatar.svg';
+                      } else {
+                        setAvatarError(true);
+                      }
+                    }}
+                    data-testid="sidebar-avatar-image"
                   />
                 ) : (
                   <UserCircle weight="fill" size={24} />

@@ -6,8 +6,8 @@ import { toast } from 'sonner';
 import { Warning, LockKey, ArrowRight } from '@phosphor-icons/react';
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState('admin@example.com');
-  const [password, setPassword] = useState('password');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -160,15 +160,6 @@ export default function AdminLogin() {
               )}
             </motion.button>
           </form>
-          
-          <div className="mt-16 text-left border-l-4 border-[#333333] pl-4">
-            <button 
-              onClick={() => navigate('/')} 
-              className="font-label text-xs font-bold text-[#777777] hover:text-white transition-colors uppercase tracking-widest"
-            >
-              ← Return to Public Facing Site
-            </button>
-          </div>
 
         </motion.div>
       </div>

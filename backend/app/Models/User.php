@@ -22,7 +22,7 @@ class User extends Authenticatable
     {
         return $this->profile_photo_path
                     ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->profile_photo_path)
-                    : null;
+                    : url('/default-avatar.svg');
     }
 
     public function smartWeightProfiles(): HasMany { return $this->hasMany(SmartWeightProfile::class); }

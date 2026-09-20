@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a1c26"/>
+      <stop offset="100%" stop-color="#0c0d14"/>
+    </linearGradient>
+    <linearGradient id="agent-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3d4257"/>
+      <stop offset="100%" stop-color="#1e212d"/>
+    </linearGradient>
+    <linearGradient id="visor-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f5d90a"/>
+      <stop offset="100%" stop-color="#ffb703"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="256" height="256" fill="url(#bg-grad)"/>
+  
+  <!-- Tactical Grid / Geometry Accent -->
+  <circle cx="128" cy="128" r="110" fill="none" stroke="#2d3246" stroke-width="2" stroke-dasharray="8 6" opacity="0.6"/>
+  <circle cx="128" cy="128" r="92" fill="none" stroke="#2d3246" stroke-width="1.5" opacity="0.4"/>
+  
+  <!-- Shoulder / Torso Armor -->
+  <path d="M46 256 C50 205, 80 185, 106 178 L128 186 L150 178 C176 185, 206 205, 210 256 Z" fill="url(#agent-grad)"/>
+  <path d="M46 256 C50 205, 80 185, 106 178 L128 186 L150 178 C176 185, 206 205, 210 256 Z" fill="none" stroke="#484e68" stroke-width="2"/>
+  
+  <!-- Collar / Tech Neckpiece -->
+  <path d="M104 178 L128 194 L152 178 L142 160 L114 160 Z" fill="#252837" stroke="#484e68" stroke-width="2"/>
+  <path d="M120 180 L128 186 L136 180" fill="none" stroke="#f5d90a" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Head / Helmet Base -->
+  <path d="M88 124 C88 80, 102 54, 128 54 C154 54, 168 80, 168 124 C168 152, 154 168, 128 168 C102 168, 88 152, 88 124 Z" fill="url(#agent-grad)" stroke="#484e68" stroke-width="2"/>
+
+  <!-- Headset / Earcups -->
+  <rect x="74" y="102" width="16" height="34" rx="8" fill="#12131a" stroke="#f5d90a" stroke-width="2.5"/>
+  <rect x="166" y="102" width="16" height="34" rx="8" fill="#12131a" stroke="#f5d90a" stroke-width="2.5"/>
+  <path d="M82 104 C82 66, 174 66, 174 104" fill="none" stroke="#484e68" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Headset Mic -->
+  <path d="M84 130 Q84 152 110 152" fill="none" stroke="#f5d90a" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="112" cy="152" r="3.5" fill="#f5d90a"/>
+
+  <!-- Tactical Cyber Visor -->
+  <path d="M96 106 Q128 114 160 106 L158 122 Q128 132 98 122 Z" fill="url(#visor-grad)"/>
+  <path d="M102 112 Q128 118 154 112" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.75" stroke-linecap="round"/>
+
+  <!-- Neobrutalist Crosshairs / Corner Marks -->
+  <path d="M28 36 H40 M28 36 V48" fill="none" stroke="#f5d90a" stroke-width="2" stroke-linecap="square"/>
+  <path d="M228 36 H216 M228 36 V48" fill="none" stroke="#f5d90a" stroke-width="2" stroke-linecap="square"/>
+</svg>
