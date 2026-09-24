@@ -1,6 +1,5 @@
-import { useRef } from 'react';
 import { motion } from 'framer-motion';
-import { X, Star } from '@phosphor-icons/react';
+import { X, Star, UserPlus } from '@phosphor-icons/react';
 import { useDroppable } from '@dnd-kit/core';
 
 interface Player {
@@ -32,7 +31,7 @@ export default function RosterSlot({ player, onRemove, index }: RosterSlotProps)
     <div 
       ref={setNodeRef}
       id={`roster-slot-${index}`}
-      className={`relative w-full flex items-center border-4 rounded-none transition-all duration-200 min-h-[100px] ${
+      className={`relative flex flex-col items-center border-4 rounded-none transition-all duration-200 ${
         player 
           ? 'border-theme-border border-solid bg-theme-bg shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]' 
           : isHoveredWithPlayer
@@ -45,74 +44,66 @@ export default function RosterSlot({ player, onRemove, index }: RosterSlotProps)
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-          className="w-full h-full p-3 relative flex items-center gap-4"
+          className="w-full p-3 relative flex flex-col items-center text-center gap-2"
         >
           <button 
             onClick={onRemove}
-            className="absolute top-2 right-2 w-7 h-7 bg-[#ef4444] text-white border-2 border-theme-border flex items-center justify-center hover:bg-red-600 transition-colors z-10 shadow-[2px_2px_0px_#000] hover:shadow-[3px_3px_0px_#000] hover:-translate-y-px active:shadow-[1px_1px_0px_#000] active:translate-y-px"
+            className="absolute top-1.5 right-1.5 w-6 h-6 bg-[#ef4444] text-white border-2 border-theme-border flex items-center justify-center hover:bg-red-600 transition-colors z-10 shadow-[2px_2px_0px_#000] hover:shadow-[3px_3px_0px_#000] hover:-translate-y-px active:shadow-[1px_1px_0px_#000] active:translate-y-px"
           >
-            <X size={16} weight="bold" />
+            <X size={12} weight="bold" />
           </button>
           
-          <div className="relative w-16 h-16 border-2 border-theme-border bg-black shadow-[2px_2px_0px_#000] shrink-0">
+          <div className="relative w-12 h-12 border-2 border-theme-border bg-black shadow-[2px_2px_0px_#000] shrink-0 rounded-full overflow-hidden">
             <img 
               src={player.photo_url || `https://ui-avatars.com/api/?name=${player.ign}&background=random`} 
               alt={player.ign} 
-              className="w-full h-full object-cover transition-all duration-300"
+              className="w-full h-full object-cover"
             />
           </div>
           
-          <div className="flex-1 min-w-0 pr-8 flex flex-col justify-center">
-            <div className="flex items-center gap-3">
-              <h3 className="font-display font-black text-xl uppercase truncate leading-none">{player.ign}</h3>
-              <span className="font-numeric font-black bg-black text-[var(--color-primary)] px-2 py-0.5 text-sm border-2 border-theme-border shadow-[2px_2px_0px_#000]">
-                {Number(player.avg_rating || 0).toFixed(2)}
-              </span>
-            </div>
-            
-            <div className="flex flex-wrap gap-2 mt-2">
-              <span className="font-label text-[10px] font-black uppercase tracking-widest border-2 border-theme-border px-2 py-0.5 shadow-[2px_2px_0px_#000] bg-gray-100">
+          <div className="w-full min-w-0">
+            <h3 className="font-display font-black text-sm uppercase truncate leading-none">{player.ign}</h3>
+            <div className="flex items-center justify-center gap-1.5 mt-1.5 flex-wrap">
+              <span className="font-label text-[9px] font-black uppercase tracking-widest border-2 border-theme-border px-1.5 py-0.5 bg-gray-100 shadow-[1px_1px_0px_#000]">
                 {player.current_role}
               </span>
               {player.is_igl && (
-                <span className="flex items-center gap-1 font-label text-[10px] font-black uppercase tracking-widest border-2 border-theme-border px-2 py-0.5 shadow-[2px_2px_0px_#000] bg-[var(--color-primary)] text-black">
-                  <Star weight="fill" size={10} /> IGL
+                <span className="flex items-center gap-0.5 font-label text-[9px] font-black uppercase tracking-widest border-2 border-theme-border px-1.5 py-0.5 bg-[var(--color-primary)] text-black shadow-[1px_1px_0px_#000]">
+                  <Star weight="fill" size={9} /> IGL
                 </span>
               )}
             </div>
+            <span className="inline-block mt-1.5 font-numeric font-black bg-black text-[var(--color-primary)] px-1.5 py-0.5 text-xs border-2 border-theme-border shadow-[1px_1px_0px_#000]">
+              {Number(player.avg_rating || 0).toFixed(2)}
+            </span>
           </div>
         </motion.div>
       ) : isHoveredWithPlayer ? (
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 0.6, scale: 1 }}
-          className="w-full h-full p-3 relative flex items-center gap-4 pointer-events-none"
+          className="w-full p-3 flex flex-col items-center text-center gap-2 pointer-events-none"
         >
-          <div className="relative w-16 h-16 border-2 border-[var(--color-primary)] bg-black shadow-[2px_2px_0px_var(--color-primary)] shrink-0 grayscale">
+          <div className="relative w-12 h-12 border-2 border-[var(--color-primary)] bg-black shadow-[2px_2px_0px_var(--color-primary)] shrink-0 rounded-full overflow-hidden grayscale">
             <img 
               src={draggedPlayer.photo_url || `https://ui-avatars.com/api/?name=${draggedPlayer.ign}&background=random`} 
               alt={draggedPlayer.ign} 
-              className="w-full h-full object-cover transition-all duration-300"
+              className="w-full h-full object-cover"
             />
           </div>
-          <div className="flex-1 min-w-0 pr-8 flex flex-col justify-center">
-            <div className="flex items-center gap-3">
-              <h3 className="font-display font-black text-xl uppercase truncate leading-none text-[var(--color-primary)]">{draggedPlayer.ign}</h3>
-            </div>
-            <div className="flex flex-wrap gap-2 mt-2">
-              <span className="font-label text-[10px] font-black uppercase tracking-widest border-2 border-[var(--color-primary)] text-[var(--color-primary)] px-2 py-0.5 bg-transparent">
-                {draggedPlayer.current_role}
-              </span>
-            </div>
-          </div>
+          <h3 className="font-display font-black text-sm uppercase truncate leading-none text-[var(--color-primary)]">{draggedPlayer.ign}</h3>
+          <span className="font-label text-[9px] font-black uppercase tracking-widest border-2 border-[var(--color-primary)] text-[var(--color-primary)] px-1.5 py-0.5 bg-transparent">
+            {draggedPlayer.current_role}
+          </span>
         </motion.div>
       ) : (
-        <div className="w-full text-center p-4 opacity-50 flex items-center justify-center gap-4">
-          <div className="font-display font-black text-4xl text-gray-400 leading-none">
+        <div className="w-full text-center p-4 opacity-50 flex flex-col items-center justify-center gap-1.5 min-h-[100px]">
+          <div className="font-display font-black text-3xl text-gray-400 leading-none">
             {index + 1}
           </div>
-          <p className="font-label text-xs font-black uppercase tracking-widest text-gray-500 text-left leading-tight">
-            Drag player<br/>here
+          <UserPlus size={18} weight="bold" className="text-gray-400" />
+          <p className="font-label text-[9px] font-black uppercase tracking-widest text-gray-500 leading-tight">
+            Drop here
           </p>
         </div>
       )}

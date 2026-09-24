@@ -7,6 +7,7 @@ import RosterSlot from '@/components/simulation/RosterSlot';
 import DraggablePlayerCard from '@/components/simulation/DraggablePlayerCard';
 import AnimatedCounter from '@/components/ui/AnimatedCounter';
 import {
+  CaretDown,
   ChartBar,
   CheckCircle,
   Crosshair,
@@ -48,6 +49,7 @@ export default function Simulation() {
   const [simulating, setSimulating] = useState(false);
   const [synergyScore, setSynergyScore] = useState<number | null>(null);
   const [activePlayer, setActivePlayer] = useState<Player | null>(null);
+  const [analysisOpen, setAnalysisOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -167,6 +169,9 @@ const ratingProgress = Math.min((avgRatingValue / RATING_SCALE_MAX) * 100, 100);
 const hasIgl = roster.some((p) => p?.is_igl);
 const isReady = filledSlots === 5 && hasIgl;
 
+// ponytail: auto-expand analysis when roster full, collapse when not
+useEffect(() => { setAnalysisOpen(filledSlots === 5); }, [filledSlots]);
+
 const calculateSynergy = async () => {
   if (!isReady || simulating) return;
   setSimulating(true);
@@ -249,106 +254,137 @@ const calculateSynergy = async () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
             {roster.map((player, idx) => (
               <RosterSlot key={`slot-${idx}`} player={player} index={idx} onRemove={() => removeFromRoster(idx)} />
             ))}
           </div>
 
-          {/* Composition Analysis */}
-          <div className="mt-8 pt-6">
-            <h3 className="mb-4 flex items-center gap-2 font-label text-xs font-bold uppercase tracking-widest text-[var(--color-text-secondary)]">
-              <ChartBar weight="regular" size={16} />
-              Composition Analysis
-            </h3>
-
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-              {/* Synergy Score */}
-              <div className="col-span-2 flex flex-col justify-between border-4 border-theme-border bg-[var(--color-primary)] p-4 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
-                <div className="mb-3 font-label text-[10px] font-bold uppercase tracking-widest text-theme-text/70">
-                  Synergy Score
-                </div>
-                {synergyScore !== null ? (
-                  <>
-                    <div className="flex items-baseline gap-1">
-                      <AnimatedCounter
-                        value={synergyScore}
-                        decimals={0}
-                        className="font-mono text-3xl font-bold leading-none text-theme-text sm:text-4xl"
-                      />
-                      <span className="font-mono text-lg font-bold text-theme-text/70">%</span>
-                    </div>
-                    <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-black/15">
-                      <motion.div
-                        className="h-full rounded-full bg-black"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${synergyScore}%` }}
-                        transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <div className="flex-1 flex items-center justify-start py-2">
-                    <span className="font-label text-xs font-bold uppercase tracking-widest text-theme-text/60">
-                      Pending Check
-                    </span>
-                  </div>
+          {/* Composition Analysis — collapsible, auto-expand when roster full */}
+          <div className="mt-6 border-t-4 border-theme-border pt-4">
+            <button
+              type="button"
+              onClick={() => setAnalysisOpen(prev => !prev)}
+              className="w-full flex items-center justify-between gap-2 group"
+            >
+              <h3 className="flex items-center gap-2 font-label text-xs font-bold uppercase tracking-widest text-[var(--color-text-secondary)]">
+                <ChartBar weight="regular" size={16} />
+                Composition Analysis
+              </h3>
+              <div className="flex items-center gap-2">
+                {/* Compact summary when collapsed */}
+                {!analysisOpen && (
+                  <span className="font-label text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-muted)]">
+                    {filledSlots}/5{synergyScore !== null ? ` · ${synergyScore}%` : ''}
+                  </span>
                 )}
-              </div>
-
-              {/* Average Rating */}
-              <div className="col-span-2 flex flex-col justify-between border-4 border-theme-border bg-theme-bg p-4 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
-                <div className="mb-3 font-label text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-secondary)]">
-                  Average Rating
-                </div>
-                <AnimatedCounter
-                  value={avgRatingValue}
-                  decimals={2}
-                  className="font-mono text-3xl font-bold leading-none text-theme-text sm:text-4xl"
-                />
-                <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-black/10">
-                  <motion.div
-                    className="h-full rounded-full bg-[var(--color-primary)]"
-                    initial={false}
-                    animate={{ width: `${ratingProgress}%` }}
-                    transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-                  />
-                </div>
-              </div>
-
-              {/* IGL status */}
-              <div
-                className={`col-span-1 md:col-span-2 flex flex-col justify-between border-4 p-4 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] ${hasIgl
-                  ? 'border-theme-border bg-[#ECFDF5]'
-                  : 'border-theme-border bg-[#FEF2F2]'
-                  }`}
-              >
-                <div className="mb-3 font-label text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-secondary)]">
-                  IGL Status
-                </div>
-                <div
-                  className={`flex items-center gap-1.5 font-display text-lg font-black uppercase leading-none sm:text-xl ${hasIgl ? 'text-[#047857]' : 'text-[#B91C1C]'
-                    }`}
+                <motion.span
+                  animate={{ rotate: analysisOpen ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-[var(--color-text-muted)] group-hover:text-theme-text transition-colors"
                 >
-                  {hasIgl ? <CheckCircle weight="regular" size={18} /> : <WarningCircle weight="regular" size={18} />}
-                  {hasIgl ? 'Filled' : 'Missing'}
-                </div>
+                  <CaretDown weight="bold" size={16} />
+                </motion.span>
               </div>
+            </button>
 
-              {/* Readiness */}
-              <div className="col-span-1 md:col-span-2 flex flex-col justify-between border-4 border-theme-border bg-[var(--color-background)] p-4 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
-                <div className="mb-3 font-label text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-secondary)]">
-                  Readiness
-                </div>
-                <div
-                  className={`flex items-center gap-1.5 text-sm font-bold uppercase leading-tight ${isReady ? 'text-[#047857]' : 'text-[var(--color-text-muted)]'
-                    }`}
+            <AnimatePresence initial={false}>
+              {analysisOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
+                  className="overflow-hidden"
                 >
-                  {isReady ? <CheckCircle weight="regular" size={16} /> : <WarningCircle weight="regular" size={16} />}
-                  {isReady ? 'Ready' : 'Incomplete'}
-                </div>
-              </div>
-            </div>
+                  <div className="grid grid-cols-2 gap-3 pt-4 md:grid-cols-4">
+                    {/* Synergy Score */}
+                    <div className="col-span-2 flex flex-col justify-between border-4 border-theme-border bg-[var(--color-primary)] p-4 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
+                      <div className="mb-2 font-label text-[10px] font-bold uppercase tracking-widest text-theme-text/70">
+                        Synergy Score
+                      </div>
+                      {synergyScore !== null ? (
+                        <>
+                          <div className="flex items-baseline gap-1">
+                            <AnimatedCounter
+                              value={synergyScore}
+                              decimals={0}
+                              className="font-mono text-2xl font-bold leading-none text-theme-text sm:text-3xl"
+                            />
+                            <span className="font-mono text-base font-bold text-theme-text/70">%</span>
+                          </div>
+                          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-black/15">
+                            <motion.div
+                              className="h-full rounded-full bg-black"
+                              initial={{ width: 0 }}
+                              animate={{ width: `${synergyScore}%` }}
+                              transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        <span className="font-label text-xs font-bold uppercase tracking-widest text-theme-text/60">
+                          Pending Check
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Average Rating */}
+                    <div className="col-span-2 flex flex-col justify-between border-4 border-theme-border bg-theme-bg p-4 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
+                      <div className="mb-2 font-label text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-secondary)]">
+                        Average Rating
+                      </div>
+                      <AnimatedCounter
+                        value={avgRatingValue}
+                        decimals={2}
+                        className="font-mono text-2xl font-bold leading-none text-theme-text sm:text-3xl"
+                      />
+                      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-black/10">
+                        <motion.div
+                          className="h-full rounded-full bg-[var(--color-primary)]"
+                          initial={false}
+                          animate={{ width: `${ratingProgress}%` }}
+                          transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* IGL status */}
+                    <div
+                      className={`col-span-1 md:col-span-2 flex flex-col justify-between border-4 p-3 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] ${hasIgl
+                        ? 'border-theme-border bg-[#ECFDF5]'
+                        : 'border-theme-border bg-[#FEF2F2]'
+                        }`}
+                    >
+                      <div className="mb-2 font-label text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-secondary)]">
+                        IGL Status
+                      </div>
+                      <div
+                        className={`flex items-center gap-1.5 font-display text-base font-black uppercase leading-none sm:text-lg ${hasIgl ? 'text-[#047857]' : 'text-[#B91C1C]'
+                          }`}
+                      >
+                        {hasIgl ? <CheckCircle weight="regular" size={16} /> : <WarningCircle weight="regular" size={16} />}
+                        {hasIgl ? 'Filled' : 'Missing'}
+                      </div>
+                    </div>
+
+                    {/* Readiness */}
+                    <div className="col-span-1 md:col-span-2 flex flex-col justify-between border-4 border-theme-border bg-[var(--color-background)] p-3 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
+                      <div className="mb-2 font-label text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-secondary)]">
+                        Readiness
+                      </div>
+                      <div
+                        className={`flex items-center gap-1.5 text-sm font-bold uppercase leading-tight ${isReady ? 'text-[#047857]' : 'text-[var(--color-text-muted)]'
+                          }`}
+                      >
+                        {isReady ? <CheckCircle weight="regular" size={14} /> : <WarningCircle weight="regular" size={14} />}
+                        {isReady ? 'Ready' : 'Incomplete'}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Primary CTA — one yellow button per view */}

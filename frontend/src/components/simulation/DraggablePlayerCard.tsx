@@ -67,7 +67,7 @@ export default function DraggablePlayerCard({ player, reason, synergyScore, onAd
                     onAdd(player);
                   }}
                   onPointerDown={(e) => e.stopPropagation()}
-                  className="bg-[var(--color-primary)] text-black border-2 border-theme-border p-0.5 shadow-[2px_2px_0px_#000] hover:bg-yellow-400 hover:shadow-[1px_1px_0px_#000] hover:translate-y-px transition-all"
+                  className="bg-[var(--color-primary)] text-black border-2 border-theme-border p-0.5 shadow-[2px_2px_0px_#000] hover:bg-[var(--color-primary-hover)] hover:shadow-[1px_1px_0px_#000] hover:translate-y-px transition-all"
                 >
                   <Plus weight="bold" size={14} />
                 </button>
