@@ -20,12 +20,26 @@ final class ConsistencyIndexService
         return DB::table('player_map_stats as pms')
             ->join('maps as ci_maps', 'ci_maps.id', '=', 'pms.map_id')
             ->join('matches as ci_matches', 'ci_matches.id', '=', 'pms.match_id')
+            ->join('events as ci_events', 'ci_events.id', '=', 'ci_matches.event_id')
+            ->leftJoin('match_team_quality_scores as mtqs', function ($join) {
+                $join->on('mtqs.match_id', '=', 'pms.match_id')
+                    ->on('mtqs.team_id', '=', 'pms.team_id_at_match');
+            })
             ->where('pms.player_id', $playerId)
             ->where('ci_maps.map_name', 'All Maps')
             ->whereNotNull('ci_matches.winner_team_id')
             ->whereNotNull('pms.acs')
             ->where('pms.acs', '>', 0)
-            ->select('pms.*', 'ci_matches.event_id as source_event_id')
+            ->where(function ($q) {
+                $q->whereNull('ci_events.competition_level')
+                    ->orWhere('ci_events.competition_level', '!=', 'challengers');
+            })
+            ->whereRaw('LOWER(ci_events.name) NOT LIKE ?', ['%challengers%'])
+            ->select(
+                'pms.*',
+                'ci_matches.event_id as source_event_id',
+                DB::raw('COALESCE(mtqs.match_quality, 3.0) as match_quality')
+            )
             ->orderByDesc('pms.id')
             ->get()
             ->unique('match_id')

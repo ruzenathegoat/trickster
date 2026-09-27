@@ -71,6 +71,7 @@ final class CompetitionQualityService
             'classified_events' => $stageSummary['classified_events'],
             'stage_context' => $stageSummary,
             'context' => $contextSummary,
+            'regional_strength_matrix' => $this->eloCalculator->getRegionalStrengthMatrix(),
             'method_version' => CompetitionQualityConfig::METHOD_VERSION,
         ];
     }
@@ -145,6 +146,7 @@ final class CompetitionQualityService
             ->whereYear('m.match_date', $season)
             ->whereNotNull('m.winner_team_id')
             ->whereNotNull('e.competition_level')
+            ->where('e.competition_level', '!=', 'challengers')
             ->whereNotNull('e.competition_base_weight')
             ->select([
                 'm.id',
@@ -184,9 +186,14 @@ final class CompetitionQualityService
             $ratings[$this->matchTeamKey($row['match_id'], $row['team_id'])] = $row;
         }
 
+        $regionalMap = collect($this->eloCalculator->getRegionalStrengthMatrix())->keyBy('region')->all();
+
         $rows = [];
         $byMatchTeam = [];
         foreach ($matches as $match) {
+            $eventRegion = (string) ($match['event_region'] ?? '');
+            $regionalStrengthFactor = (float) ($regionalMap[$eventRegion]['strength_coefficient'] ?? 1.0);
+
             foreach ([
                 [(string) $match['team_a_id'], (string) $match['team_b_id']],
                 [(string) $match['team_b_id'], (string) $match['team_a_id']],
@@ -202,7 +209,7 @@ final class CompetitionQualityService
                     $match['raw_stage_label'],
                     $match['quality_weight'] === null ? null : (float) $match['quality_weight']
                 );
-                $quality = $eventBase * $stageFactor * $opponentFactor;
+                $quality = $eventBase * $stageFactor * $opponentFactor * $regionalStrengthFactor;
 
                 $row = [
                     'match_id' => $match['id'],
@@ -246,6 +253,7 @@ final class CompetitionQualityService
             ->whereNotNull('pms.acs')
             ->where('pms.acs', '>', 0)
             ->whereNotNull('e.competition_level')
+            ->where('e.competition_level', '!=', 'challengers')
             ->select([
                 'pms.id as stat_id',
                 'pms.player_id',
@@ -752,7 +760,14 @@ final class CompetitionQualityService
             $sum += ($value - $mean) ** 2;
         }
 
-        return sqrt($sum / (count($winsorized) - 1));
+        $count = count($winsorized);
+        $sampleVariance = $sum / ($count - 1);
+        $priorVariance = (CompetitionQualityConfig::BAYESIAN_PRIOR_DISPERSION / 2.0) ** 2;
+        $nu0 = CompetitionQualityConfig::BAYESIAN_CONSISTENCY_NU0;
+        $df = $count - 1;
+        $bayesianVariance = (($df * $sampleVariance) + ($nu0 * $priorVariance)) / ($df + $nu0);
+
+        return sqrt($bayesianVariance);
     }
 
     private function matchTeamKey(mixed $matchId, mixed $teamId): string

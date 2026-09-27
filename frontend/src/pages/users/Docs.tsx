@@ -81,10 +81,10 @@ const sections = [
 
 const stats = [
   ['KD', 'Kill / Death Ratio', 'Σ kills / Σ deaths', 'Jika total death nol, nilai mengikuti total kills.'],
-  ['AVG', 'ACS, KAST, ADR, FK, FD', 'Σ nilai match / n match', 'Rata-rata dari observasi canonical yang lolos gate.'],
+  ['AVG', 'ACS, KAST, ADR, FK, FD', 'Σ(QMI_m × stat_m) / Σ QMI_m', 'Rata-rata tertimbang QMI dari observasi canonical yang lolos gate.'],
   ['WR', 'Win Rate', 'wins / matches × 100', 'Win dibandingkan dengan current_team_id player.'],
   ['R', 'VLR Rating', 'Σ rating positif / n rating positif', 'Rating nol atau negatif tidak masuk rata-rata.'],
-  ['CQI', 'Competition Exposure', 'percentile(avg match quality)', 'Match quality = event base × stage factor × pre-match opponent factor. Region hanya menjadi prior awal Elo.'],
+  ['CQI', 'Competition Exposure', 'percentile(shrunk avg QMI)', 'QMI = event base × stage factor × pre-match opponent Elo × regional strength matrix.'],
   ['ROLE', 'Primary Role', 'mode(role picks)', 'Selalu memakai satu dari empat role resmi. Flex disimpan sebagai archetype berbasis bukti.'],
 ];
 
@@ -108,30 +108,31 @@ ORDER BY pms.id DESC;
   },
   {
     id: 'smart',
-    label: 'SMART pipeline',
+    label: 'SMART pipeline v2',
     language: 'PSEUDO',
-    code: `P = role_and_level_percentile(ACS, KAST, ADR, KD)
-performance = .33*P.acs + .28*P.kast + .22*P.adr + .17*P.kd
+    code: `// 1. QMI Micro-Weighting per match m:
+// Q_m = event_base * stage_factor * pre_match_opponent_elo * regional_matrix
+// X_bar_QMI = sum(Q_m * stat_m) / sum(Q_m)
 
-Q = event_base * stage_factor * pre_match_opponent_factor
-weighted_performance = sum(Q * performance) / sum(Q)
-consistency = 100 - percentile(stddev(performance))
-cqi = percentile(reliability_shrunk_average(Q))
-event_stage_evidence = cap * (1 - exp(-sum(stage_evidence) / cap))
-stage_confidence = 1 - exp(-sum(event_stage_evidence) / 10)
-base_proven = cbrt(consistency * cqi * weighted_performance)
-proven = base_proven * (.92 + .08 * stage_confidence)
+// 2. Map-Level Empirical Bayesian Shrinkage (κ_maps = 12.0):
+b_i = M_i / (M_i + 12.0)
+θ_hat = b_i * X_bar_QMI + (1.0 - b_i) * μ_role
 
-for criterion in criteria:
-  if criterion in [consistency, cqi, proven]:
-    utility = criterion.value
-  else if criterion.type == benefit:
-    utility = 100 * (raw - min) / (max - min)
-  else:
-    utility = 100 * (max - raw) / (max - min)
+// 3. Role-Adjusted Z-Score against Tier-1 pro priors:
+z_k = (θ_hat - μ_role[k]) / σ_role[k]
 
-SMART = sum(utility * weight)
-rank = RANK() over players with >=20 matches and >=2 events`,
+// 4. Decoupled Sigmoid Utility Mapping:
+if criterion in [consistency, cqi, proven]:
+  u_k = criterion.percentile_value
+else if criterion.type == benefit:
+  u_k = 100.0 / (1.0 + exp(-1.7 * z_k))
+else: // cost criterion (e.g. First Death)
+  u_k = 100.0 / (1.0 + exp(+1.7 * z_k))
+
+// 5. SMART Rating & Role Delta:
+SMART = sum(weight_k * u_k)
+Role_Delta = sum(weight_k * z_k)  // Net baseline Z-score deviation
+rank = RANK() over verified players (>=20 matches, >=2 events)`,
   },
   {
     id: 'momentum',
@@ -412,7 +413,7 @@ export default function Docs() {
               </div>
               <div className="mt-6 grid gap-4 md:grid-cols-[0.38fr_0.62fr]">
                 <div className="border-4 border-theme-border bg-[var(--color-primary)] p-6 text-black"><ShieldCheck size={34} weight="fill" /><p className="mt-7 font-display text-3xl uppercase leading-none">Tidak ada satu angka absolut.</p></div>
-                <div className="border-4 border-theme-border p-6"><p className="font-semibold leading-7">SMART adalah skor relatif terhadap cohort verified saat kalkulasi dilakukan.</p><p className="mt-3 text-sm leading-6 text-theme-text/60">Raw statistic dapat tetap sama, tetapi utility berubah saat batas cohort berubah. Baca score bersama profile, waktu kalkulasi, confidence, dan status verifikasi.</p></div>
+                <div className="border-4 border-theme-border p-6"><p className="font-semibold leading-7">SMART Engine v2 mengadopsi Empirical Bayesian Role-Adjusted Sigmoid.</p><p className="mt-3 text-sm leading-6 text-theme-text/60">Skor kriteria di-decouple dari cohort global min/max menggunakan prior empiris pro scene (μ, σ) per role. Data player dengan sampel kecil dishrink ke prior role (κ = 12 map), menghasilkan utility yang stabil dan kebal terhadap distorsi outlier.</p></div>
               </div>
             </section>
 
@@ -441,7 +442,7 @@ export default function Docs() {
             </section>
 
             <section id="smart" className="scroll-mt-28 pb-24">
-              <Heading eyebrow="04 / Simple Multi Attribute Rating Technique" title="SMART mengubah raw value menjadi utility.">Benefit memberi nilai lebih tinggi pada angka besar. Cost membalik arah. Consistency, CQI, dan Proven sudah berada pada skala percentile 0 sampai 100.</Heading>
+              <Heading eyebrow="04 / Simple Multi Attribute Rating Technique" title="SMART Engine v2: Bayesian Role Shrinkage & Sigmoid Utility.">Benefit dan cost kriteria dihitung via standard normal Z-score terhadap prior empiris role profesional, lalu ditransformasikan ke fungsi sigmoid u = 100 / (1 + exp(∓1.7z)). Consistency, CQI, dan Proven tetap berada pada skala percentile 0-100.</Heading>
               <div className="mt-8 grid gap-6 xl:grid-cols-[0.58fr_0.42fr]">
                 <div className="border-4 border-theme-border p-5 sm:p-7"><div className="mb-7 flex justify-between"><div><p className="font-label text-[10px] font-bold uppercase tracking-widest text-theme-text/45">Interactive calculator</p><h3 className="mt-1 font-display text-2xl uppercase">Normalized utilities</h3></div><SlidersHorizontal size={30} weight="bold" /></div><div className="space-y-4">{criteria.map((item) => <Slider key={item.key} label={`${item.short} · weight ${Number((item.weight * 100).toFixed(2))}%`} value={utilities[item.key]} min={0} max={100} onChange={(value) => setUtilities((current) => ({ ...current, [item.key]: value }))} />)}</div></div>
                 <div className="flex flex-col gap-6">
@@ -449,8 +450,8 @@ export default function Docs() {
                   <div className="border-4 border-theme-border p-5"><p className="mb-4 font-label text-[10px] font-bold uppercase tracking-widest text-theme-text/45">Contribution ledger</p><div className="space-y-3">{criteria.map((item) => <div key={item.key} className="grid grid-cols-[42px_1fr_52px] items-center gap-3"><span className="font-label text-[9px] font-bold">{item.short}</span><span className="h-2 bg-theme-divider"><span className="block h-full bg-[var(--color-primary)] transition-[width] motion-reduce:transition-none" style={{ width: `${utilities[item.key]}%` }} /></span><span className="text-right font-numeric text-[10px] font-bold">+{(utilities[item.key] * item.weight).toFixed(2)}</span></div>)}</div></div>
                 </div>
               </div>
-              <div className="mt-8 overflow-x-auto border-4 border-theme-border" data-lenis-prevent="true"><table className="w-full min-w-[720px] text-left"><thead className="bg-[#111] text-white"><tr className="font-label text-[9px] uppercase tracking-widest"><th className="p-4">Criterion</th><th className="p-4">Type</th><th className="p-4">Weight</th><th className="p-4">Normalization</th></tr></thead><tbody>{criteria.map((item) => <tr key={item.key} className="border-t-2 border-theme-divider text-sm"><td className="p-4 font-semibold">{item.name}</td><td className="p-4"><Tag tone={item.type === 'cost' ? 'yellow' : 'dark'}>{item.type}</Tag></td><td className="p-4 font-numeric font-bold">{Number((item.weight * 100).toFixed(2))}%</td><td className="p-4 font-numeric text-xs text-theme-text/60">{item.type === 'direct' ? 'direct utility 0-100' : item.type === 'benefit' ? '(x - min) / (max - min)' : '(max - x) / (max - min)'}</td></tr>)}</tbody></table></div>
-              <div className="mt-6 grid gap-4 md:grid-cols-2"><div className="border-4 border-theme-border p-6"><TrendUp size={28} weight="bold" /><h3 className="mt-6 font-display text-xl uppercase">Normalization cohort</h3><p className="mt-3 text-sm leading-6 text-theme-text/60">Min dan max hanya dari verified. Provisional memakai bounds yang sama. Utility dibatasi 0 sampai 100. Jika min sama dengan max dan nilainya positif, utility menjadi 100.</p></div><div className="border-4 border-theme-border p-6"><UsersThree size={28} weight="bold" /><h3 className="mt-6 font-display text-xl uppercase">Ranking cohort</h3><p className="mt-3 text-sm leading-6 text-theme-text/60">RANK() hanya untuk verified, dipisahkan per profile, mode, dan patch. Nilai seri menerima rank sama.</p></div></div>
+              <div className="mt-8 overflow-x-auto border-4 border-theme-border" data-lenis-prevent="true"><table className="w-full min-w-[720px] text-left"><thead className="bg-[#111] text-white"><tr className="font-label text-[9px] uppercase tracking-widest"><th className="p-4">Criterion</th><th className="p-4">Type</th><th className="p-4">Weight</th><th className="p-4">Normalization</th></tr></thead><tbody>{criteria.map((item) => <tr key={item.key} className="border-t-2 border-theme-divider text-sm"><td className="p-4 font-semibold">{item.name}</td><td className="p-4"><Tag tone={item.type === 'cost' ? 'yellow' : 'dark'}>{item.type}</Tag></td><td className="p-4 font-numeric font-bold">{Number((item.weight * 100).toFixed(2))}%</td><td className="p-4 font-numeric text-xs text-theme-text/60">{item.type === 'direct' ? 'direct utility 0-100' : item.type === 'benefit' ? '100 / (1 + exp(-1.7 × z))' : '100 / (1 + exp(+1.7 × z))'}</td></tr>)}</tbody></table></div>
+              <div className="mt-6 grid gap-4 md:grid-cols-2"><div className="border-4 border-theme-border p-6"><TrendUp size={28} weight="bold" /><h3 className="mt-6 font-display text-xl uppercase">Role-Anchored Decoupling</h3><p className="mt-3 text-sm leading-6 text-theme-text/60">Utility tidak lagi bergantung pada batas min/max pemain lain dalam cohort sesaat. Evaluasi dilakukan terhadap standar role Tier-1 (Duelist, Initiator, Controller, Sentinel), sehingga rating stabil secara longitudinal.</p></div><div className="border-4 border-theme-border p-6"><UsersThree size={28} weight="bold" /><h3 className="mt-6 font-display text-xl uppercase">Map-Level Shrinkage & Delta</h3><p className="mt-3 text-sm leading-6 text-theme-text/60">Bayesian shrinkage b = M / (M + 12) menarik performa sample terbatas ke rata-rata role. Role Delta (ΔZ) menampilkan keunggulan bersih pemain di atas ekspektasi posisinya.</p></div></div>
             </section>
 
             <section id="momentum" className="scroll-mt-28 pb-24">
@@ -512,7 +513,7 @@ export default function Docs() {
                 ['Compositions', 'Exactly five agents', 'Agent diurutkan menjadi key. Jika patch punya event links, query dibatasi ke event tersebut. Lima composition teratas ditampilkan.'],
                 ['Version history', 'Supersede, not erase', 'Koreksi map rating membuat record baru dan menandai record lama superseded.'],
               ].map(([label, title, body]) => <div key={label} className="border-4 border-theme-border p-6"><p className="font-label text-[10px] font-bold uppercase tracking-widest text-theme-text/40">{label}</p><h3 className="mt-3 font-display text-xl uppercase">{title}</h3><p className="mt-3 text-xs leading-5 text-theme-text/55">{body}</p></div>)}</div>
-              <div className="mt-8 border-4 border-theme-border p-6 sm:p-8"><div className="flex flex-col gap-8 md:flex-row md:justify-between"><div className="max-w-2xl"><p className="font-label text-[10px] font-bold uppercase tracking-widest text-theme-text/40">Meta Adaptability Index</p><h3 className="mt-2 font-display text-3xl uppercase">Meta response with performance retention</h3><p className="mt-4 text-sm leading-6 text-theme-text/60">The index uses the complete agent distribution for each active patch. Agent changes are evaluated only when a nerf, rework, or tier decline creates a real adaptation opportunity.</p></div><div className="min-w-[240px] border-t-2 border-theme-border pt-5 md:border-l-2 md:border-t-0 md:pl-7 md:pt-0"><p className="font-label text-[9px] font-bold uppercase tracking-widest text-theme-text/45">Method weights</p><dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 font-numeric text-[10px] font-bold"><div><dt className="text-theme-text/45">Alignment</dt><dd className="mt-1 text-base">45%</dd></div><div><dt className="text-theme-text/45">Retention</dt><dd className="mt-1 text-base">25%</dd></div><div><dt className="text-theme-text/45">Response</dt><dd className="mt-1 text-base">20%</dd></div><div><dt className="text-theme-text/45">Role breadth</dt><dd className="mt-1 text-base">10%</dd></div></dl></div></div></div>
+              <div className="mt-8 border-4 border-theme-border p-6 sm:p-8"><div className="flex flex-col gap-8 md:flex-row md:justify-between"><div className="max-w-2xl"><p className="font-label text-[10px] font-bold uppercase tracking-widest text-theme-text/45">Meta Adaptability Index</p><h3 className="mt-2 font-display text-3xl uppercase">Bayesian Conjugate Meta Adaptability</h3><p className="mt-4 text-sm leading-6 text-theme-text/60">Indeks memakai Bayesian Conjugate Shrinkage dengan prior pro scene Tier-1 (Alignment λ dari 15 map, Retention λ dari 3 transisi, Response λ dari 2 peluang). Telemetri transisi mendeteksi perubahan meta struktural (Δ shift ≥ 12.5) dan respon agent pool.</p></div><div className="min-w-[240px] border-t-2 border-theme-border pt-5 md:border-l-2 md:border-t-0 md:pl-7 md:pt-0"><p className="font-label text-[9px] font-bold uppercase tracking-widest text-theme-text/45">Method weights</p><dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 font-numeric text-[10px] font-bold"><div><dt className="text-theme-text/45">Alignment (λ_align)</dt><dd className="mt-1 text-base">45%</dd></div><div><dt className="text-theme-text/45">Retention (λ_ret)</dt><dd className="mt-1 text-base">25%</dd></div><div><dt className="text-theme-text/45">Response (λ_resp)</dt><dd className="mt-1 text-base">20%</dd></div><div><dt className="text-theme-text/45">Role breadth</dt><dd className="mt-1 text-base">10%</dd></div></dl></div></div></div>
             </section>
 
             <section id="queries" className="scroll-mt-28 pb-24">
@@ -533,8 +534,8 @@ export default function Docs() {
                 ['Reproduksi aggregate', 'Jumlahkan K/D/A. Rata-ratakan ACS, KAST, ADR, first kills, dan first deaths.'],
                 ['Audit event momentum', 'Cari event pembanding satu region dan tier, hitung percentile EPS, lalu terapkan pair reliability pada selisih score.'],
                 ['Tentukan status CI', 'Hitung match dan distinct event. Official membutuhkan minimal 20 match serta 2 event.'],
-                ['Ambil cohort bounds', 'Gunakan min dan max verified cohort pada profile, mode, patch, dan waktu yang sama.'],
-                ['Hitung SMART', 'Terapkan benefit atau cost, kalikan utility dengan weight, lalu jumlahkan.'],
+                ['Hitung Bayesian Shrinkage & Z-Score', 'Terapkan shrinkage b = M / (M + 12) terhadap prior role, lalu hitung Z-score z = (θ̂ - μ_role) / σ_role.'],
+                ['Hitung SMART & Role Delta', 'Transformasikan z ke sigmoid utility u = 100 / (1 + e^∓1.7z), kalikan utility dengan weight, dan jumlahkan.'],
                 ['Baca label', 'Periksa provisional, confidence, rank, source reference, patch, dan catatan kurasi.'],
               ].map(([title, body], index) => <li key={title} className="grid border-b-2 border-theme-divider last:border-b-0 md:grid-cols-[80px_230px_1fr]"><div className="flex min-h-16 items-center justify-center bg-theme-muted font-display text-2xl">{String(index + 1).padStart(2, '0')}</div><div className="flex items-center border-y-2 border-theme-divider px-5 py-4 font-display text-base uppercase md:border-y-0 md:border-x-2">{title}</div><p className="flex items-center px-5 py-4 text-sm leading-6 text-theme-text/60">{body}</p></li>)}</ol>
               <div className="mt-8 grid gap-6 lg:grid-cols-[0.64fr_0.36fr]">

@@ -56,6 +56,14 @@ erDiagram
         string country
         uuid team_id FK
         enum current_role
+        string role_archetype
+        decimal flexibility_score
+        string flex_confidence
+        json flex_profile
+        decimal meta_alignment_score
+        decimal meta_adaptability_index
+        string meta_adaptability_confidence
+        json meta_adaptability_profile
         string vlr_player_id UK
         timestamp created_at
     }
@@ -184,6 +192,7 @@ erDiagram
         enum operator ">=, <=, =="
         decimal value
     }
+    PLAYERS ||--o{ PLAYER_COMPETITION_METRICS : evaluated_for
     PLAYER_CRITERIA_SCORES {
         uuid id PK
         uuid player_id FK
@@ -199,9 +208,30 @@ erDiagram
         uuid player_id FK
         uuid profile_id FK
         uuid patch_id FK
-        enum mode "global, selection"
+        enum mode "career, selection"
         decimal final_score
         int rank
+        boolean is_provisional
+        decimal smart_confidence
+        timestamp calculated_at
+    }
+    PLAYER_COMPETITION_METRICS {
+        bigint id PK
+        uuid player_id FK
+        smallint season
+        decimal cqi_raw
+        decimal cqi_percentile
+        decimal weighted_performance
+        decimal stage_evidence
+        decimal stage_confidence
+        int high_pressure_matches
+        decimal base_proven_consistency
+        decimal proven_consistency
+        json stage_exposure_breakdown
+        int international_matches
+        int international_events
+        string validation_status
+        string method_version
         timestamp calculated_at
     }
     SCRAPE_JOBS_LOG {
@@ -247,8 +277,10 @@ erDiagram
 
 **`teams`** — `id`, `name`, `region` (NA/EMEA/APAC), `logo_url`, `vlr_team_id` (unique, scrape anchor)
 
-**`players`** — `id`, `name`, `ign`, `country`, `team_id` (FK, nullable — free agents), `current_role`, `vlr_player_id` (unique), `created_at`
+**`players`** — `id`, `name`, `ign`, `country`, `team_id` (FK, nullable — free agents), `current_role`, `role_archetype`, `flexibility_score`, `flex_confidence`, `flex_profile` (JSON), `meta_alignment_score`, `meta_adaptability_index`, `meta_adaptability_confidence`, `meta_adaptability_profile` (JSON), `vlr_player_id` (unique), `created_at`
 - `current_role` is the player's *listed* role today — **not** used for historical per-match role calculations (see `player_map_stats.role_at_time_of_match`).
+- `flex_profile` caches the computed 12-month role breadth, agent distribution, repeatability flags, and archetype classification.
+- `meta_adaptability_profile` caches Bayesian conjugate MAI components, transition telemetry history, and credibility coefficients ($\lambda_{\text{align}}, \lambda_{\text{ret}}, \lambda_{\text{resp}}$).
 
 **`patches`** — `id`, `version` (unique, e.g. "9.08"), `release_date`, `patch_notes_url`
 
@@ -302,17 +334,25 @@ erDiagram
 
 **`player_criteria_scores`** — `id`, `player_id` FK, `criteria_id` FK, `patch_id` FK (nullable — some criteria are season-scoped, not patch-scoped), `raw_value`, `global_normalized_utility`, `sample_size`, `calculated_at`
 - Recalculated on: new match data ingested, patch/meta ratings updated, or scheduled recompute job.
-- `sample_size` enables the 20-match minimum-sample gate at read time.
+- `sample_size` stores the number of valid mapped maps (matches), enabling map-level empirical Bayesian shrinkage $b = M / (M + 12.0)$ and the 20-match minimum-sample gate at read time.
 
-**`player_smart_results`** — `id`, `player_id` FK, `profile_id` FK, `patch_id` FK, `mode` (`global` / `selection`), `final_score`, `rank`, `calculated_at`
-- `mode = global` → Global Rating (global min/max normalization; used for leaderboards/dashboards/history).
-- `mode = selection` → Selection Score (candidate-pool min/max normalization; computed on-demand per search, not cached long-term — see PRD discovery on Selection Score volatility).
+**`player_smart_results`** — `id`, `player_id` FK, `profile_id` FK, `patch_id` FK, `mode` (`career`), `final_score`, `rank`, `is_provisional`, `smart_confidence`, `calculated_at`
+- `mode = career` → Career SMART Rating v2 (Empirical Bayesian Role-Adjusted normalization with standard normal sigmoid transform, decoupled from global min/max bounds; evaluated against Tier-1 VCT role baselines).
+- `is_provisional` flags players with $< 20$ matches or $< 2$ distinct verified events.
+- `smart_confidence` reflects data maturity ($\min(M/20, 1) \times \min(E/2, 1)$).
+- Challengers events are excluded from cohort calculations.
 
 ### 2.7 Scraper Monitoring
 
 **`scrape_jobs_log`** — `id`, `source` (e.g. "vlr.gg/matches"), `status` (`success`/`failed`/`partial`), `started_at`, `finished_at`, `error_message`, `records_processed`
 
 **`scrape_alerts`** — `id`, `job_id` FK, `alert_type`, `message`, `is_resolved`, `created_at`
+- Surfaced in the Admin Curation Panel per PRD US-6. Manually monitored by the developer (no auto-remediation in Phase 1).
+
+### 2.8 Competition Quality & Stage Exposure
+
+**`player_competition_metrics`** — `id`, `player_id` FK, `season`, `cqi_raw`, `cqi_percentile`, `weighted_performance`, `stage_evidence`, `stage_confidence`, `high_pressure_matches`, `base_proven_consistency`, `proven_consistency`, `stage_exposure_breakdown` (JSON), `international_matches`, `international_events`, `validation_status`, `method_version`, `calculated_at`
+- Stores seasonal CQI v2/v3 telemetry, stage evidence curves ($E_{\text{stage}}$), high pressure match counts (playoffs/grand finals), and stage exposure distributions.
 - Surfaced in the Admin Curation Panel per PRD US-6. Manually monitored by the developer (no auto-remediation in Phase 1).
 
 ---

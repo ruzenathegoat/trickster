@@ -10,7 +10,223 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 
-interface PlayerDetails {
+/**
+ * Raw match performance summary extracted from canonical All Maps observations.
+ */
+export interface PlayerRawStats {
+  matches: number;
+  win_rate: string;
+  rating: number;
+  acs: number;
+  kd: number;
+  kast: string;
+  adr: number;
+}
+
+/**
+ * Historical consistency metrics and sample verification gates.
+ */
+export interface PlayerConsistency {
+  value: number | null;
+  provisional_value: number | null;
+  eligible: boolean;
+  sample_size: number;
+  minimum_sample_size: number;
+  event_count: number;
+  minimum_event_count: number;
+  method: string | null;
+  calculated_at: string | null;
+}
+
+/**
+ * Stage exposure breakdown within Competition Quality Index (CQI).
+ */
+export interface PlayerStageExposure {
+  matches: number;
+  high_pressure_matches: number;
+  raw_evidence: number;
+  evidence: number;
+}
+
+/**
+ * Competition Quality Index (CQI) v2 telemetry and stage validation metrics.
+ */
+export interface PlayerCompetitionQuality {
+  season: number;
+  exposure_percentile: number;
+  raw_match_quality: number;
+  weighted_performance: number;
+  base_proven_consistency: number;
+  proven_consistency: number;
+  stage_evidence: number;
+  stage_confidence: number;
+  high_pressure_matches: number;
+  stage_exposure_breakdown: Record<string, PlayerStageExposure>;
+  international_matches: number;
+  international_events: number;
+  validation_status: string;
+  confidence: number;
+  method: string;
+}
+
+/**
+ * Role distribution record across played maps.
+ */
+export interface PlayerRoleDistributionItem {
+  role: string;
+  map_count: number;
+  share: number;
+  agent_count: number;
+  performance_score: number;
+  qualified: boolean;
+  repeatable: boolean;
+}
+
+/**
+ * Player role breadth, flexibility, and archetype classification.
+ */
+export interface PlayerRoleProfile {
+  method?: string;
+  window?: {
+    months: number;
+    started_at: string | null;
+    ended_at: string | null;
+  };
+  primary_role: string;
+  archetype: string;
+  flex_score: number;
+  confidence: 'low' | 'medium' | 'high';
+  components: {
+    role_breadth?: number;
+    agent_breadth?: number;
+    usage_balance?: number;
+    cross_role_performance?: number;
+    repeatability?: number;
+  };
+  evidence: {
+    map_count?: number;
+    observed_map_count?: number;
+    data_coverage?: number;
+    event_count?: number;
+    patch_count?: number;
+    qualified_role_count?: number;
+    repeatable_role_count?: number;
+    qualified_agent_count?: number;
+    agent_diverse_role_count?: number;
+    effective_roles?: number;
+    effective_qualified_roles?: number;
+    effective_agents?: number;
+    median_cross_role_performance?: number;
+    performance_gate_passed?: boolean;
+  };
+  role_distribution: PlayerRoleDistributionItem[];
+  qualified_agents?: Array<{
+    name: string;
+    role: string;
+    map_count: number;
+  }>;
+  thresholds?: Record<string, number>;
+}
+
+/**
+ * Bayesian conjugate shrinkage credibility coefficients (λ ∈ [0, 1]).
+ */
+export interface PlayerBayesianCredibility {
+  alignment_lambda?: number;
+  retention_lambda?: number;
+  response_lambda?: number;
+}
+
+/**
+ * Patch observation record for meta alignment and tier coverage.
+ */
+export interface PlayerPatchObservation {
+  patch: string;
+  map_count: number;
+  meta_alignment: number | null;
+  tier_coverage: number;
+}
+
+/**
+ * Patch transition telemetry record for disruption response tracking.
+ */
+export interface PlayerPatchTransition {
+  from_patch: string;
+  to_patch: string;
+  meta_shift: number;
+  adaptation_opportunity: boolean;
+  performance_retention: number | null;
+  response_score: number | null;
+  agent_pool_change: number;
+}
+
+/**
+ * Meta Adaptability Index (MAI) profile and patch transition history.
+ */
+export interface PlayerAdaptability {
+  method?: string;
+  score: number;
+  confidence: 'low' | 'medium' | 'high';
+  window?: {
+    months: number;
+    started_at: string | null;
+    ended_at: string | null;
+  };
+  components: {
+    meta_alignment?: number;
+    performance_retention?: number;
+    meta_response?: number;
+    role_flexibility?: number;
+  };
+  evidence: {
+    map_count?: number;
+    active_patch_count?: number;
+    transition_count?: number;
+    adaptation_opportunity_count?: number;
+    tier_coverage?: number;
+    performance_coverage?: number;
+    bayesian_credibility?: PlayerBayesianCredibility;
+  };
+  patches?: PlayerPatchObservation[];
+  transitions?: PlayerPatchTransition[];
+}
+
+/**
+ * Multi-dimensional player attribute scale mapped for radar chart visualization.
+ */
+export interface PlayerRadarStats {
+  ACS: number;
+  'K/D': number;
+  KAST: number;
+  ADR: number;
+  Consistency?: number;
+  Adaptability: number;
+  Flexibility: number;
+}
+
+/**
+ * Most picked agent summary with pick share and portrait image URL.
+ */
+export interface PlayerAgentPick {
+  name: string;
+  count: number;
+  percentage: string;
+  icon_url: string | null;
+}
+
+/**
+ * Daily SMART ranking snapshot record.
+ */
+export interface PlayerRankHistoryItem {
+  date: string;
+  rank: number;
+  score?: number;
+}
+
+/**
+ * Comprehensive player profile data structure returned by PlayerController::show($id).
+ */
+export interface PlayerDetails {
   id: string;
   ign: string;
   name: string;
@@ -18,124 +234,26 @@ interface PlayerDetails {
   team_name: string;
   team_logo: string | null;
   photo_url: string | null;
-  role: string;
-  primary_role: string;
+  role: string | null;
+  primary_role: string | null;
   role_archetype: string;
   smart_score: number | null;
   smart_rank: number | null;
   smart_status: 'verified' | 'provisional' | null;
   smart_confidence: number | null;
-  smart_rank_history?: { date: string; rank: number }[];
+  smart_rank_history?: PlayerRankHistoryItem[];
   rank_shift?: string;
-  raw_stats: {
-    matches: number;
-    win_rate: string;
-    rating: number;
-    acs: number;
-    kd: number;
-    kast: string;
-    adr: number;
-  };
-  consistency: {
-    value: number | null;
-    provisional_value: number | null;
-    eligible: boolean;
-    sample_size: number;
-    minimum_sample_size: number;
-    event_count: number;
-    minimum_event_count: number;
-    method: string | null;
-    calculated_at: string | null;
-  };
-  competition_quality: {
-    season: number;
-    exposure_percentile: number;
-    raw_match_quality: number;
-    weighted_performance: number;
-    base_proven_consistency: number;
-    proven_consistency: number;
-    stage_evidence: number;
-    stage_confidence: number;
-    high_pressure_matches: number;
-    stage_exposure_breakdown: Record<string, {
-      matches: number;
-      high_pressure_matches: number;
-      raw_evidence: number;
-      evidence: number;
-    }>;
-    international_matches: number;
-    international_events: number;
-    validation_status: string;
-    confidence: number;
-    method: string;
-  } | null;
-  role_profile: {
-    method?: string;
-    primary_role: string;
-    archetype: string;
-    flex_score: number;
-    confidence: 'low' | 'medium' | 'high';
-    components: {
-      role_breadth?: number;
-      agent_breadth?: number;
-      usage_balance?: number;
-      cross_role_performance?: number;
-      repeatability?: number;
-    };
-    evidence: {
-      map_count?: number;
-      event_count?: number;
-      patch_count?: number;
-      qualified_role_count?: number;
-      repeatable_role_count?: number;
-      qualified_agent_count?: number;
-      effective_roles?: number;
-      performance_gate_passed?: boolean;
-    };
-    role_distribution: {
-      role: string;
-      map_count: number;
-      share: number;
-      agent_count: number;
-      performance_score: number;
-      qualified: boolean;
-      repeatable: boolean;
-    }[];
-  };
-  adaptability: {
-    method?: string;
-    score: number;
-    confidence: 'low' | 'medium' | 'high';
-    components: {
-      meta_alignment?: number;
-      performance_retention?: number;
-      meta_response?: number;
-      role_flexibility?: number;
-    };
-    evidence: {
-      map_count?: number;
-      active_patch_count?: number;
-      transition_count?: number;
-      adaptation_opportunity_count?: number;
-      tier_coverage?: number;
-      performance_coverage?: number;
-    };
-  };
-  radar_stats: {
-    'ACS': number;
-    'K/D': number;
-    'KAST': number;
-    'ADR': number;
-    'Consistency'?: number;
-    'Adaptability': number;
-    'Flexibility': number;
-  };
-  most_picked_agents: {
-    name: string;
-    count: number;
-    percentage: string;
-    icon_url: string;
-  }[];
+  raw_stats: PlayerRawStats;
+  consistency: PlayerConsistency;
+  competition_quality: PlayerCompetitionQuality | null;
+  role_profile: PlayerRoleProfile;
+  adaptability: PlayerAdaptability;
+  radar_stats: PlayerRadarStats;
+  /** Net Z-score deviation against Tier-1 pro role empirical prior (ΔZ = Σ w_k * (y_k - μ_role) / σ_role) */
+  role_delta?: number;
+  /** Role empirical prior mean vector mapped to radar polygon domain */
+  role_baseline_radar?: Record<string, number>;
+  most_picked_agents: PlayerAgentPick[];
 }
 
 export default function PlayerProfile() {
@@ -296,25 +414,45 @@ export default function PlayerProfile() {
       shadow: false
     },
     legend: {
-      enabled: false
+      enabled: Boolean(player.role_baseline_radar),
+      itemStyle: {
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: '11px',
+        fontWeight: 'bold',
+        textTransform: 'uppercase'
+      }
     },
-    series: [{
-      type: 'area',
-      name: 'Stats',
-      data: Object.values(player.radar_stats),
-      pointPlacement: 'on',
-      color: 'var(--color-primary)', 
-      fillOpacity: 1,
-      lineWidth: 4,
-      lineColor: '#000',
-      marker: {
-        enabled: true,
-        fillColor: 'var(--color-primary)',
+    series: [
+      {
+        type: 'area',
+        name: `${player.ign} Stats`,
+        data: Object.values(player.radar_stats),
+        pointPlacement: 'on',
+        color: 'var(--color-primary)', 
+        fillOpacity: 0.6,
         lineWidth: 3,
         lineColor: '#000',
-        radius: 5
-      }
-    }],
+        marker: {
+          enabled: true,
+          fillColor: 'var(--color-primary)',
+          lineWidth: 2,
+          lineColor: '#000',
+          radius: 4
+        }
+      },
+      ...(player.role_baseline_radar ? [{
+        type: 'line' as const,
+        name: `${player.role || 'Role'} Prior Baseline`,
+        data: Object.keys(player.radar_stats).map(k => player.role_baseline_radar?.[k] ?? 50),
+        pointPlacement: 'on' as const,
+        color: '#71717a',
+        dashStyle: 'Dash' as const,
+        lineWidth: 2,
+        marker: {
+          enabled: false
+        }
+      }] : [])
+    ],
     credits: {
       enabled: false
     },
@@ -575,6 +713,17 @@ export default function PlayerProfile() {
                     )}
                   </div>
                 </div>
+
+                {player.role_delta != null && (
+                  <div className="flex justify-between items-center pt-3 mt-1 border-t border-theme-border/20">
+                    <span className="text-[10px] font-bold text-theme-text/60 uppercase tracking-widest">
+                      Role Delta (Z-Score)
+                    </span>
+                    <span className={`font-['JetBrains_Mono'] text-xs font-black tabular-nums ${player.role_delta >= 0 ? 'text-[#00E676]' : 'text-red-500'}`}>
+                      {player.role_delta >= 0 ? '+' : ''}{player.role_delta.toFixed(2)}σ vs {player.role || 'Role'} Prior
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -690,6 +839,133 @@ export default function PlayerProfile() {
                 </p>
               </div>
             </div>
+
+            {/* Bayesian Conjugate Shrinkage Credibility (Sample Inertia Lambda) */}
+            {player.adaptability?.evidence?.bayesian_credibility && (
+              <div className="mt-8 border-t-2 border-theme-border/20 pt-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-3 gap-1">
+                  <p className="font-label text-xs font-bold uppercase tracking-widest text-theme-text/50">
+                    Bayesian Conjugate Credibility (Sample Inertia &lambda;)
+                  </p>
+                  <span className="font-['JetBrains_Mono'] text-[10px] text-theme-text/45 uppercase tracking-wider">
+                    Evidence Weight vs Pro Prior Baseline
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="border-2 border-theme-border p-3.5 bg-theme-bg">
+                    <div className="flex justify-between items-baseline mb-1.5">
+                      <span className="font-label text-[10px] font-bold uppercase tracking-wider text-theme-text/60">Meta Alignment</span>
+                      <span className="font-['JetBrains_Mono'] text-sm font-black tabular-nums text-theme-text">
+                        {Math.round((player.adaptability.evidence.bayesian_credibility.alignment_lambda ?? 0) * 100)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 h-1.5 overflow-hidden">
+                      <div 
+                        className="bg-[var(--color-primary)] h-full transition-all duration-500" 
+                        style={{ width: `${Math.round((player.adaptability.evidence.bayesian_credibility.alignment_lambda ?? 0) * 100)}%` }} 
+                      />
+                    </div>
+                    <p className="mt-2 font-['JetBrains_Mono'] text-[9px] text-theme-text/45">
+                      Weight: {player.adaptability.evidence.bayesian_credibility.alignment_lambda ?? 0} data / {(1 - (player.adaptability.evidence.bayesian_credibility.alignment_lambda ?? 0)).toFixed(2)} prior
+                    </p>
+                  </div>
+
+                  <div className="border-2 border-theme-border p-3.5 bg-theme-bg">
+                    <div className="flex justify-between items-baseline mb-1.5">
+                      <span className="font-label text-[10px] font-bold uppercase tracking-wider text-theme-text/60">Retention</span>
+                      <span className="font-['JetBrains_Mono'] text-sm font-black tabular-nums text-theme-text">
+                        {Math.round((player.adaptability.evidence.bayesian_credibility.retention_lambda ?? 0) * 100)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 h-1.5 overflow-hidden">
+                      <div 
+                        className="bg-[var(--color-primary)] h-full transition-all duration-500" 
+                        style={{ width: `${Math.round((player.adaptability.evidence.bayesian_credibility.retention_lambda ?? 0) * 100)}%` }} 
+                      />
+                    </div>
+                    <p className="mt-2 font-['JetBrains_Mono'] text-[9px] text-theme-text/45">
+                      Weight: {player.adaptability.evidence.bayesian_credibility.retention_lambda ?? 0} data / {(1 - (player.adaptability.evidence.bayesian_credibility.retention_lambda ?? 0)).toFixed(2)} prior
+                    </p>
+                  </div>
+
+                  <div className="border-2 border-theme-border p-3.5 bg-theme-bg">
+                    <div className="flex justify-between items-baseline mb-1.5">
+                      <span className="font-label text-[10px] font-bold uppercase tracking-wider text-theme-text/60">Meta Response</span>
+                      <span className="font-['JetBrains_Mono'] text-sm font-black tabular-nums text-theme-text">
+                        {Math.round((player.adaptability.evidence.bayesian_credibility.response_lambda ?? 0) * 100)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 h-1.5 overflow-hidden">
+                      <div 
+                        className="bg-[var(--color-primary)] h-full transition-all duration-500" 
+                        style={{ width: `${Math.round((player.adaptability.evidence.bayesian_credibility.response_lambda ?? 0) * 100)}%` }} 
+                      />
+                    </div>
+                    <p className="mt-2 font-['JetBrains_Mono'] text-[9px] text-theme-text/45">
+                      Weight: {player.adaptability.evidence.bayesian_credibility.response_lambda ?? 0} data / {(1 - (player.adaptability.evidence.bayesian_credibility.response_lambda ?? 0)).toFixed(2)} prior
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Patch Transition Telemetry History Table */}
+            {(player.adaptability?.transitions || []).length > 0 && (
+              <div className="mt-8 border-t-2 border-theme-border/20 pt-6">
+                <div className="flex justify-between items-baseline mb-3">
+                  <p className="font-label text-xs font-bold uppercase tracking-widest text-theme-text/50">
+                    Patch Transition Telemetry History
+                  </p>
+                  <span className="font-['JetBrains_Mono'] text-[10px] text-theme-text/45 uppercase tracking-wider">
+                    {player.adaptability?.transitions?.length ?? 0} Observed Transitions
+                  </span>
+                </div>
+                <div className="overflow-x-auto border-2 border-theme-border">
+                  <table className="w-full text-left text-xs font-['JetBrains_Mono'] border-collapse">
+                    <thead>
+                      <tr className="border-b-2 border-theme-border bg-theme-text text-theme-bg text-[10px] uppercase font-bold tracking-widest">
+                        <th className="py-2.5 px-3">Transition</th>
+                        <th className="py-2.5 px-3 text-right">Meta Shift</th>
+                        <th className="py-2.5 px-3 text-right">Pool Shift</th>
+                        <th className="py-2.5 px-3 text-right">Retention</th>
+                        <th className="py-2.5 px-3 text-right">Response</th>
+                        <th className="py-2.5 px-3 text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-theme-border/20 bg-theme-bg">
+                      {player.adaptability?.transitions?.map((t, idx) => (
+                        <tr key={idx} className="hover:bg-black/5 transition-colors">
+                          <td className="py-2.5 px-3 font-black whitespace-nowrap">
+                            Patch {t.from_patch} &rarr; {t.to_patch}
+                          </td>
+                          <td className="py-2.5 px-3 text-right tabular-nums whitespace-nowrap text-theme-text/70">
+                            {t.meta_shift}%
+                          </td>
+                          <td className="py-2.5 px-3 text-right tabular-nums whitespace-nowrap text-theme-text/70">
+                            {t.agent_pool_change}%
+                          </td>
+                          <td className="py-2.5 px-3 text-right tabular-nums whitespace-nowrap font-bold">
+                            {t.performance_retention != null ? `${t.performance_retention}%` : '—'}
+                          </td>
+                          <td className="py-2.5 px-3 text-right tabular-nums whitespace-nowrap font-black">
+                            {t.response_score != null ? t.response_score : '—'}
+                          </td>
+                          <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                            <span className={`inline-block px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider border ${
+                              t.adaptation_opportunity 
+                                ? 'border-black bg-black text-[var(--color-primary)]' 
+                                : 'border-theme-border/30 text-theme-text/45'
+                            }`}>
+                              {t.adaptation_opportunity ? 'Meta Opportunity' : 'Stable'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </section>
           
           {/* Typographic Raw Stats Block (No Cards) */}

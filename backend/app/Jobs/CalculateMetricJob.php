@@ -84,20 +84,57 @@ class CalculateMetricJob implements ShouldQueue
                 ->where('winner_team_id', $player->team_id)
                 ->count();
 
+            // QMI Micro-Weighting: Weight observations by the match's Quality Match Index
+            $weightSum = 0.0;
+            $wAcs = 0.0;
+            $wAdr = 0.0;
+            $wKast = 0.0;
+            $wKills = 0.0;
+            $wDeaths = 0.0;
+            $wFk = 0.0;
+            $wFd = 0.0;
+            $wRatingSum = 0.0;
+            $wRatingWeight = 0.0;
+
+            foreach ($stats as $s) {
+                $w = max(0.5, (float) ($s->match_quality ?? 3.0));
+                $weightSum += $w;
+                $wAcs += ($w * (float) $s->acs);
+                $wAdr += ($w * (float) ($s->adr ?? 0));
+                $wKast += ($w * (float) ($s->kast ?? 0));
+                $wKills += ($w * (int) ($s->kills ?? 0));
+                $wDeaths += ($w * (int) ($s->deaths ?? 0));
+                $wFk += ($w * (float) ($s->fk ?? 0));
+                $wFd += ($w * (float) ($s->fd ?? 0));
+
+                if (isset($s->rating) && (float) $s->rating > 0) {
+                    $wRatingSum += ($w * (float) $s->rating);
+                    $wRatingWeight += $w;
+                }
+            }
+
+            $avgAcs = $weightSum > 0 ? round($wAcs / $weightSum, 1) : round($stats->avg('acs'), 1);
+            $avgKd = $wDeaths > 0 ? round($wKills / $wDeaths, 2) : ($totalDeaths > 0 ? round($totalKills / $totalDeaths, 2) : (float) $totalKills);
+            $avgKast = $weightSum > 0 ? round($wKast / $weightSum, 1) : round($stats->avg('kast'), 1);
+            $avgAdr = $weightSum > 0 ? round($wAdr / $weightSum, 1) : round($stats->avg('adr'), 1);
+            $avgRating = $wRatingWeight > 0 ? round($wRatingSum / $wRatingWeight, 2) : round($stats->filter(fn ($s) => $s->rating > 0)->avg('rating') ?? 0, 2);
+            $avgFk = $weightSum > 0 ? round($wFk / $weightSum, 2) : round($stats->avg('fk'), 2);
+            $avgFd = $weightSum > 0 ? round($wFd / $weightSum, 2) : round($stats->avg('fd'), 2);
+
             $player->update([
                 'total_matches' => $totalMatches,
                 'total_wins' => $totalWins,
                 'win_rate' => $totalMatches > 0 ? round(($totalWins / $totalMatches) * 100, 2) : 0,
-                'avg_acs' => round($stats->avg('acs'), 1),
-                'avg_kd' => $totalDeaths > 0 ? round($totalKills / $totalDeaths, 2) : $totalKills,
-                'avg_kast' => round($stats->avg('kast'), 1),
-                'avg_adr' => round($stats->avg('adr'), 1),
-                'avg_rating' => round($stats->filter(fn ($s) => $s->rating > 0)->avg('rating') ?? 0, 2),
+                'avg_acs' => $avgAcs,
+                'avg_kd' => $avgKd,
+                'avg_kast' => $avgKast,
+                'avg_adr' => $avgAdr,
+                'avg_rating' => $avgRating,
                 'total_kills' => $totalKills,
                 'total_deaths' => $totalDeaths,
                 'total_assists' => $totalAssists,
-                'avg_fk' => round($stats->avg('fk'), 2),
-                'avg_fd' => round($stats->avg('fd'), 2),
+                'avg_fk' => $avgFk,
+                'avg_fd' => $avgFd,
                 'consistency_index' => $consistency['value'],
                 'consistency_provisional_index' => $consistency['provisional_value'],
                 'consistency_sample_size' => $consistency['sample_size'],

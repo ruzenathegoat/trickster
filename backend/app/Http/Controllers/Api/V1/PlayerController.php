@@ -73,6 +73,7 @@ class PlayerController extends Controller
                     'players.avg_acs',
                     'players.avg_kd',
                     'players.avg_adr',
+                    'players.avg_kast',
                     'players.avg_fk',
                     'players.avg_fd',
                     'players.avg_rating',
@@ -80,6 +81,7 @@ class PlayerController extends Controller
                     'players.consistency_provisional_index',
                     'players.consistency_sample_size',
                     'players.consistency_event_count',
+                    'players.meta_adaptability_index',
                     'teams.name as team_name',
                     'teams.region as team_region',
                     'player_smart_results.final_score as smart_final_score',
@@ -152,6 +154,14 @@ class PlayerController extends Controller
                     'consistency_provisional_index' => $result->consistency_provisional_index,
                     'consistency_sample_size' => $result->consistency_sample_size,
                     'consistency_event_count' => $result->consistency_event_count,
+                    'meta_adaptability_index' => $result->meta_adaptability_index,
+                    'role_delta' => CompetitionQualityConfig::calculateRoleDelta(
+                        $result->current_role,
+                        $result->avg_acs !== null ? (float) $result->avg_acs : null,
+                        $result->avg_kd !== null ? (float) $result->avg_kd : null,
+                        $result->avg_adr !== null ? (float) $result->avg_adr : null,
+                        $result->avg_kast !== null ? (float) $result->avg_kast : null
+                    ),
                     'team' => [
                         'name' => $result->team_name,
                         'region' => $result->team_region,
@@ -269,6 +279,29 @@ class PlayerController extends Controller
                 $radarStats['Consistency'] = round($player->consistency_index);
             }
 
+            $rolePrior = CompetitionQualityConfig::ROLE_EMPIRICAL_PRIORS[$player->current_role ?? 'Flex']
+                ?? CompetitionQualityConfig::ROLE_EMPIRICAL_PRIORS['Flex'];
+
+            $roleDelta = CompetitionQualityConfig::calculateRoleDelta(
+                $player->current_role,
+                $player->avg_acs !== null ? (float) $player->avg_acs : null,
+                $player->avg_kd !== null ? (float) $player->avg_kd : null,
+                $player->avg_adr !== null ? (float) $player->avg_adr : null,
+                $player->avg_kast !== null ? (float) $player->avg_kast : null
+            );
+
+            $roleBaselineRadar = [
+                'ACS' => round(min(100, max(0, ($rolePrior['acs']['mean'] / 300) * 100))),
+                'K/D' => round(min(100, max(0, ($rolePrior['kd']['mean'] / 2.0) * 100))),
+                'KAST' => round($rolePrior['kast']['mean']),
+                'ADR' => round(min(100, max(0, ($rolePrior['adr']['mean'] / 200) * 100))),
+                'Adaptability' => round($rolePrior['mai']['mean'] ?? 72),
+                'Flexibility' => 50,
+            ];
+            if ($player->consistency_index !== null) {
+                $roleBaselineRadar['Consistency'] = 75;
+            }
+
             return [
                 'id' => $player->id,
                 'ign' => $player->ign,
@@ -279,6 +312,8 @@ class PlayerController extends Controller
                 'photo_url' => $player->photo_url,
                 'role' => $player->current_role,
                 'primary_role' => $player->current_role,
+                'role_delta' => $roleDelta,
+                'role_baseline_radar' => $roleBaselineRadar,
                 'role_archetype' => $player->role_archetype ?? 'Specialist',
                 'role_profile' => $player->flex_profile ?? [
                     'primary_role' => $player->current_role ?? 'Unknown',

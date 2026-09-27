@@ -78,26 +78,27 @@
 
 ### 4.2 `/app/leaderboard` — Global Rating
 
-**Purpose:** Browse-all view using **Global Rating** (global min/max normalization per PRD), not Selection Score.
+**Purpose:** Browse-all view using **Global Rating** (Empirical Bayesian role-centered normalization, map-level Bayesian shrinkage $\kappa_{\text{maps}} = 12.0$, and Challengers tier exclusion), not Selection Score.
 
 **Layout:**
 - Filter bar (top): role, region, event tier, patch — `chip-filter` components, live-updating.
-- **Level 3 density** `leaderboard-table`: rank, player (avatar + name + team), role, ACS, KAST, ADR, Consistency Index (`badge-tier`), Global SMART score.
+- **Top 3 Podium Cards:** Hero display for ranks 1, 2, and 3 highlighting player avatar, team, SMART score, rank shift, and **Role Delta** ($\Delta Z = \sum w_k \cdot \frac{\bar{y}_k - \mu_k}{\sigma_k}$) badge comparing player output directly against their position's empirical prior baseline.
+- **Level 3 density** `leaderboard-table`: rank, rank shift, player (avatar + name + team), role & archetype, ACS, KAST, ADR, Consistency Index (`badge-tier`), **Role Delta** pill (`+Δ0.42σ` green / `-Δ0.18σ` red), Global SMART score.
 - Sticky header, hover row, click → `/app/players/:playerId`.
 
 **States:** Loading → skeleton rows (never spinner, per design.md rule). Empty → "No players match these filters" illustrated empty state.
 
-**Data sources:** `player_criteria_scores`, `player_smart_results` (mode=global), `players`, `teams`.
+**Data sources:** `player_criteria_scores`, `player_smart_results` (mode=career), `players`, `teams`.
 
 ---
 
 ### 4.3 `/app/players` — Player Explorer
 
-**Purpose:** Search/browse entry point distinct from the Leaderboard — lighter-weight, name/role/team search rather than full ranked table.
+**Purpose:** Search/browse entry point distinct from the Leaderboard — lighter-weight, name/role/team search with interactive stat comparison.
 
-**Layout:** Search input + role/region quick-filter chips → grid of `player-card` components (avatar, name, role, team, current-season headline stat).
+**Layout:** Search input + role/region quick-filter chips → directory table of `player-card` components (avatar, name, role + archetype, **Role Delta** pill, team, current-season headline stats).
 
-**Data sources:** `players`, `teams`, latest `player_criteria_scores`.
+**Data sources:** `players`, `teams`, latest `player_criteria_scores`, `player_smart_results`.
 
 ---
 
@@ -105,21 +106,28 @@
 *(design.md Key Experience #1 — "Editorial Magazine" — the most distinctive screen in the product)*
 
 **Layout flow (top to bottom):**
-1. **Header** — Large player name (display font per design.md typography), role badge, team + country.
-2. **Hero Stat** — "Current Form" score, large numeric (`typography.numeric`), with a `seal-badge` ("Verified Meta Fit" or similar) shown **only when applicable** (per design.md: seal is sparingly used, max 1 per screen).
-3. **Core Stats row** — 4 `kpi-stat-card`s: ACS | ADR | KAST | Rating.
-4. **Visualizations** (Level 2 density, stacked or 2-column):
-   - Agent Pool → `chart-container` radar chart (Recharts), one highlighted candidate/current-view player only (per design.md chart rule: `primary` reserved for the single highlighted series).
-   - Consistency → timeline/line chart, sample-size gated (20-match minimum per PRD — if below threshold, show a "Not enough season data yet" state instead of a misleading chart).
-   - Patch Impact → before/after relative-performance chart, cross-referenced with `agent_patch_ratings` direction (buffed/nerfed) shown as an annotation.
-   - Tournament Pressure → grouped bar: regular season vs. playoffs vs. grand final performance.
-5. **Footer:**
-   - Match History table (Level 3 density, `leaderboard-table` styling but scoped to one player).
-   - "Team Fit Preview" teaser — mini version of the Recommendation Result card (see 4.6) if the user has an active search context, letting them jump straight into "Run Simulation with this player."
+1. **Header & Hero KPI** — Large player name (display font), role & archetype badge, team + country, **Role Delta** KPI pill (`+Δ0.42σ vs Role Benchmark`), SMART score and verified rank shift.
+2. **Dual-Polygon Prior Radar** — Highcharts polar radar comparing the player's 7-axis attribute profile (ACS, K/D, KAST, ADR, Consistency, Adaptability, Flexibility) directly against the **Tier-1 Pro Role Baseline** polygon ($\mu_{\text{role}}$).
+3. **Core Stats row** — 4 `kpi-stat-card`s: ACS | ADR | KAST | Rating (QMI-weighted).
+4. **Bayesian Conjugate Credibility Cards** — Meta Adaptability Index telemetry displaying posterior shrinkage weights:
+   - Alignment Credibility ($\lambda_{\text{align}} = \frac{M}{M + 15.0}$)
+   - Retention Credibility ($\lambda_{\text{ret}} = \frac{T}{T + 3.0}$)
+   - Response Credibility ($\lambda_{\text{resp}} = \frac{O}{O + 2.0}$)
+5. **Patch Transition Telemetry History** — Longitudinal audit table tracking performance across patch transitions:
+   - Patch Version Pair (`from_patch` → `to_patch`)
+   - Meta Disruption Shift ($\Delta \text{meta shift}$) & Adaptation Opportunity flag ($\ge 12.5$)
+   - Performance Retention ($\frac{\text{rating}_{\text{curr}}}{\text{rating}_{\text{prev}}} \times 100$)
+   - Disruption Response Score & Agent Pool Euclidean distance
+6. **Visualizations & Role Profile**:
+   - Role Breadth & Agent Distribution breakdown (shares, map count, repeatable badges).
+   - Consistency Index timeline and Competition Quality Index (CQI v2) exposure breakdown.
+7. **Footer:**
+   - Match History table (canonical All Maps observations).
+   - Agent pick pool (percentage and portraits).
 
-**Components:** `kpi-stat-card`, `chart-container`, `seal-badge`, `leaderboard-table`, `badge-tier`.
+**Components:** `kpi-stat-card`, `chart-container`, `seal-badge`, `leaderboard-table`, `badge-tier`, `bayesian-credibility-card`, `patch-transition-table`.
 
-**Data sources:** `players`, `player_map_stats`, `player_criteria_scores`, `agent_patch_ratings`, `agent_map_ratings`, `stage_label_mapping` (via `matches`).
+**Data sources:** `players`, `player_map_stats`, `player_criteria_scores`, `agent_patch_ratings`, `agent_map_ratings`, `player_competition_metrics`, `meta_adaptability_profile`.
 
 ---
 

@@ -127,6 +127,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/leaderboard/players', [LeaderboardController::class, 'players']);
 
     // Teams
+    Route::get('/teams/regional-matrix', [TeamController::class, 'regionalMatrix']);
     Route::get('/teams/top', [TeamController::class, 'top']);
     Route::get('/teams', [TeamController::class, 'index']);
     Route::get('/teams/{id}', [TeamController::class, 'show']);

@@ -35,6 +35,9 @@ interface ExplorerPlayer {
   photo_url: string | null;
   smartStatus: 'verified' | 'provisional' | null;
   smartConfidence: number | null;
+  consistencyIndex: number | null;
+  metaAdaptability: number | null;
+  roleDelta: number | null;
 }
 
 interface MomentumEvent {
@@ -727,6 +730,9 @@ export default function PlayerExplorer() {
             photo_url: player.photo_url || null,
             smartStatus: globalResult ? (globalResult.is_provisional ? 'provisional' : 'verified') : null,
             smartConfidence: globalResult?.confidence != null ? Math.round(Number(globalResult.confidence) * 100) : null,
+            consistencyIndex: player.consistency_index != null ? Math.round(Number(player.consistency_index) * 10) / 10 : null,
+            metaAdaptability: player.meta_adaptability_index != null ? Math.round(Number(player.meta_adaptability_index) * 10) / 10 : null,
+            roleDelta: player.role_delta != null ? Math.round(Number(player.role_delta) * 100) / 100 : null,
           } satisfies ExplorerPlayer;
         });
         setPlayers(fetchedPlayers);
@@ -1107,14 +1113,16 @@ export default function PlayerExplorer() {
           )}
 
           <div className="overflow-x-auto border-4 border-theme-border">
-            <table className="w-full min-w-[760px] border-collapse text-left text-sm">
+            <table className="w-full min-w-[860px] border-collapse text-left text-sm">
               <thead>
                 <tr className="border-b-4 border-theme-border bg-theme-text font-label text-[10px] font-bold uppercase tracking-widest text-theme-bg">
-                  <th className="px-5 py-4">IGN</th>
-                  <th className="px-5 py-4">Name</th>
+                  <th className="px-5 py-4">Player</th>
                   <th className="px-5 py-4">Team</th>
                   <th className="px-5 py-4">Role</th>
                   <th className="px-5 py-4">Region</th>
+                  <th className="px-5 py-4 text-right" title="Consistency Index">CI</th>
+                  <th className="px-5 py-4 text-right" title="Meta Adaptability Index">MAI</th>
+                  <th className="px-5 py-4 text-right" title="Role Delta (Z-Score vs Role Prior)">Role Delta</th>
                   <th className="px-5 py-4 text-right">{DISPLAY_NAMES[sortBy]}</th>
                 </tr>
               </thead>
@@ -1122,8 +1130,8 @@ export default function PlayerExplorer() {
                 {snapshotLoading ? (
                   Array.from({ length: 10 }).map((_, index) => (
                     <tr key={index}>
-                      {Array.from({ length: 6 }).map((__, cell) => (
-                        <td key={cell} className="px-5 py-4"><Skeleton className={`h-5 ${cell === 5 ? 'ml-auto w-12' : 'w-24'}`} /></td>
+                      {Array.from({ length: 8 }).map((__, cell) => (
+                        <td key={cell} className="px-5 py-4"><Skeleton className={`h-5 ${cell >= 4 ? 'ml-auto w-12' : 'w-24'}`} /></td>
                       ))}
                     </tr>
                   ))
@@ -1142,13 +1150,28 @@ export default function PlayerExplorer() {
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden border-2 border-theme-border bg-theme-muted">
                           {player.photo_url ? <img src={player.photo_url} alt="" loading="lazy" className="h-full w-full object-cover object-top" /> : <span className="font-display text-xs text-gray-400">?</span>}
                         </div>
-                        <span className="font-display text-sm uppercase">{player.ign}</span>
+                        <div>
+                          <p className="font-display text-sm uppercase leading-none">{player.ign}</p>
+                          {player.name && <p className="mt-1 font-label text-[9px] uppercase tracking-wider text-gray-500">{player.name}</p>}
+                        </div>
                       </div>
                     </td>
-                    <td className="whitespace-nowrap px-5 py-3.5 font-label text-[10px] uppercase tracking-wider text-gray-500">{player.name}</td>
                     <td className="whitespace-nowrap px-5 py-3.5 font-label text-[10px] font-bold uppercase tracking-wider">{player.team}</td>
                     <td className="whitespace-nowrap px-5 py-3.5"><span className="border border-theme-divider bg-theme-bg px-2 py-1 font-label text-[9px] font-bold uppercase tracking-wider">{player.role}</span></td>
                     <td className="whitespace-nowrap px-5 py-3.5 font-label text-[9px] uppercase tracking-widest text-gray-500">{player.region}</td>
+                    <td className="whitespace-nowrap px-5 py-3.5 text-right font-numeric text-xs font-bold tabular-nums text-gray-600">
+                      {player.consistencyIndex != null ? player.consistencyIndex.toFixed(1) : '—'}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3.5 text-right font-numeric text-xs font-bold tabular-nums text-gray-600">
+                      {player.metaAdaptability != null ? player.metaAdaptability.toFixed(1) : '—'}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3.5 text-right font-numeric text-xs font-bold tabular-nums text-gray-600">
+                      {player.roleDelta != null ? (
+                        <span className={player.roleDelta >= 0 ? 'text-theme-text font-black' : 'text-red-500'}>
+                          {player.roleDelta >= 0 ? '+' : ''}{player.roleDelta.toFixed(2)}σ
+                        </span>
+                      ) : '—'}
+                    </td>
                     <td className="whitespace-nowrap bg-theme-text px-5 py-3.5 text-right text-[var(--color-primary)]">
                       <div className="flex flex-col items-end gap-1">
                         <span className="font-numeric text-base font-bold tabular-nums">{player.headlineStat}</span>

@@ -35,9 +35,40 @@
 - Pulls and normalizes match histories automatically via async queues.
 - Data is dynamically weighted for opponent strength, map bias, and patch changes.
 
-### 2. SMART Engine Evaluation
-- A multi-criteria, weighted evaluation algorithm.
-- Maps core performance metrics (ACS, KAST, ADR) and role efficiency to a single, actionable **Fit score**.
+### 2. SMART Engine v2 (Empirical Bayesian Framework & Dynamic ELO)
+- **Empirical Bayesian Shrinkage & Role-Centered Normalization**: Evaluates players against VCT Tier-1 role baselines (Duelist, Controller, Initiator, Sentinel, Flex), ensuring players in supportive/anchor roles are judged fairly against their role's true expectation (Pound-for-Pound Mastery).
+- **Role Delta & In-Role Standings vs Global P4P Mastery**:
+  - Exposes visual Role Delta ($\Delta Z = \sum w_k \cdot \frac{\bar{y}_k - \mu_{\text{role}, k}}{\sigma_{\text{role}, k}}$) across Leaderboard, Player Directory, and Profile.
+  - Clarifies why high-performing Sentinels/Controllers (e.g. Neon $+1.12\sigma$, azury $+1.09\sigma$, vo0kashu $+0.91\sigma$) sit alongside elite Duelists at the top of the global standings.
+  - Differentiates **Global P4P Leaderboard** (cross-role pound-for-pound mastery) from **In-Role Standings** (role-specific specialist leaderboards).
+  - Displays dual-polygon radar charts comparing a player's exact footprint against their role's pro baseline.
+- **Map-Level Empirical Bayesian Shrinkage (Granular Sample Inertia)**:
+  - Replaces coarse match-level count shrinkage ($N / (N + 5)$) with granular **individual map volume** ($M / (M + \kappa_{\text{maps}})$, where $\kappa_{\text{maps}} = 12.0$ maps $\approx 5$ series $\times 2.5$ maps).
+  - Differentiates grueling 3-map OT battles from quick 2-0 blowouts, allocating statistical credibility proportional to actual rounds and map exposure.
+- **Decoupled Architecture (Anti-Coupling)**: Replaces fragile empirical min/max scaling with robust, role-adjusted Bayesian sigmoid utilities. A player's rating is 100% deterministic and independent from another player's daily match fluctuations.
+- **Dynamic Pre-Match ELO & Regional Strength Matrix**:
+  - Implements an adaptive ELO engine ($K_{\text{base}} \times M_{\text{stakes}} \times M_{\text{margin}}$) where clean 2-0 / 3-0 sweeps and high-stakes international events dynamically scale rating transfers.
+  - Dynamically updates the **Regional Strength Vector** ($\vec{R}_{\text{region}}$) whenever cross-regional matches occur in international tournaments (Masters/Champions).
+  - Emergent Regional Strength Coefficients ($C_{\text{region}} = R_{\text{region}} / 1500.0$) scale local match quality (QMI) in real time (e.g. Americas at $1.0506$, Pacific at $1.0228$).
+- **QMI Micro-Weighting (Quality-Weighted Performance Observations)**:
+  - Every individual match performance observation ($acs_m, adr_m, kast_m, kills_m, deaths_m, fd_m$) is weighted by its match Quality Match Index ($\text{QMI}_m$) derived from pre-match ELO, opponent strength, regional coefficients, and stage profile:
+    $$\bar{X}_{\text{QMI}} = \frac{\sum_m w_m \cdot X_m}{\sum_m w_m}, \quad \text{KD}_{\text{QMI}} = \frac{\sum_m w_m \cdot \text{kills}_m}{\max(1.0, \sum_m w_m \cdot \text{deaths}_m)}, \quad w_m = \max(0.5, \text{QMI}_m)$$
+  - Prevents "stat-padding" against weaker low-QMI competition (e.g. brawk ACS adjusted $206.0 \to 202.8$) while rewarding clutch, high-caliber performances in deep playoff and international matches (e.g. marteen ACS adjusted $245.7 \to 249.0$, Derke $233.9 \to 235.6$).
+  - Quality-weighted aggregates directly feed into the role-specific Empirical Bayesian utility pipelines.
+- **Meta Adaptability Index (MAI) Berbasis Bayesian Conjugate**:
+  - Eliminates small-sample distortions across patches and meta shifts by applying Empirical Bayesian Conjugate shrinkage across all sub-components:
+    - **Meta Alignment**: Pro prior $\mu_{\text{align}} = 75.0$, inertia $\kappa = 15$ maps:
+      $$M_{\text{align}} = \frac{M}{M + 15} \bar{M}_{\text{align, raw}} + \frac{15}{M + 15} \cdot 75.0$$
+    - **Performance Retention**: Pro prior $\mu_{\text{ret}} = 75.0$, inertia $\kappa = 3$ patch transitions:
+      $$P_{\text{ret}} = \frac{T}{T + 3} \bar{P}_{\text{ret, raw}} + \frac{3}{T + 3} \cdot 75.0$$
+    - **Meta Response**: Adaptation prior $\mu_{\text{resp}} = 65.0$, inertia $\kappa = 2$ meta shift opportunities:
+      $$M_{\text{resp}} = \frac{K}{K + 2} \bar{M}_{\text{resp, raw}} + \frac{2}{K + 2} \cdot 65.0$$
+    - **Role Flexibility**: Shannon Entropy across agent pool and role versatility.
+  - Overall Composite: $\text{MAI} = 0.45 \cdot M_{\text{align}} + 0.25 \cdot P_{\text{ret}} + 0.20 \cdot M_{\text{resp}} + 0.10 \cdot R_{\text{flex}}$.
+  - Prevents rookies with 2 lucky matches from scoring an unearned 90+ (e.g. CyvOph properly shrunk from $86.0 \to 78.5$), while rewarding true multi-patch adaptors (leaf 84.2, f0rsakeN 82.5).
+  - **Player Profile Telemetry**: Displays the full **Patch Transition History** (patch-to-patch meta disruption, agent pool shift distance, performance retention, and adaptation response) along with real-time **Bayesian Conjugate Credibility Weights** ($\lambda_{\text{align}}, \lambda_{\text{ret}}, \lambda_{\text{resp}}$) for transparent talent evaluation.
+- **Bayesian Variance Shrinkage (Consistency Index)**: Uses an Inverse-Gamma conjugate model to estimate true performance dispersion, preventing small-sample anomalies (e.g. 3 lucky matches) while giving mature sample sizes full statistical weight.
+- **Tier-1 Focus (No Challengers)**: Focuses exclusively on top-tier competitive play (Champions, Masters, Kickoff, Regional Leagues) while excluding Tier-2 Challengers events from cohort metrics.
 
 ### 3. Transfer Simulation (The Lab)
 - Interactive drag-and-drop player roster slots.

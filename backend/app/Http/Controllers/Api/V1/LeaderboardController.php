@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Player;
+use App\Services\CompetitionQualityConfig;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,7 @@ class LeaderboardController extends Controller
      */
     public function index()
     {
-        $version = Cache::get('api_smart_calc_version', 'v1');
+        $version = Cache::get('api_smart_calc_version', 'v2');
         $data = Cache::remember('api_leaderboard_top_'.$version, 3600, function () {
             $topResults = DB::table('player_smart_results')
                 ->join('players', 'players.id', '=', 'player_smart_results.player_id')
@@ -33,6 +34,8 @@ class LeaderboardController extends Controller
                     'players.role_archetype',
                     'players.avg_acs',
                     'players.avg_kd',
+                    'players.avg_adr',
+                    'players.avg_kast',
                     'teams.name as team_name'
                 )
                 ->orderBy('player_smart_results.final_score', 'desc')
@@ -52,6 +55,13 @@ class LeaderboardController extends Controller
                     'role_archetype' => $result->role_archetype ?? 'Specialist',
                     'acs' => round($result->avg_acs, 1),
                     'kd' => round($result->avg_kd, 2),
+                    'role_delta' => CompetitionQualityConfig::calculateRoleDelta(
+                        $result->current_role,
+                        $result->avg_acs !== null ? (float) $result->avg_acs : null,
+                        $result->avg_kd !== null ? (float) $result->avg_kd : null,
+                        $result->avg_adr !== null ? (float) $result->avg_adr : null,
+                        $result->avg_kast !== null ? (float) $result->avg_kast : null
+                    ),
                 ];
             }
 
@@ -68,7 +78,7 @@ class LeaderboardController extends Controller
     {
         $role = $request->role ?? 'All';
         $page = $request->get('page', 1);
-        $version = Cache::get('api_smart_calc_version', 'v1');
+        $version = Cache::get('api_smart_calc_version', 'v2');
         $cacheKey = 'api_leaderboard_players_'.$version.'_role_'.md5($role).'_page_'.$page;
 
         $paginatorArray = Cache::remember($cacheKey, 3600, function () use ($role) {
@@ -88,6 +98,8 @@ class LeaderboardController extends Controller
                     'players.role_archetype',
                     'players.avg_acs',
                     'players.avg_kd',
+                    'players.avg_adr',
+                    'players.avg_kast',
                     'teams.name as team_name'
                 )
                 ->orderBy('player_smart_results.final_score', 'desc');
@@ -114,6 +126,13 @@ class LeaderboardController extends Controller
                     'role_archetype' => $result->role_archetype ?? 'Specialist',
                     'acs' => round($result->avg_acs, 1),
                     'kd' => round($result->avg_kd, 2),
+                    'role_delta' => CompetitionQualityConfig::calculateRoleDelta(
+                        $result->current_role,
+                        $result->avg_acs !== null ? (float) $result->avg_acs : null,
+                        $result->avg_kd !== null ? (float) $result->avg_kd : null,
+                        $result->avg_adr !== null ? (float) $result->avg_adr : null,
+                        $result->avg_kast !== null ? (float) $result->avg_kast : null
+                    ),
                 ];
             });
 

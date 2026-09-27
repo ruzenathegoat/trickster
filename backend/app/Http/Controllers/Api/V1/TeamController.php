@@ -10,6 +10,26 @@ use Illuminate\Support\Facades\DB;
 
 class TeamController extends Controller
 {
+    public function regionalMatrix()
+    {
+        $cached = \Illuminate\Support\Facades\Cache::get('api_regional_strength_matrix');
+        if ($cached) {
+            return response()->json($cached);
+        }
+
+        return response()->json([
+            'season' => 2026,
+            'method_version' => \App\Services\CompetitionQualityConfig::ELO_METHOD_VERSION,
+            'updated_at' => now()->toIso8601String(),
+            'regions' => [
+                ['rank' => 1, 'region' => 'Americas', 'initial_elo' => 1525.0, 'current_elo' => 1525.0, 'strength_coefficient' => 1.0167, 'international_matches' => 0, 'international_wins' => 0, 'international_win_rate' => 0.0],
+                ['rank' => 2, 'region' => 'Pacific', 'initial_elo' => 1510.0, 'current_elo' => 1510.0, 'strength_coefficient' => 1.0067, 'international_matches' => 0, 'international_wins' => 0, 'international_win_rate' => 0.0],
+                ['rank' => 3, 'region' => 'EMEA', 'initial_elo' => 1500.0, 'current_elo' => 1500.0, 'strength_coefficient' => 1.0000, 'international_matches' => 0, 'international_wins' => 0, 'international_win_rate' => 0.0],
+                ['rank' => 4, 'region' => 'China', 'initial_elo' => 1485.0, 'current_elo' => 1485.0, 'strength_coefficient' => 0.9900, 'international_matches' => 0, 'international_wins' => 0, 'international_win_rate' => 0.0],
+            ],
+        ]);
+    }
+
     public function index(Request $request)
     {
         $q = $request->get('q', '');
@@ -45,14 +65,25 @@ class TeamController extends Controller
 
             $paginator = $query->paginate(15);
 
-            $paginator->getCollection()->transform(function ($team) {
+            $latestRatings = DB::table('team_rating_snapshots')
+                ->where('season', 2026)
+                ->orderByDesc('id')
+                ->get()
+                ->unique('team_id')
+                ->keyBy('team_id');
+
+            $paginator->getCollection()->transform(function ($team) use ($latestRatings) {
                 $totalMatches = $team->resolved_a + $team->resolved_b;
+                $ratingSnapshot = $latestRatings->get($team->id);
+
                 return [
                     'id' => $team->id,
                     'name' => $team->name,
                     'region' => $team->region ?? 'Unknown',
                     'logo_url' => $team->logo_url,
                     'win_rate' => $team->win_rate_2026 ? round($team->win_rate_2026, 1) : null,
+                    'current_elo' => $ratingSnapshot ? round((float) $ratingSnapshot->rating_after, 1) : null,
+                    'rating_percentile' => $ratingSnapshot ? round((float) $ratingSnapshot->rating_percentile * 100, 1) : null,
                     'total_matches' => $totalMatches,
                     'wins' => (int) $team->wins,
                     'losses' => $totalMatches - (int) $team->wins,

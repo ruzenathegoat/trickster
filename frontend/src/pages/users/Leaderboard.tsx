@@ -16,6 +16,7 @@ interface PlayerRank {
   role_archetype?: string;
   acs: number;
   kd: number;
+  role_delta?: number;
 }
 
 export default function Leaderboard() {
@@ -145,6 +146,12 @@ export default function Leaderboard() {
                          <p className="text-5xl font-['JetBrains_Mono'] font-black tabular-nums text-black">{topPlayers[0].rating}</p>
                        </div>
                        <div>
+                         <p className="text-[11px] text-black/60 font-bold mb-1 tracking-widest uppercase">Role Delta</p>
+                         <p className="text-2xl font-['JetBrains_Mono'] font-bold tabular-nums text-black">
+                           {topPlayers[0].role_delta != null ? `${topPlayers[0].role_delta >= 0 ? '+' : ''}${topPlayers[0].role_delta.toFixed(2)}σ` : '—'}
+                         </p>
+                       </div>
+                       <div>
                          <p className="text-[11px] text-black/60 font-bold mb-1 tracking-widest uppercase">ACS</p>
                          <p className="text-2xl font-['JetBrains_Mono'] font-bold tabular-nums text-black">{topPlayers[0].acs}</p>
                        </div>
@@ -202,6 +209,12 @@ export default function Leaderboard() {
                              <p className="text-3xl font-['JetBrains_Mono'] font-black tabular-nums">{player.rating}</p>
                            </div>
                            <div>
+                             <p className="text-[10px] text-gray-500 font-bold mb-1 tracking-widest uppercase">Role Delta</p>
+                             <p className="text-xl font-['JetBrains_Mono'] font-bold tabular-nums">
+                               {player.role_delta != null ? `${player.role_delta >= 0 ? '+' : ''}${player.role_delta.toFixed(2)}σ` : '—'}
+                             </p>
+                           </div>
+                           <div>
                              <p className="text-[10px] text-gray-400 font-bold mb-1 tracking-widest uppercase">ACS</p>
                              <p className="text-xl font-['JetBrains_Mono'] font-bold tabular-nums">{player.acs}</p>
                            </div>
@@ -228,7 +241,21 @@ export default function Leaderboard() {
         className="pt-8" 
       >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-6 border-b-4 border-theme-border pb-4">
-          <h2 className="text-3xl font-['Archivo_Black'] uppercase tracking-tight text-theme-text">Full Leaderboard</h2>
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <h2 className="text-3xl font-['Archivo_Black'] uppercase tracking-tight text-theme-text">
+                {roleFilter === 'All' ? 'Global P4P Leaderboard' : `${roleFilter} Standings`}
+              </h2>
+              <span className="px-2 py-0.5 border border-theme-border font-['JetBrains_Mono'] text-[10px] font-bold uppercase tracking-widest bg-theme-bg">
+                {roleFilter === 'All' ? 'Pound-for-Pound' : `Top ${roleFilter}s`}
+              </span>
+            </div>
+            <p className="font-['JetBrains_Mono'] text-[12px] text-theme-text/60 font-semibold tracking-wider">
+              {roleFilter === 'All'
+                ? 'P4P cross-role mastery normalized by Bayesian role baselines (Z-score deviation).'
+                : `World ranking filtered strictly for ${roleFilter} specialists.`}
+            </p>
+          </div>
           
           <div className="flex items-center gap-0 w-full md:w-auto overflow-x-auto border-2 border-theme-border">
             {ROLES.map((role, idx) => (
@@ -257,6 +284,7 @@ export default function Leaderboard() {
                 <th className="py-4 px-3 md:px-6">Player</th>
                 <th className="py-4 px-3 md:px-6">Team</th>
                 <th className="py-4 px-3 md:px-6">Role</th>
+                <th className="py-4 px-3 md:px-6 text-right">Role Delta</th>
                 <th className="py-4 px-3 md:px-6 text-right">SMART</th>
                 <th className="py-4 px-3 md:px-6 text-right">ACS</th>
                 <th className="py-4 px-3 md:px-6 text-right">K/D</th>
@@ -270,6 +298,7 @@ export default function Leaderboard() {
                     <td className="py-4 px-3 md:py-6 md:px-6"><Skeleton className="h-6 w-32 md:w-48 bg-gray-200" /></td>
                     <td className="py-4 px-3 md:py-6 md:px-6"><Skeleton className="h-6 w-20 md:w-32 bg-gray-200" /></td>
                     <td className="py-4 px-3 md:py-6 md:px-6"><Skeleton className="h-6 w-16 md:w-20 bg-gray-200" /></td>
+                    <td className="py-4 px-3 md:py-6 md:px-6 text-right"><Skeleton className="h-6 w-12 ml-auto bg-gray-200" /></td>
                     <td className="py-4 px-3 md:py-6 md:px-6 text-right"><Skeleton className="h-8 w-12 md:w-16 ml-auto bg-gray-200" /></td>
                     <td className="py-4 px-3 md:py-6 md:px-6 text-right"><Skeleton className="h-6 w-10 md:w-12 ml-auto bg-gray-200" /></td>
                     <td className="py-4 px-3 md:py-6 md:px-6 text-right"><Skeleton className="h-6 w-10 md:w-12 ml-auto bg-gray-200" /></td>
@@ -314,6 +343,15 @@ export default function Leaderboard() {
                           </span>
                         )}
                       </div>
+                    </td>
+                    <td className="py-4 px-3 md:py-6 md:px-6 text-right whitespace-nowrap">
+                      <span className={`inline-block font-['JetBrains_Mono'] font-black text-xs md:text-sm tabular-nums px-2 py-1 border ${
+                        (player.role_delta ?? 0) >= 0
+                          ? 'border-black/30 bg-black/5 text-theme-text'
+                          : 'border-red-500/30 text-red-600'
+                      }`}>
+                        {player.role_delta != null ? `${player.role_delta >= 0 ? '+' : ''}${player.role_delta.toFixed(2)}σ` : '—'}
+                      </span>
                     </td>
                     <td className="py-4 px-3 md:py-6 md:px-6 text-right font-['JetBrains_Mono'] font-black text-theme-text text-xl md:text-2xl tabular-nums whitespace-nowrap">
                       {player.rating}

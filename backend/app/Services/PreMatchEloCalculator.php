@@ -2,8 +2,14 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+
 final class PreMatchEloCalculator
 {
+    /** @var array<int, array<string, mixed>> */
+    private array $regionalMatrix = [];
+
     /**
      * @param  array<int, array<string, mixed>>  $matches
      * @return array<int, array<string, mixed>>
@@ -22,6 +28,34 @@ final class PreMatchEloCalculator
         foreach (array_keys($teamIds) as $teamId) {
             $ratings[$teamId] = CompetitionQualityConfig::regionPrior($homeRegions[$teamId] ?? null);
             $games[$teamId] = 0;
+        }
+
+        // Initialize Dynamic Regional Strength Vector
+        $regionalElo = CompetitionQualityConfig::REGION_RATING_PRIORS;
+        $regionalStats = [];
+        foreach (array_keys(CompetitionQualityConfig::REGION_RATING_PRIORS) as $reg) {
+            $regionalStats[$reg] = [
+                'region' => $reg,
+                'initial_elo' => CompetitionQualityConfig::REGION_RATING_PRIORS[$reg],
+                'current_elo' => CompetitionQualityConfig::REGION_RATING_PRIORS[$reg],
+                'international_matches' => 0,
+                'international_wins' => 0,
+                'international_win_rate' => 0.0,
+                'strength_coefficient' => round(CompetitionQualityConfig::REGION_RATING_PRIORS[$reg] / 1500.0, 4),
+            ];
+        }
+
+        // Preload individual maps played per match for sweep / margin scaling
+        $matchIds = array_column($matches, 'id');
+        $mapCounts = [];
+        if ($matchIds !== []) {
+            $mapCounts = DB::table('maps')
+                ->whereIn('match_id', $matchIds)
+                ->where('map_name', '!=', 'All Maps')
+                ->select('match_id', DB::raw('count(id) as count'))
+                ->groupBy('match_id')
+                ->pluck('count', 'match_id')
+                ->all();
         }
 
         usort($matches, static function (array $a, array $b): int {
@@ -46,8 +80,44 @@ final class PreMatchEloCalculator
             $expectedB = 1 - $expectedA;
             $scoreA = (string) $match['winner_team_id'] === $teamA ? 1.0 : 0.0;
             $scoreB = 1 - $scoreA;
-            $afterA = $ratingA + (CompetitionQualityConfig::ELO_K * ($scoreA - $expectedA));
-            $afterB = $ratingB + (CompetitionQualityConfig::ELO_K * ($scoreB - $expectedB));
+
+            // Adaptive ELO K-factor based on tournament stakes and series margin (e.g. 2-0 sweep vs 2-1)
+            $mapsPlayed = (int) ($mapCounts[$match['id']] ?? ($match['best_of'] ?? 3));
+            $bestOf = isset($match['best_of']) ? (int) $match['best_of'] : 3;
+            $marginMultiplier = CompetitionQualityConfig::marginMultiplier($mapsPlayed, $bestOf);
+            $stakesMultiplier = CompetitionQualityConfig::stakesMultiplier($match['competition_level'] ?? null);
+            $kTeam = CompetitionQualityConfig::ELO_K * $stakesMultiplier * $marginMultiplier;
+
+            $afterA = $ratingA + ($kTeam * ($scoreA - $expectedA));
+            $afterB = $ratingB + ($kTeam * ($scoreB - $expectedB));
+
+            // Dynamic Regional Strength Update on Cross-Regional (International) Matches
+            $regionA = $homeRegions[$teamA] ?? null;
+            $regionB = $homeRegions[$teamB] ?? null;
+            if (
+                $regionA !== null && $regionB !== null
+                && $regionA !== $regionB
+                && isset($regionalElo[$regionA], $regionalElo[$regionB])
+            ) {
+                $regRatingA = $regionalElo[$regionA];
+                $regRatingB = $regionalElo[$regionB];
+                $expectedRegA = 1.0 / (1.0 + (10.0 ** (($regRatingB - $regRatingA) / 400.0)));
+
+                $kReg = CompetitionQualityConfig::REGIONAL_ELO_K * $stakesMultiplier * $marginMultiplier;
+                $deltaReg = $kReg * ($scoreA - $expectedRegA);
+
+                $regionalElo[$regionA] += $deltaReg;
+                $regionalElo[$regionB] -= $deltaReg;
+
+                $regionalStats[$regionA]['international_matches']++;
+                $regionalStats[$regionB]['international_matches']++;
+
+                if ($scoreA === 1.0) {
+                    $regionalStats[$regionA]['international_wins']++;
+                } else {
+                    $regionalStats[$regionB]['international_wins']++;
+                }
+            }
 
             $common = [
                 'match_id' => $match['id'],
@@ -77,7 +147,39 @@ final class PreMatchEloCalculator
             $games[$teamB]++;
         }
 
+        // Finalize Dynamic Regional Strength Matrix
+        foreach ($regionalStats as $reg => &$stat) {
+            $current = round($regionalElo[$reg], 2);
+            $stat['current_elo'] = $current;
+            $stat['strength_coefficient'] = round($current / 1500.0, 4);
+            $stat['international_win_rate'] = $stat['international_matches'] > 0
+                ? round(($stat['international_wins'] / $stat['international_matches']) * 100, 1)
+                : 0.0;
+        }
+        unset($stat);
+
+        uasort($regionalStats, fn (array $a, array $b): int => $b['current_elo'] <=> $a['current_elo']);
+        $rank = 1;
+        foreach ($regionalStats as &$stat) {
+            $stat['rank'] = $rank++;
+        }
+        unset($stat);
+
+        $this->regionalMatrix = array_values($regionalStats);
+        Cache::forever('api_regional_strength_matrix', [
+            'season' => $season,
+            'method_version' => CompetitionQualityConfig::ELO_METHOD_VERSION,
+            'updated_at' => now()->toIso8601String(),
+            'regions' => $this->regionalMatrix,
+        ]);
+
         return $rows;
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    public function getRegionalStrengthMatrix(): array
+    {
+        return $this->regionalMatrix;
     }
 
     /**

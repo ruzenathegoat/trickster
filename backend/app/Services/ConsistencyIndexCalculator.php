@@ -8,7 +8,7 @@ final class ConsistencyIndexCalculator
 
     public const MINIMUM_EVENT_COUNT = 2;
 
-    public const METHOD = 'winsorized-sample-cv-v2';
+    public const METHOD = 'bayesian-shrunk-cv-v3';
 
     private const LOWER_PERCENTILE = 0.05;
 
@@ -19,7 +19,7 @@ final class ConsistencyIndexCalculator
      *
      * Invalid/non-positive ACS values are excluded before eligibility is
      * evaluated. Eligible samples are winsorized at P5/P95, then measured
-     * with sample standard deviation (N - 1) and coefficient of variation.
+     * with sample standard deviation (N - 1) and Bayesian variance shrinkage.
      *
      * @return array{
      *     value: float|null,
@@ -95,7 +95,15 @@ final class ConsistencyIndexCalculator
             0.0,
         );
 
-        $standardDeviation = sqrt($squaredDeviations / ($sampleSize - 1));
+        $sampleVariance = $squaredDeviations / ($sampleSize - 1);
+
+        // Empirical Bayesian Variance Shrinkage (Inverse-Gamma conjugate)
+        $priorVariance = CompetitionQualityConfig::BAYESIAN_PRIOR_DISPERSION ** 2;
+        $nu0 = CompetitionQualityConfig::BAYESIAN_CONSISTENCY_NU0;
+        $degreesOfFreedom = $sampleSize - 1;
+        $bayesianVariance = (($degreesOfFreedom * $sampleVariance) + ($nu0 * $priorVariance)) / ($degreesOfFreedom + $nu0);
+
+        $standardDeviation = sqrt($bayesianVariance);
         $coefficientOfVariation = $standardDeviation / $mean;
         $value = max(0.0, min(100.0, 100.0 * (1.0 - $coefficientOfVariation)));
 

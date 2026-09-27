@@ -45,60 +45,82 @@ class CalculateSmartJob implements ShouldQueue
             return;
         }
 
-        // Only verified players define min/max bounds for raw-stat criteria.
-        // CQI v2 criteria already arrive as stable 0-100 utilities.
-        $statsQuery = DB::table('players as p')
-            ->join('player_competition_metrics as pcm', 'pcm.player_id', '=', 'p.id')
-            ->where('pcm.season', $season)
-            ->where('pcm.confidence', '>=', 1);
+        // Helper function: Empirical Bayesian Role-Adjusted Utility calculation
+        // Decoupled from other players' daily match results (anti-coupling / no global min-max)
+        $calculateBayesianUtility = function ($criteriaName, Player $player, object $competition, int $totalMaps) {
+            $role = $player->current_role ?? 'Flex';
+            $priors = CompetitionQualityConfig::ROLE_EMPIRICAL_PRIORS[$role]
+                ?? CompetitionQualityConfig::ROLE_EMPIRICAL_PRIORS['Flex'];
+            $sampleMaps = max(1, $totalMaps > 0 ? $totalMaps : (int) round(((int) $competition->total_matches) * 2.5));
+            $b = $sampleMaps / ($sampleMaps + CompetitionQualityConfig::BAYESIAN_KAPPA_MAPS);
 
-        $globalStats = (clone $statsQuery)->selectRaw('
-            MIN(p.avg_acs) as min_acs, MAX(p.avg_acs) as max_acs,
-            MIN(p.avg_kast) as min_kast, MAX(p.avg_kast) as max_kast,
-            MIN(p.avg_kd) as min_kd, MAX(p.avg_kd) as max_kd,
-            MIN(p.avg_adr) as min_adr, MAX(p.avg_adr) as max_adr,
-            MIN(p.avg_fd) as min_fd, MAX(p.avg_fd) as max_fd,
-            MIN(p.meta_adaptability_index) as min_mai, MAX(p.meta_adaptability_index) as max_mai
-        ')->first();
-
-        // Helper function to map criteria name to db column
-        $getRawValueAndBounds = function ($criteriaName, Player $player, object $competition) use ($globalStats) {
             switch ($criteriaName) {
                 case 'Average Combat Score (ACS)':
-                    return ['raw' => (float) $player->avg_acs, 'min' => (float) $globalStats->min_acs, 'max' => (float) $globalStats->max_acs];
-                case 'KAST %':
-                    return ['raw' => (float) $player->avg_kast, 'min' => (float) $globalStats->min_kast, 'max' => (float) $globalStats->max_kast];
-                case 'Kill/Death Ratio (KD)':
-                    return ['raw' => (float) $player->avg_kd, 'min' => (float) $globalStats->min_kd, 'max' => (float) $globalStats->max_kd];
-                case 'Average Damage per Round (ADR)':
-                    return ['raw' => (float) $player->avg_adr, 'min' => (float) $globalStats->min_adr, 'max' => (float) $globalStats->max_adr];
-                case 'First Death Rate':
-                    return ['raw' => (float) $player->avg_fd, 'min' => (float) $globalStats->min_fd, 'max' => (float) $globalStats->max_fd];
-                case 'Consistency Percentile':
-                    return [
-                        'raw' => (float) $competition->consistency_percentile,
-                        'min' => 0.0,
-                        'max' => 100.0,
-                        'direct_utility' => true,
-                    ];
-                case 'Meta Adaptability Index':
-                    $raw = $player->meta_adaptability_index !== null ? (float) $player->meta_adaptability_index : 0;
+                    $raw = (float) $player->avg_acs;
+                    $prior = $priors['acs'];
+                    $shrunk = ($b * $raw) + ((1.0 - $b) * $prior['mean']);
+                    $z = ($shrunk - $prior['mean']) / $prior['scale'];
+                    $utility = 100.0 / (1.0 + exp(-1.7 * $z));
 
-                    return ['raw' => $raw, 'min' => (float) $globalStats->min_mai, 'max' => (float) $globalStats->max_mai];
+                    return ['raw' => $raw, 'utility' => max(0.0, min(100.0, $utility))];
+
+                case 'KAST %':
+                    $raw = (float) $player->avg_kast;
+                    $prior = $priors['kast'];
+                    $shrunk = ($b * $raw) + ((1.0 - $b) * $prior['mean']);
+                    $z = ($shrunk - $prior['mean']) / $prior['scale'];
+                    $utility = 100.0 / (1.0 + exp(-1.7 * $z));
+
+                    return ['raw' => $raw, 'utility' => max(0.0, min(100.0, $utility))];
+
+                case 'Kill/Death Ratio (KD)':
+                    $raw = (float) $player->avg_kd;
+                    $prior = $priors['kd'];
+                    $shrunk = ($b * $raw) + ((1.0 - $b) * $prior['mean']);
+                    $z = ($shrunk - $prior['mean']) / $prior['scale'];
+                    $utility = 100.0 / (1.0 + exp(-1.7 * $z));
+
+                    return ['raw' => $raw, 'utility' => max(0.0, min(100.0, $utility))];
+
+                case 'Average Damage per Round (ADR)':
+                    $raw = (float) $player->avg_adr;
+                    $prior = $priors['adr'];
+                    $shrunk = ($b * $raw) + ((1.0 - $b) * $prior['mean']);
+                    $z = ($shrunk - $prior['mean']) / $prior['scale'];
+                    $utility = 100.0 / (1.0 + exp(-1.7 * $z));
+
+                    return ['raw' => $raw, 'utility' => max(0.0, min(100.0, $utility))];
+
+                case 'First Death Rate':
+                    $raw = (float) $player->avg_fd;
+                    $prior = $priors['fd'];
+                    $shrunk = ($b * $raw) + ((1.0 - $b) * $prior['mean']);
+                    // Cost criteria: lower first death is better
+                    $z = ($prior['mean'] - $shrunk) / $prior['scale'];
+                    $utility = 100.0 / (1.0 + exp(-1.7 * $z));
+
+                    return ['raw' => $raw, 'utility' => max(0.0, min(100.0, $utility))];
+
+                case 'Consistency Percentile':
+                    $raw = (float) $competition->consistency_percentile;
+
+                    return ['raw' => $raw, 'utility' => max(0.0, min(100.0, $raw))];
+
+                case 'Meta Adaptability Index':
+                    $raw = $player->meta_adaptability_index !== null ? (float) $player->meta_adaptability_index : 70.0;
+
+                    return ['raw' => $raw, 'utility' => max(0.0, min(100.0, $raw))];
+
                 case 'CQI / Competition Exposure':
-                    return [
-                        'raw' => (float) $competition->cqi_percentile,
-                        'min' => 0.0,
-                        'max' => 100.0,
-                        'direct_utility' => true,
-                    ];
+                    $raw = (float) $competition->cqi_percentile;
+
+                    return ['raw' => $raw, 'utility' => max(0.0, min(100.0, $raw))];
+
                 case 'Proven Consistency':
-                    return [
-                        'raw' => (float) $competition->proven_consistency,
-                        'min' => 0.0,
-                        'max' => 100.0,
-                        'direct_utility' => true,
-                    ];
+                    $raw = (float) $competition->proven_consistency;
+
+                    return ['raw' => $raw, 'utility' => max(0.0, min(100.0, $raw))];
+
                 default:
                     return null;
             }
@@ -124,6 +146,20 @@ class CalculateSmartJob implements ShouldQueue
             ->get()
             ->keyBy('player_id');
 
+        $playerMapCounts = DB::table('player_match_agents as pma')
+            ->join('matches as m', 'm.id', '=', 'pma.match_id')
+            ->join('events as e', 'e.id', '=', 'm.event_id')
+            ->whereIn('pma.player_id', $playerIds)
+            ->whereYear('m.match_date', $season)
+            ->where(function ($q) {
+                $q->whereNull('e.competition_level')
+                    ->orWhere('e.competition_level', '!=', 'challengers');
+            })
+            ->whereRaw('LOWER(e.name) NOT LIKE ?', ['%challengers%'])
+            ->select('pma.player_id', DB::raw('COUNT(DISTINCT pma.map_id) as total_maps'))
+            ->groupBy('pma.player_id')
+            ->pluck('total_maps', 'player_id');
+
         // Career-mode values are cache rows. Replace the requested players in
         // bulk so verified and provisional results always use current metrics.
         DB::table('player_criteria_scores')
@@ -147,36 +183,19 @@ class CalculateSmartJob implements ShouldQueue
             if ($competition === null || (int) $competition->total_matches < 1) {
                 continue;
             }
+            $playerMaps = (int) ($playerMapCounts[$player->id] ?? 0);
 
             $playerCriteriaUtilities = [];
 
             // Step 2 & 3: Calculate Utility for each criteria
             foreach ($criteriaList as $criteria) {
-                $bounds = $getRawValueAndBounds($criteria->name, $player, $competition);
-                if (! $bounds) {
+                $calc = $calculateBayesianUtility($criteria->name, $player, $competition, $playerMaps);
+                if (! $calc) {
                     continue;
                 }
 
-                $raw = $bounds['raw'];
-                $min = $bounds['min'];
-                $max = $bounds['max'];
-
-                $utility = 0;
-                if ($bounds['direct_utility'] ?? false) {
-                    // CQI v2 percentile criteria already have a stable 0-100 scale.
-                    $utility = $raw;
-                } elseif ($max > $min) {
-                    if ($criteria->type === 'benefit') {
-                        $utility = (($raw - $min) / ($max - $min)) * 100;
-                    } else { // cost
-                        $utility = (($max - $raw) / ($max - $min)) * 100;
-                    }
-                } elseif ($max == $min && $max > 0) {
-                    $utility = 100; // If everyone has the same score
-                }
-
-                // Ensure utility is bounded 0-100 (in case raw is out of bounds due to edge cases)
-                $utility = max(0, min(100, $utility));
+                $raw = $calc['raw'];
+                $utility = $calc['utility'];
 
                 $criteriaRows[] = [
                     'player_id' => $player->id,
@@ -184,7 +203,7 @@ class CalculateSmartJob implements ShouldQueue
                     'patch_id' => null,
                     'raw_value' => $raw,
                     'global_normalized_utility' => $utility,
-                    'sample_size' => $competition->total_matches,
+                    'sample_size' => $playerMaps > 0 ? $playerMaps : (int) $competition->total_matches,
                     'method_version' => CompetitionQualityConfig::METHOD_VERSION,
                     'calculated_at' => $calculatedAt,
                 ];

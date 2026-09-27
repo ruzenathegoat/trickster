@@ -34,8 +34,14 @@ class MetaAdaptabilityService
     {
         $latestDate = DB::table('player_match_agents as pma')
             ->join('matches as m', 'm.id', '=', 'pma.match_id')
+            ->join('events as e', 'e.id', '=', 'm.event_id')
             ->where('pma.player_id', $playerId)
             ->whereNotNull('m.match_date')
+            ->where(function ($q) {
+                $q->whereNull('e.competition_level')
+                    ->orWhere('e.competition_level', '!=', 'challengers');
+            })
+            ->whereRaw('LOWER(e.name) NOT LIKE ?', ['%challengers%'])
             ->max('m.match_date');
 
         if ($latestDate === null) {
@@ -58,6 +64,7 @@ class MetaAdaptabilityService
 
         $observations = DB::table('player_match_agents as pma')
             ->join('matches as m', 'm.id', '=', 'pma.match_id')
+            ->join('events as e', 'e.id', '=', 'm.event_id')
             ->leftJoin('patches as p', 'p.id', '=', 'm.patch_id')
             ->leftJoin('agent_role_maps as arm', function ($join) {
                 $join->on(
@@ -72,6 +79,11 @@ class MetaAdaptabilityService
             })
             ->where('pma.player_id', $playerId)
             ->whereBetween('m.match_date', [$windowStart->toDateString(), $windowEnd->toDateString()])
+            ->where(function ($q) {
+                $q->whereNull('e.competition_level')
+                    ->orWhere('e.competition_level', '!=', 'challengers');
+            })
+            ->whereRaw('LOWER(e.name) NOT LIKE ?', ['%challengers%'])
             ->select([
                 'pma.agent_name',
                 'arm.role_name',
@@ -234,7 +246,10 @@ class MetaAdaptabilityService
             }
         }
 
-        $metaAlignment = $alignmentMaps > 0 ? $alignmentWeighted / $alignmentMaps : 0.0;
+        $rawMetaAlignment = $alignmentMaps > 0 ? $alignmentWeighted / $alignmentMaps : MetaAdaptabilityConfig::PRIOR_ALIGNMENT_MEAN;
+        // Empirical Bayesian Conjugate Shrinkage for Meta Alignment:
+        $lambdaAlign = $alignmentMaps / ($alignmentMaps + MetaAdaptabilityConfig::PRIOR_ALIGNMENT_KAPPA);
+        $metaAlignment = ($lambdaAlign * $rawMetaAlignment) + ((1.0 - $lambdaAlign) * MetaAdaptabilityConfig::PRIOR_ALIGNMENT_MEAN);
         $retentionScores = [];
         $responseScores = [];
         $transitions = [];
@@ -285,8 +300,18 @@ class MetaAdaptabilityService
             ];
         }
 
-        $performanceRetention = $retentionScores === [] ? 50.0 : (float) $this->average($retentionScores);
-        $metaResponse = $responseScores === [] ? 50.0 : (float) $this->average($responseScores);
+        // Empirical Bayesian Conjugate Shrinkage for Performance Retention:
+        $retentionCount = count($retentionScores);
+        $rawRetention = $retentionCount > 0 ? (float) $this->average($retentionScores) : MetaAdaptabilityConfig::PRIOR_RETENTION_MEAN;
+        $lambdaRet = $retentionCount / ($retentionCount + MetaAdaptabilityConfig::PRIOR_RETENTION_KAPPA);
+        $performanceRetention = ($lambdaRet * $rawRetention) + ((1.0 - $lambdaRet) * MetaAdaptabilityConfig::PRIOR_RETENTION_MEAN);
+
+        // Empirical Bayesian Conjugate Shrinkage for Meta Response:
+        $responseCount = count($responseScores);
+        $rawResponse = $responseCount > 0 ? (float) $this->average($responseScores) : MetaAdaptabilityConfig::PRIOR_RESPONSE_MEAN;
+        $lambdaResp = $responseCount / ($responseCount + MetaAdaptabilityConfig::PRIOR_RESPONSE_KAPPA);
+        $metaResponse = ($lambdaResp * $rawResponse) + ((1.0 - $lambdaResp) * MetaAdaptabilityConfig::PRIOR_RESPONSE_MEAN);
+
         $components = [
             'meta_alignment' => $this->clamp($metaAlignment),
             'performance_retention' => $this->clamp($performanceRetention),
@@ -335,6 +360,11 @@ class MetaAdaptabilityService
                 'adaptation_opportunity_count' => $opportunityCount,
                 'tier_coverage' => round($tierCoverage, 3),
                 'performance_coverage' => round($performanceCoverage, 3),
+                'bayesian_credibility' => [
+                    'alignment_lambda' => round($lambdaAlign, 3),
+                    'retention_lambda' => round($lambdaRet, 3),
+                    'response_lambda' => round($lambdaResp, 3),
+                ],
             ],
             'patches' => array_map(fn (array $snapshot): array => [
                 'patch' => $snapshot['version'],
@@ -435,21 +465,27 @@ class MetaAdaptabilityService
         ?string $windowStart = null,
         ?string $windowEnd = null
     ): array {
+        $components = [
+            'meta_alignment' => MetaAdaptabilityConfig::PRIOR_ALIGNMENT_MEAN,
+            'performance_retention' => MetaAdaptabilityConfig::PRIOR_RETENTION_MEAN,
+            'meta_response' => MetaAdaptabilityConfig::PRIOR_RESPONSE_MEAN,
+            'role_flexibility' => round($this->clamp($flexScore), 1),
+        ];
+        $score = 0.0;
+        foreach (MetaAdaptabilityConfig::COMPONENT_WEIGHTS as $component => $weight) {
+            $score += $components[$component] * $weight;
+        }
+
         return [
             'method' => MetaAdaptabilityConfig::METHOD_VERSION,
-            'score' => round($this->clamp($flexScore * MetaAdaptabilityConfig::COMPONENT_WEIGHTS['role_flexibility']), 1),
+            'score' => round($this->clamp($score), 1),
             'confidence' => 'low',
             'window' => [
                 'months' => RoleProfileConfig::WINDOW_MONTHS,
                 'started_at' => $windowStart,
                 'ended_at' => $windowEnd,
             ],
-            'components' => [
-                'meta_alignment' => 0.0,
-                'performance_retention' => 0.0,
-                'meta_response' => 0.0,
-                'role_flexibility' => round($this->clamp($flexScore), 1),
-            ],
+            'components' => array_map(fn (float $value): float => round($value, 1), $components),
             'evidence' => [
                 'map_count' => 0,
                 'active_patch_count' => 0,
@@ -457,6 +493,11 @@ class MetaAdaptabilityService
                 'adaptation_opportunity_count' => 0,
                 'tier_coverage' => 0.0,
                 'performance_coverage' => 0.0,
+                'bayesian_credibility' => [
+                    'alignment_lambda' => 0.0,
+                    'retention_lambda' => 0.0,
+                    'response_lambda' => 0.0,
+                ],
             ],
             'patches' => [],
             'transitions' => [],
