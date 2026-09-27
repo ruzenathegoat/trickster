@@ -51,6 +51,11 @@ class SyncVlrEventsJob implements ShouldQueue
                         $name = trim($node->filter('.event-item-title')->text(''));
 
                         if ($id && $name) {
+                            $lowerName = strtolower($name);
+                            if (str_contains($lowerName, 'challenger')) {
+                                return;
+                            }
+
                             $isVct2026 = preg_match('/^vct 2026: (americas|pacific|emea|china) (kickoff|stage 1|stage 2)$/i', $name)
                                       || preg_match('/^valorant (masters|champions).*2026$/i', $name)
                                       || preg_match('/^vct (masters|champions).*2026$/i', $name);

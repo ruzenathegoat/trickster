@@ -38,6 +38,8 @@ final class ConsistencyIndexService
             ->select(
                 'pms.*',
                 'ci_matches.event_id as source_event_id',
+                'ci_matches.match_date',
+                'ci_events.competition_level',
                 DB::raw('COALESCE(mtqs.match_quality, 3.0) as match_quality')
             )
             ->orderByDesc('pms.id')

@@ -279,15 +279,19 @@ class PlayerController extends Controller
                 $radarStats['Consistency'] = round($player->consistency_index);
             }
 
-            $rolePrior = CompetitionQualityConfig::ROLE_EMPIRICAL_PRIORS[$player->current_role ?? 'Flex']
-                ?? CompetitionQualityConfig::ROLE_EMPIRICAL_PRIORS['Flex'];
+            $avgQuality = $competition?->cqi_raw !== null ? (float) $competition->cqi_raw : null;
+            $rolePrior = ($avgQuality !== null && $avgQuality > 0)
+                ? CompetitionQualityConfig::sosAdjustedRolePriors($player->current_role ?? 'Flex', $avgQuality)
+                : (CompetitionQualityConfig::ROLE_EMPIRICAL_PRIORS[$player->current_role ?? 'Flex']
+                    ?? CompetitionQualityConfig::ROLE_EMPIRICAL_PRIORS['Flex']);
 
             $roleDelta = CompetitionQualityConfig::calculateRoleDelta(
                 $player->current_role,
                 $player->avg_acs !== null ? (float) $player->avg_acs : null,
                 $player->avg_kd !== null ? (float) $player->avg_kd : null,
                 $player->avg_adr !== null ? (float) $player->avg_adr : null,
-                $player->avg_kast !== null ? (float) $player->avg_kast : null
+                $player->avg_kast !== null ? (float) $player->avg_kast : null,
+                $avgQuality
             );
 
             $roleBaselineRadar = [

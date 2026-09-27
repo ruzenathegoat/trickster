@@ -38,6 +38,21 @@ final class CompetitionQualityConfig
 
     public const STAGE_CONFIDENCE_SCALE = 10.0;
 
+    /** Time-decay half-life in days for match recency weighting (W_i = 2^(-Δt/45) * Q_i) */
+    public const HALF_LIFE_DAYS = 45.0;
+
+    /** Base reference match quality score (VCT Regional League baseline) */
+    public const BASE_REFERENCE_QUALITY = 3.0;
+
+    /** Strength of Schedule (SoS) role prior adjustment power alpha */
+    public const SOS_POWER_ALPHA = 0.15;
+
+    /** First Death rate (cost metric) SoS tolerance adjustment power alpha */
+    public const SOS_FD_POWER_ALPHA = 0.10;
+
+    /** Logarithmic international exposure proof bonus coefficient */
+    public const INTL_PROOF_COEFFICIENT = 0.12;
+
     /** @var array<string, float> */
     public const STAGE_EVIDENCE_CAPS = [
         'vct_kickoff_triple_elim_2026' => 4.0,
@@ -245,13 +260,108 @@ final class CompetitionQualityConfig
     }
 
     /**
+     * Exponential time-decay factor based on match recency (45-day half life).
+     * W_decay = 2^(-Δt / 45.0)
+     */
+    public static function timeDecayFactor(string|\DateTimeInterface|null $matchDate, ?\DateTimeInterface $referenceDate = null): float
+    {
+        if ($matchDate === null) {
+            return 1.0;
+        }
+
+        try {
+            $mDate = $matchDate instanceof \DateTimeInterface
+                ? $matchDate
+                : new \DateTime((string) $matchDate);
+            $ref = $referenceDate ?? new \DateTime();
+
+            $diffDays = (float) max(0, $ref->diff($mDate)->days);
+            if ($mDate > $ref) {
+                return 1.0;
+            }
+
+            return max(0.001, min(1.0, pow(2.0, -($diffDays / self::HALF_LIFE_DAYS))));
+        } catch (\Throwable) {
+            return 1.0;
+        }
+    }
+
+    /**
+     * Strength of schedule adjustment factor.
+     * > 1.0 for Champions / Masters competition, < 1.0 for low-tier competition.
+     */
+    public static function sosAdjustmentFactor(float $averageQuality): float
+    {
+        $q = max(0.5, $averageQuality);
+
+        return pow($q / self::BASE_REFERENCE_QUALITY, self::SOS_POWER_ALPHA);
+    }
+
+    /**
+     * Return empirical role priors dynamically adjusted for Strength of Schedule.
+     * Benefit metrics (ACS, KD, ADR, KAST) scale inversely with difficulty (lower required baseline against Sentinels/PRX).
+     * Cost metrics (First Death Rate) scale directly with difficulty (higher tolerance against elite aimers).
+     *
+     * @return array<string, array{mean: float, scale: float}>
+     */
+    public static function sosAdjustedRolePriors(?string $role, float $averageQuality): array
+    {
+        $role = $role ?? 'Flex';
+        $base = self::ROLE_EMPIRICAL_PRIORS[$role] ?? self::ROLE_EMPIRICAL_PRIORS['Flex'];
+        $sosFactor = self::sosAdjustmentFactor($averageQuality);
+        $fdSosFactor = pow(max(0.5, $averageQuality) / self::BASE_REFERENCE_QUALITY, self::SOS_FD_POWER_ALPHA);
+
+        return [
+            'acs' => [
+                'mean' => round($base['acs']['mean'] / $sosFactor, 2),
+                'scale' => $base['acs']['scale'],
+            ],
+            'kast' => [
+                'mean' => round($base['kast']['mean'] / $sosFactor, 2),
+                'scale' => $base['kast']['scale'],
+            ],
+            'kd' => [
+                'mean' => round($base['kd']['mean'] / $sosFactor, 3),
+                'scale' => $base['kd']['scale'],
+            ],
+            'adr' => [
+                'mean' => round($base['adr']['mean'] / $sosFactor, 2),
+                'scale' => $base['adr']['scale'],
+            ],
+            'fd' => [
+                'mean' => round($base['fd']['mean'] * $fdSosFactor, 3),
+                'scale' => $base['fd']['scale'],
+            ],
+            'mai' => [
+                'mean' => round($base['mai']['mean'] / $sosFactor, 2),
+                'scale' => $base['mai']['scale'],
+            ],
+        ];
+    }
+
+    /**
+     * Logarithmic uncapped international proof bonus for sustained world-stage appearances.
+     * Bonus = log10(1 + N_intl) * 0.12
+     */
+    public static function intlProofBonus(int $intlMatches): float
+    {
+        if ($intlMatches <= 0) {
+            return 0.0;
+        }
+
+        return log10(1.0 + (float) $intlMatches) * self::INTL_PROOF_COEFFICIENT;
+    }
+
+    /**
      * Compute composite Z-Score deviation vs role empirical prior baseline.
      * Positive = performs above role average (e.g. +1.12σ).
      */
-    public static function calculateRoleDelta(?string $role, ?float $acs, ?float $kd, ?float $adr, ?float $kast): float
+    public static function calculateRoleDelta(?string $role, ?float $acs, ?float $kd, ?float $adr, ?float $kast, ?float $averageQuality = null): float
     {
         $role = $role ?? 'Flex';
-        $prior = self::ROLE_EMPIRICAL_PRIORS[$role] ?? self::ROLE_EMPIRICAL_PRIORS['Flex'];
+        $prior = ($averageQuality !== null && $averageQuality > 0)
+            ? self::sosAdjustedRolePriors($role, $averageQuality)
+            : (self::ROLE_EMPIRICAL_PRIORS[$role] ?? self::ROLE_EMPIRICAL_PRIORS['Flex']);
 
         $zAcs = $acs !== null ? ($acs - $prior['acs']['mean']) / $prior['acs']['scale'] : 0.0;
         $zKd = $kd !== null ? ($kd - $prior['kd']['mean']) / $prior['kd']['scale'] : 0.0;

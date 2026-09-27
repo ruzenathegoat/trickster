@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\MatchData;
 use App\Models\Player;
+use App\Services\CompetitionQualityConfig;
 use App\Services\ConsistencyIndexService;
 use App\Services\PlayerRoleProfileService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -84,7 +85,8 @@ class CalculateMetricJob implements ShouldQueue
                 ->where('winner_team_id', $player->team_id)
                 ->count();
 
-            // QMI Micro-Weighting: Weight observations by the match's Quality Match Index
+            // Quality-Weighted & Time-Decay Aggregation (SMART Engine v3)
+            // W_i = 2^(-Δt/45) * Q_i
             $weightSum = 0.0;
             $wAcs = 0.0;
             $wAdr = 0.0;
@@ -97,7 +99,10 @@ class CalculateMetricJob implements ShouldQueue
             $wRatingWeight = 0.0;
 
             foreach ($stats as $s) {
-                $w = max(0.5, (float) ($s->match_quality ?? 3.0));
+                $decay = CompetitionQualityConfig::timeDecayFactor($s->match_date ?? null);
+                $q = max(0.5, (float) ($s->match_quality ?? 3.0));
+                $w = $decay * $q;
+
                 $weightSum += $w;
                 $wAcs += ($w * (float) $s->acs);
                 $wAdr += ($w * (float) ($s->adr ?? 0));

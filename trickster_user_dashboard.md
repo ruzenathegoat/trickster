@@ -78,7 +78,7 @@
 
 ### 4.2 `/app/leaderboard` — Global Rating
 
-**Purpose:** Browse-all view using **Global Rating** (Empirical Bayesian role-centered normalization, map-level Bayesian shrinkage $\kappa_{\text{maps}} = 12.0$, and Challengers tier exclusion), not Selection Score.
+**Purpose:** Browse-all view using **Global Rating** (Quality-Adjusted Empirical Bayesian Framework, Strength of Schedule role baseline adjustment, exponential time-decay $T_{1/2} = 45.0$ days, map-level Bayesian shrinkage $\kappa_{\text{maps}} = 12.0$, and Challengers tier exclusion), not Selection Score.
 
 **Layout:**
 - Filter bar (top): role, region, event tier, patch — `chip-filter` components, live-updating.

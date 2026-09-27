@@ -483,9 +483,10 @@ final class CompetitionQualityService
             $consistency = max(0.0, min(100.0, $consistency));
             $cqi = max(0.0, min(100.0, $cqi));
             $baseProven = ($consistency * $cqi * $weightedPerformance) ** (1 / 3);
+            $intlBonus = CompetitionQualityConfig::intlProofBonus((int) $aggregate['international_matches']);
             $proven = min(
                 100.0,
-                $baseProven * CompetitionQualityConfig::stageProofFactor($aggregate['stage_confidence'])
+                $baseProven * CompetitionQualityConfig::stageProofFactor($aggregate['stage_confidence']) * (1.0 + $intlBonus)
             );
             $validationStatus = match (true) {
                 $aggregate['eligible']

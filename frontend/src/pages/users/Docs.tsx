@@ -108,28 +108,41 @@ ORDER BY pms.id DESC;
   },
   {
     id: 'smart',
-    label: 'SMART pipeline v2',
+    label: 'SMART pipeline v3',
     language: 'PSEUDO',
-    code: `// 1. QMI Micro-Weighting per match m:
-// Q_m = event_base * stage_factor * pre_match_opponent_elo * regional_matrix
-// X_bar_QMI = sum(Q_m * stat_m) / sum(Q_m)
+    code: `// 1. Unified Quality & Time-Decay Map Weight (W_i):
+// W_i = 2^(-Δt / 45.0) * Q_i
+// Q_i = event_base * stage_factor * opponent_elo_factor * regional_coeff
+// Effective Maps: M_eff = sum(W_i) / 3.0
+// Quality-Weighted Combat Stat: Stat* = sum(W_i * stat_i) / sum(W_i)
 
-// 2. Map-Level Empirical Bayesian Shrinkage (κ_maps = 12.0):
-b_i = M_i / (M_i + 12.0)
-θ_hat = b_i * X_bar_QMI + (1.0 - b_i) * μ_role
+// 2. Strength of Schedule (SoS) Role Prior Adjustment:
+// Q_bar = sum(decay_i * Q_i) / sum(decay_i)
+// SoS_factor = (Q_bar / 3.0)^0.15
+// μ*_benefit = μ_role / SoS_factor
+// μ*_cost (First Death) = μ_role * (Q_bar / 3.0)^0.10
 
-// 3. Role-Adjusted Z-Score against Tier-1 pro priors:
-z_k = (θ_hat - μ_role[k]) / σ_role[k]
+// 3. Empirical Bayesian Shrinkage with Effective Maps (κ = 12.0):
+b_i = M_eff / (M_eff + 12.0)
+θ_hat = b_i * Stat* + (1.0 - b_i) * μ*_role
 
-// 4. Decoupled Sigmoid Utility Mapping:
+// 4. Role-Adjusted Z-Score against SoS-adjusted priors:
+z_k = (θ_hat - μ*_role[k]) / σ_role[k]
+
+// 5. Decoupled Sigmoid Utility Mapping:
 if criterion in [consistency, cqi, proven]:
   u_k = criterion.percentile_value
 else if criterion.type == benefit:
   u_k = 100.0 / (1.0 + exp(-1.7 * z_k))
-else: // cost criterion (e.g. First Death)
-  u_k = 100.0 / (1.0 + exp(+1.7 * z_k))
+else: // Cost criterion: First Death Rate (lower is better)
+  z_cost = (μ*_fd - θ_hat) / σ_fd
+  u_k = 100.0 / (1.0 + exp(-1.7 * z_cost))
 
-// 5. SMART Rating & Role Delta:
+// 6. Uncapped International Proof Bonus:
+Bonus_intl = log10(1 + N_intl) * 0.12
+u_proven = min(100.0, u_proven_base * (1.0 + Bonus_intl))
+
+// 7. SMART MCDA Synthesis:
 SMART = sum(weight_k * u_k)
 Role_Delta = sum(weight_k * z_k)  // Net baseline Z-score deviation
 rank = RANK() over verified players (>=20 matches, >=2 events)`,
@@ -392,7 +405,7 @@ export default function Docs() {
             <div className="sticky top-28">
               <p className="mb-5 font-label text-[10px] font-bold uppercase tracking-[0.2em] text-theme-text/40">On this page</p>
               <nav aria-label="Dokumentasi"><ul className="space-y-1">{sections.map(([id, label]) => <li key={id}><a href={`#${id}`} aria-current={activeSection === id ? 'location' : undefined} className={`block border-l-4 py-2 pl-3 font-label text-[10px] font-bold uppercase tracking-[0.13em] ${activeSection === id ? 'border-[var(--color-primary)] text-theme-text' : 'border-transparent text-theme-text/40 hover:text-theme-text'}`}>{label}</a></li>)}</ul></nav>
-              <div className="mt-8 border-2 border-theme-border bg-theme-muted p-4"><Fingerprint size={24} weight="bold" /><p className="mt-3 font-label text-[9px] font-bold uppercase tracking-widest text-theme-text/50">Core method</p><p className="mt-1 font-numeric text-xs font-bold">competition-quality-v2</p></div>
+              <div className="mt-8 border-2 border-theme-border bg-theme-muted p-4"><Fingerprint size={24} weight="bold" /><p className="mt-3 font-label text-[9px] font-bold uppercase tracking-widest text-theme-text/50">Core method</p><p className="mt-1 font-numeric text-xs font-bold">competition-quality-v3-stage-profile</p></div>
             </div>
           </aside>
 
@@ -413,7 +426,7 @@ export default function Docs() {
               </div>
               <div className="mt-6 grid gap-4 md:grid-cols-[0.38fr_0.62fr]">
                 <div className="border-4 border-theme-border bg-[var(--color-primary)] p-6 text-black"><ShieldCheck size={34} weight="fill" /><p className="mt-7 font-display text-3xl uppercase leading-none">Tidak ada satu angka absolut.</p></div>
-                <div className="border-4 border-theme-border p-6"><p className="font-semibold leading-7">SMART Engine v2 mengadopsi Empirical Bayesian Role-Adjusted Sigmoid.</p><p className="mt-3 text-sm leading-6 text-theme-text/60">Skor kriteria di-decouple dari cohort global min/max menggunakan prior empiris pro scene (μ, σ) per role. Data player dengan sampel kecil dishrink ke prior role (κ = 12 map), menghasilkan utility yang stabil dan kebal terhadap distorsi outlier.</p></div>
+                <div className="border-4 border-theme-border p-6"><p className="font-semibold leading-7">SMART Engine v3 mengadopsi Quality-Adjusted Empirical Bayesian Framework.</p><p className="mt-3 text-sm leading-6 text-theme-text/60">Combat metrics dipadukan dengan bobot kualitas match (Q_i) dan time-decay eksponensial (T1/2 = 45 hari). Prior baseline role disesuaikan secara dinamis berdasarkan Strength of Schedule (SoS), memberikan apresiasi objektif bagi pemain yang bersaing di panggung terberat dunia (Masters & Champions) sekaligus mencegah manipulasi inactivity camping.</p></div>
               </div>
             </section>
 
@@ -430,7 +443,7 @@ export default function Docs() {
                   <div key={String(title)} className="relative border-4 border-theme-border p-5"><div className="flex justify-between"><span className="font-numeric text-xs text-theme-text/35">0{index + 1}</span><Icon size={25} weight="bold" /></div><h3 className="mt-10 font-display text-xl uppercase">{String(title)}</h3><p className="mt-2 text-xs leading-5 text-theme-text/55">{String(body)}</p>{index < 4 ? <span className="absolute -bottom-3 left-1/2 z-10 flex h-6 w-6 -translate-x-1/2 items-center justify-center border-2 border-theme-border bg-[var(--color-primary)] text-black xl:-right-4 xl:bottom-auto xl:left-auto xl:top-1/2 xl:-translate-y-1/2 xl:translate-x-0"><ArrowDown size={12} weight="bold" className="xl:-rotate-90" /></span> : null}</div>
                 ))}
               </div>
-              <div className="mt-7 border-l-8 border-[var(--color-primary)] bg-theme-muted p-6"><div className="flex gap-4"><Warning size={25} weight="fill" className="shrink-0" /><div><h3 className="font-display text-lg uppercase">Gate utama</h3><p className="mt-2 text-sm leading-6 text-theme-text/65">Row All Maps wajib memiliki kills, deaths, assists, ACS, KAST, ADR, rating, first kills, dan first deaths. ACS harus lebih dari nol. Kurang dari 10 row valid atau winner belum ada membuat match tertahan. Sumber primer dapat diperiksa di <a href="https://www.vlr.gg" target="_blank" rel="noreferrer" className="font-semibold underline decoration-[var(--color-primary)] decoration-2 underline-offset-4">VLR.gg</a>.</p></div></div></div>
+              <div className="mt-7 border-l-8 border-[var(--color-primary)] bg-theme-muted p-6"><div className="flex gap-4"><Warning size={25} weight="fill" className="shrink-0" /><div><h3 className="font-display text-lg uppercase">Gate utama</h3><p className="mt-2 text-sm leading-6 text-theme-text/65">Row All Maps wajib memiliki kills, deaths, assists, ACS, KAST, ADR, rating, first kills, dan first deaths. ACS harus lebih dari nol. Kurang dari 10 row valid atau winner belum ada membuat match tertahan. Turnamen Challengers/Tier-2 dieksklusi secara ketat dari seluruh kalkulasi VCT. Sumber primer dapat diperiksa di <a href="https://www.vlr.gg" target="_blank" rel="noreferrer" className="font-semibold underline decoration-[var(--color-primary)] decoration-2 underline-offset-4">VLR.gg</a>.</p></div></div></div>
             </section>
 
             <section id="statistics" className="scroll-mt-28 pb-24">
@@ -438,11 +451,11 @@ export default function Docs() {
               <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {stats.map(([code, title, formula, note]) => <article key={code} className="border-4 border-theme-border p-5 hover:bg-theme-muted"><div className="flex justify-between"><span className="bg-theme-text px-2 py-1 font-numeric text-[10px] font-bold text-theme-bg">{code}</span><ChartBar size={22} weight="bold" /></div><h3 className="mt-7 font-display text-lg uppercase">{title}</h3><p className="mt-3 border-y-2 border-theme-divider py-3 font-numeric text-xs font-bold">{formula}</p><p className="mt-3 text-xs leading-5 text-theme-text/55">{note}</p></article>)}
               </div>
-              <div className="mt-6 border-4 border-theme-border md:grid md:grid-cols-[180px_1fr]"><div className="flex items-center justify-center bg-[#111] p-7 text-[var(--color-primary)]"><Info size={44} weight="fill" /></div><div className="p-6"><h3 className="font-display text-xl uppercase">Catatan audit untuk transfer dan FD</h3><p className="mt-3 text-sm leading-6 text-theme-text/65">Win rate dan composition saat ini memakai team_id player yang sekarang. Transfer dapat memengaruhi rekonstruksi historis. Criterion bernama First Death Rate memakai average first deaths per match, belum dinormalisasi terhadap jumlah round.</p></div></div>
+              <div className="mt-6 border-4 border-theme-border md:grid md:grid-cols-[180px_1fr]"><div className="flex items-center justify-center bg-[#111] p-7 text-[var(--color-primary)]"><Info size={44} weight="fill" /></div><div className="p-6"><h3 className="font-display text-xl uppercase">Catatan audit untuk transfer dan FD</h3><p className="mt-3 text-sm leading-6 text-theme-text/65">Win rate dan composition saat ini memakai team_id player yang sekarang. Transfer dapat memengaruhi rekonstruksi historis. Criterion First Death Rate merupakan kriteria COST murni (semakin rendah semakin baik), dengan penyesuaian toleransi terhadap lawan ber-Elo tinggi.</p></div></div>
             </section>
 
             <section id="smart" className="scroll-mt-28 pb-24">
-              <Heading eyebrow="04 / Simple Multi Attribute Rating Technique" title="SMART Engine v2: Bayesian Role Shrinkage & Sigmoid Utility.">Benefit dan cost kriteria dihitung via standard normal Z-score terhadap prior empiris role profesional, lalu ditransformasikan ke fungsi sigmoid u = 100 / (1 + exp(∓1.7z)). Consistency, CQI, dan Proven tetap berada pada skala percentile 0-100.</Heading>
+              <Heading eyebrow="04 / Simple Multi Attribute Rating Technique" title="SMART Engine v3: Quality-Adjusted Bayesian Shrinkage & SoS Role Priors.">Benefit dan cost kriteria dihitung via standard normal Z-score terhadap prior empiris role profesional yang disesuaikan dengan Strength of Schedule (SoS), lalu ditransformasikan ke fungsi sigmoid u = 100 / (1 + exp(∓1.7z)). First Death Rate tetap menjadi kriteria COST murni. Consistency, CQI, dan Proven Consistency diperkuat oleh kurva pembuktian internasional logaritmik.</Heading>
               <div className="mt-8 grid gap-6 xl:grid-cols-[0.58fr_0.42fr]">
                 <div className="border-4 border-theme-border p-5 sm:p-7"><div className="mb-7 flex justify-between"><div><p className="font-label text-[10px] font-bold uppercase tracking-widest text-theme-text/45">Interactive calculator</p><h3 className="mt-1 font-display text-2xl uppercase">Normalized utilities</h3></div><SlidersHorizontal size={30} weight="bold" /></div><div className="space-y-4">{criteria.map((item) => <Slider key={item.key} label={`${item.short} · weight ${Number((item.weight * 100).toFixed(2))}%`} value={utilities[item.key]} min={0} max={100} onChange={(value) => setUtilities((current) => ({ ...current, [item.key]: value }))} />)}</div></div>
                 <div className="flex flex-col gap-6">
@@ -451,7 +464,7 @@ export default function Docs() {
                 </div>
               </div>
               <div className="mt-8 overflow-x-auto border-4 border-theme-border" data-lenis-prevent="true"><table className="w-full min-w-[720px] text-left"><thead className="bg-[#111] text-white"><tr className="font-label text-[9px] uppercase tracking-widest"><th className="p-4">Criterion</th><th className="p-4">Type</th><th className="p-4">Weight</th><th className="p-4">Normalization</th></tr></thead><tbody>{criteria.map((item) => <tr key={item.key} className="border-t-2 border-theme-divider text-sm"><td className="p-4 font-semibold">{item.name}</td><td className="p-4"><Tag tone={item.type === 'cost' ? 'yellow' : 'dark'}>{item.type}</Tag></td><td className="p-4 font-numeric font-bold">{Number((item.weight * 100).toFixed(2))}%</td><td className="p-4 font-numeric text-xs text-theme-text/60">{item.type === 'direct' ? 'direct utility 0-100' : item.type === 'benefit' ? '100 / (1 + exp(-1.7 × z))' : '100 / (1 + exp(+1.7 × z))'}</td></tr>)}</tbody></table></div>
-              <div className="mt-6 grid gap-4 md:grid-cols-2"><div className="border-4 border-theme-border p-6"><TrendUp size={28} weight="bold" /><h3 className="mt-6 font-display text-xl uppercase">Role-Anchored Decoupling</h3><p className="mt-3 text-sm leading-6 text-theme-text/60">Utility tidak lagi bergantung pada batas min/max pemain lain dalam cohort sesaat. Evaluasi dilakukan terhadap standar role Tier-1 (Duelist, Initiator, Controller, Sentinel), sehingga rating stabil secara longitudinal.</p></div><div className="border-4 border-theme-border p-6"><UsersThree size={28} weight="bold" /><h3 className="mt-6 font-display text-xl uppercase">Map-Level Shrinkage & Delta</h3><p className="mt-3 text-sm leading-6 text-theme-text/60">Bayesian shrinkage b = M / (M + 12) menarik performa sample terbatas ke rata-rata role. Role Delta (ΔZ) menampilkan keunggulan bersih pemain di atas ekspektasi posisinya.</p></div></div>
+              <div className="mt-6 grid gap-4 md:grid-cols-2"><div className="border-4 border-theme-border p-6"><TrendUp size={28} weight="bold" /><h3 className="mt-6 font-display text-xl uppercase">Strength of Schedule (SoS) Role Priors</h3><p className="mt-3 text-sm leading-6 text-theme-text/60">Ekspektasi statistik role disesuaikan secara dinamis dengan tingkat kesulitan lawan yang dihadapi. Pemain yang berhadapan dengan tim top dunia seperti Sentinels atau Paper Rex tidak dirugikan oleh rata-rata mentah.</p></div><div className="border-4 border-theme-border p-6"><UsersThree size={28} weight="bold" /><h3 className="mt-6 font-display text-xl uppercase">Effective Maps & Time-Decay</h3><p className="mt-3 text-sm leading-6 text-theme-text/60">Pembobotan waktu eksponensial (half-life 45 hari) dan kualitas match menghasilkan Effective Maps (M_eff). Pemain yang tidak aktif bertanding secara otomatis mengalami penyusutan bobot, mencegah inactivity camping.</p></div></div>
             </section>
 
             <section id="momentum" className="scroll-mt-28 pb-24">
@@ -542,7 +555,7 @@ export default function Docs() {
                 <div className="border-4 border-theme-border bg-[#111] p-6 text-white sm:p-8"><div className="flex items-center gap-3 text-[var(--color-primary)]"><Warning size={28} weight="fill" /><h3 className="font-display text-2xl uppercase">Known limitations</h3></div><ul className="mt-6 space-y-4 text-sm leading-6 text-white/60"><li className="border-l-2 border-[var(--color-primary)] pl-4">VLR adalah sumber pihak ketiga. Perubahan HTML dapat menunda ingest.</li><li className="border-l-2 border-[var(--color-primary)] pl-4">Percentile bersifat relatif; perubahan cohort dapat mengubah utility tanpa perubahan raw statistic.</li><li className="border-l-2 border-[var(--color-primary)] pl-4">Baris historis tanpa roster anchor dikeluarkan dari CQI agar konteks tim tidak ditebak.</li><li className="border-l-2 border-[var(--color-primary)] pl-4">Region hanya menjadi prior awal Elo dan tidak mengukur kualitas taktis secara langsung.</li><li className="border-l-2 border-[var(--color-primary)] pl-4">SMART tidak mengukur komunikasi, leadership, role fit, kondisi roster, atau hasil trial langsung.</li></ul></div>
                 <div className="flex flex-col justify-between border-4 border-theme-border bg-[var(--color-primary)] p-6 text-black sm:p-8"><BookOpenText size={38} weight="fill" /><div className="mt-16"><p className="font-display text-3xl uppercase leading-none">Verification rule</p><p className="mt-4 text-sm font-semibold leading-6">Jika score tidak dapat ditelusuri ke raw observation, transformasi, cohort, weight, dan waktu kalkulasi, jangan gunakan score itu sendirian.</p></div><Link to="/app/players" className="mt-8 flex min-h-12 items-center justify-between border-4 border-black bg-black px-4 font-display text-xs uppercase tracking-widest text-white hover:bg-white hover:text-black">Inspect players <ArrowRight size={17} weight="bold" /></Link></div>
               </div>
-              <div className="mt-8 flex flex-col items-start justify-between gap-5 border-t-4 border-theme-border pt-7 sm:flex-row sm:items-center"><p className="max-w-xl font-label text-[10px] font-bold uppercase leading-5 tracking-widest text-theme-text/45">Method: competition-quality-v2 · pre-match-elo-v1 · Balanced weights total 1.00</p><Link to="/" className="flex min-h-11 items-center gap-2 font-label text-[10px] font-bold uppercase tracking-widest hover:text-[var(--color-primary)]"><ArrowLeft size={16} weight="bold" /> Back to Trickster</Link></div>
+              <div className="mt-8 flex flex-col items-start justify-between gap-5 border-t-4 border-theme-border pt-7 sm:flex-row sm:items-center"><p className="max-w-xl font-label text-[10px] font-bold uppercase leading-5 tracking-widest text-theme-text/45">Method: competition-quality-v3-stage-profile · pre-match-elo-v2-dynamic-regional · Balanced weights total 1.00</p><Link to="/" className="flex min-h-11 items-center gap-2 font-label text-[10px] font-bold uppercase tracking-widest hover:text-[var(--color-primary)]"><ArrowLeft size={16} weight="bold" /> Back to Trickster</Link></div>
             </section>
           </div>
         </div>

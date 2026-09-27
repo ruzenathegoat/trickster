@@ -45,13 +45,18 @@ class CalculateSmartJob implements ShouldQueue
             return;
         }
 
-        // Helper function: Empirical Bayesian Role-Adjusted Utility calculation
-        // Decoupled from other players' daily match results (anti-coupling / no global min-max)
-        $calculateBayesianUtility = function ($criteriaName, Player $player, object $competition, int $totalMaps) {
+        // Helper function: Quality-Adjusted Empirical Bayesian Role Utility calculation (SMART Engine v3)
+        // Strength of schedule adjusts role baseline priors; effective maps (W_i) govern shrinkage
+        $calculateBayesianUtility = function ($criteriaName, Player $player, object $competition, array $context) {
             $role = $player->current_role ?? 'Flex';
-            $priors = CompetitionQualityConfig::ROLE_EMPIRICAL_PRIORS[$role]
-                ?? CompetitionQualityConfig::ROLE_EMPIRICAL_PRIORS['Flex'];
-            $sampleMaps = max(1, $totalMaps > 0 ? $totalMaps : (int) round(((int) $competition->total_matches) * 2.5));
+            $avgQ = $context['avg_quality'] ?? CompetitionQualityConfig::BASE_REFERENCE_QUALITY;
+            $effMaps = $context['eff_maps'] ?? 0.0;
+
+            // Dynamically adjust role empirical priors based on Strength of Schedule (SoS)
+            $priors = CompetitionQualityConfig::sosAdjustedRolePriors($role, $avgQ);
+
+            // Effective maps determine Bayesian shrinkage (W_i = 2^(-Δt/45) * Q_i)
+            $sampleMaps = max(0.5, $effMaps > 0 ? $effMaps : (float) $competition->total_matches);
             $b = $sampleMaps / ($sampleMaps + CompetitionQualityConfig::BAYESIAN_KAPPA_MAPS);
 
             switch ($criteriaName) {
@@ -146,19 +151,69 @@ class CalculateSmartJob implements ShouldQueue
             ->get()
             ->keyBy('player_id');
 
-        $playerMapCounts = DB::table('player_match_agents as pma')
-            ->join('matches as m', 'm.id', '=', 'pma.match_id')
-            ->join('events as e', 'e.id', '=', 'm.event_id')
-            ->whereIn('pma.player_id', $playerIds)
-            ->whereYear('m.match_date', $season)
+        // Load map-level match observations with quality and recency for player contexts
+        $playerMatches = DB::table('player_map_stats as pms')
+            ->join('maps as m', 'm.id', '=', 'pms.map_id')
+            ->join('matches as mat', 'mat.id', '=', 'pms.match_id')
+            ->join('events as e', 'e.id', '=', 'mat.event_id')
+            ->leftJoin('match_team_quality_scores as mtqs', function ($join) {
+                $join->on('mtqs.match_id', '=', 'pms.match_id')
+                    ->on('mtqs.team_id', '=', 'pms.team_id_at_match');
+            })
+            ->whereIn('pms.player_id', $playerIds)
+            ->where('m.map_name', 'All Maps')
+            ->whereNotNull('mat.winner_team_id')
+            ->whereNotNull('pms.acs')
+            ->where('pms.acs', '>', 0)
+            ->whereYear('mat.match_date', $season)
             ->where(function ($q) {
                 $q->whereNull('e.competition_level')
                     ->orWhere('e.competition_level', '!=', 'challengers');
             })
             ->whereRaw('LOWER(e.name) NOT LIKE ?', ['%challengers%'])
-            ->select('pma.player_id', DB::raw('COUNT(DISTINCT pma.map_id) as total_maps'))
-            ->groupBy('pma.player_id')
-            ->pluck('total_maps', 'player_id');
+            ->select([
+                'pms.player_id',
+                'pms.match_id',
+                'mat.match_date',
+                'e.competition_level',
+                DB::raw('COALESCE(mtqs.match_quality, 3.0) as match_quality'),
+            ])
+            ->get()
+            ->unique(fn ($item) => $item->player_id.'|'.$item->match_id)
+            ->groupBy('player_id');
+
+        $playerContexts = [];
+        $now = now();
+        foreach ($playerIds as $pid) {
+            $matches = $playerMatches->get($pid) ?? collect();
+            $totalW = 0.0;
+            $decaySum = 0.0;
+            $sumQuality = 0.0;
+            $intlMatches = 0;
+
+            foreach ($matches as $m) {
+                $decay = CompetitionQualityConfig::timeDecayFactor($m->match_date, $now);
+                $q = (float) $m->match_quality;
+                $w = $decay * $q;
+
+                $totalW += $w;
+                $decaySum += $decay;
+                $sumQuality += ($q * $decay);
+
+                if (in_array($m->competition_level, ['masters', 'champions'], true)) {
+                    $intlMatches++;
+                }
+            }
+
+            $effMaps = $totalW > 0 ? ($totalW / CompetitionQualityConfig::BASE_REFERENCE_QUALITY) : 0.0;
+            $avgQ = $decaySum > 0 ? ($sumQuality / $decaySum) : CompetitionQualityConfig::BASE_REFERENCE_QUALITY;
+
+            $playerContexts[$pid] = [
+                'eff_maps' => $effMaps,
+                'avg_quality' => $avgQ,
+                'intl_matches' => $intlMatches,
+            ];
+        }
 
         // Career-mode values are cache rows. Replace the requested players in
         // bulk so verified and provisional results always use current metrics.
@@ -183,13 +238,18 @@ class CalculateSmartJob implements ShouldQueue
             if ($competition === null || (int) $competition->total_matches < 1) {
                 continue;
             }
-            $playerMaps = (int) ($playerMapCounts[$player->id] ?? 0);
+            $context = $playerContexts[$player->id] ?? [
+                'eff_maps' => 0.0,
+                'avg_quality' => CompetitionQualityConfig::BASE_REFERENCE_QUALITY,
+                'intl_matches' => 0,
+            ];
+            $effMaps = (float) ($context['eff_maps'] ?? 0.0);
 
             $playerCriteriaUtilities = [];
 
             // Step 2 & 3: Calculate Utility for each criteria
             foreach ($criteriaList as $criteria) {
-                $calc = $calculateBayesianUtility($criteria->name, $player, $competition, $playerMaps);
+                $calc = $calculateBayesianUtility($criteria->name, $player, $competition, $context);
                 if (! $calc) {
                     continue;
                 }
@@ -203,7 +263,7 @@ class CalculateSmartJob implements ShouldQueue
                     'patch_id' => null,
                     'raw_value' => $raw,
                     'global_normalized_utility' => $utility,
-                    'sample_size' => $playerMaps > 0 ? $playerMaps : (int) $competition->total_matches,
+                    'sample_size' => (int) round($effMaps > 0 ? $effMaps : (int) $competition->total_matches),
                     'method_version' => CompetitionQualityConfig::METHOD_VERSION,
                     'calculated_at' => $calculatedAt,
                 ];

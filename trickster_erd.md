@@ -337,10 +337,10 @@ erDiagram
 - `sample_size` stores the number of valid mapped maps (matches), enabling map-level empirical Bayesian shrinkage $b = M / (M + 12.0)$ and the 20-match minimum-sample gate at read time.
 
 **`player_smart_results`** — `id`, `player_id` FK, `profile_id` FK, `patch_id` FK, `mode` (`career`), `final_score`, `rank`, `is_provisional`, `smart_confidence`, `calculated_at`
-- `mode = career` → Career SMART Rating v2 (Empirical Bayesian Role-Adjusted normalization with standard normal sigmoid transform, decoupled from global min/max bounds; evaluated against Tier-1 VCT role baselines).
+- `mode = career` → Career SMART Rating v3 (Quality-Adjusted Empirical Bayesian Framework with Strength of Schedule role prior adjustments, 45-day half-life exponential time-decay, and uncapped logarithmic international proof bonus).
 - `is_provisional` flags players with $< 20$ matches or $< 2$ distinct verified events.
 - `smart_confidence` reflects data maturity ($\min(M/20, 1) \times \min(E/2, 1)$).
-- Challengers events are excluded from cohort calculations.
+- Challengers events are 100% excluded from cohort calculations and database ingestion.
 
 ### 2.7 Scraper Monitoring
 

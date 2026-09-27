@@ -270,7 +270,7 @@ export default function PlayerProfile() {
     const fetchPlayer = async () => {
       try {
         // Caching Layer 1: Check Session Storage first
-        const cacheKey = `trickster_player_profile_cqi_v2_${playerId}`;
+        const cacheKey = `trickster_player_profile_cqi_v3_${playerId}`;
         const cachedData = sessionStorage.getItem(cacheKey);
         if (cachedData) {
           try {
