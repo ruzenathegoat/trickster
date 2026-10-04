@@ -56,14 +56,15 @@ type MetaMap = {
 };
 
 const criteria: Criterion[] = [
-  { key: 'ci', short: 'C-PCT', name: 'Consistency Percentile', weight: 0.15, type: 'direct', initial: 72 },
-  { key: 'kd', short: 'KD', name: 'Kill / Death Ratio', weight: 0.14, type: 'benefit', initial: 71 },
-  { key: 'kast', short: 'KAST', name: 'KAST %', weight: 0.1292, type: 'benefit', initial: 68 },
-  { key: 'fd', short: 'FD', name: 'First Death Rate', weight: 0.1185, type: 'cost', initial: 58 },
-  { key: 'acs', short: 'ACS', name: 'Average Combat Score', weight: 0.1077, type: 'benefit', initial: 75 },
-  { key: 'adr', short: 'ADR', name: 'Average Damage / Round', weight: 0.1077, type: 'benefit', initial: 70 },
-  { key: 'mai', short: 'MAI', name: 'Meta Adaptability Index', weight: 0.0969, type: 'benefit', initial: 60 },
-  { key: 'proven', short: 'PROVEN', name: 'Proven Consistency', weight: 0.08, type: 'direct', initial: 66 },
+  { key: 'ci', short: 'C-PCT', name: 'Consistency Percentile', weight: 0.14, type: 'direct', initial: 72 },
+  { key: 'kd', short: 'KD', name: 'Kill / Death Ratio', weight: 0.13, type: 'benefit', initial: 71 },
+  { key: 'kast', short: 'KAST', name: 'KAST %', weight: 0.12, type: 'benefit', initial: 68 },
+  { key: 'fd', short: 'FD', name: 'First Death Rate', weight: 0.11, type: 'cost', initial: 58 },
+  { key: 'acs', short: 'ACS', name: 'Average Combat Score', weight: 0.10, type: 'benefit', initial: 75 },
+  { key: 'adr', short: 'ADR', name: 'Average Damage / Round', weight: 0.10, type: 'benefit', initial: 70 },
+  { key: 'mai', short: 'MAI', name: 'Meta Adaptability Index', weight: 0.09, type: 'benefit', initial: 60 },
+  { key: 'clutch', short: 'CLUTCH', name: 'Clutch Factor', weight: 0.07, type: 'benefit', initial: 65 },
+  { key: 'proven', short: 'PROVEN', name: 'Proven Consistency', weight: 0.07, type: 'direct', initial: 66 },
   { key: 'cqi', short: 'CQI', name: 'CQI / Competition Exposure', weight: 0.07, type: 'direct', initial: 65 },
 ];
 
@@ -82,6 +83,7 @@ const sections = [
 const stats = [
   ['KD', 'Kill / Death Ratio', 'Σ kills / Σ deaths', 'Jika total death nol, nilai mengikuti total kills.'],
   ['AVG', 'ACS, KAST, ADR, FK, FD', 'Σ(QMI_m × stat_m) / Σ QMI_m', 'Rata-rata tertimbang QMI dari observasi canonical yang lolos gate.'],
+  ['CLUTCH', 'Clutch Factor', 'Σ(QMI_m × pts_m) / Σ QMI_m', 'Weighted points (1v1 + 2·1v2 + 3.5·1v3 + 5·1v4 + 7·1v5) tab performance disusutkan ke role prior.'],
   ['WR', 'Win Rate', 'wins / matches × 100', 'Win dibandingkan dengan current_team_id player.'],
   ['R', 'VLR Rating', 'Σ rating positif / n rating positif', 'Rating nol atau negatif tidak masuk rata-rata.'],
   ['CQI', 'Competition Exposure', 'percentile(shrunk avg QMI)', 'QMI = event base × stage factor × pre-match opponent Elo × regional strength matrix.'],

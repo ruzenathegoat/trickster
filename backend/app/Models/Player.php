@@ -42,6 +42,8 @@ class Player extends Model
         'competition_quality_index',
         'avg_fk',
         'avg_fd',
+        'total_clutches_won',
+        'avg_clutch_factor',
         'meta_alignment_score',
         'flexibility_score',
         'flex_confidence',
@@ -57,6 +59,8 @@ class Player extends Model
     protected function casts(): array
     {
         return [
+            'total_clutches_won' => 'integer',
+            'avg_clutch_factor' => 'float',
             'consistency_index' => 'float',
             'consistency_provisional_index' => 'float',
             'consistency_sample_size' => 'integer',
@@ -112,6 +116,9 @@ class Player extends Model
         }
         if ($this->avg_fd < 0.11) {
             $tags[] = 'Anchor';
+        }
+        if ($this->avg_clutch_factor >= 0.40) {
+            $tags[] = 'Clutcher';
         }
 
         return $tags;

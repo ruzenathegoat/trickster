@@ -77,6 +77,8 @@ class PlayerController extends Controller
                     'players.avg_fk',
                     'players.avg_fd',
                     'players.avg_rating',
+                    'players.total_clutches_won',
+                    'players.avg_clutch_factor',
                     'players.consistency_index',
                     'players.consistency_provisional_index',
                     'players.consistency_sample_size',
@@ -122,6 +124,10 @@ class PlayerController extends Controller
                 case 'fkfd':
                     $query->orderByRaw('(players.avg_fk - players.avg_fd) '.$sortDir);
                     break;
+                case 'clutch':
+                    $query->orderBy('players.avg_clutch_factor', $sortDir)
+                        ->orderBy('players.total_clutches_won', $sortDir);
+                    break;
                 case 'smart':
                 default:
                     $query->orderByRaw('CASE WHEN player_smart_results.final_score IS NULL THEN 1 ELSE 0 END')
@@ -150,6 +156,8 @@ class PlayerController extends Controller
                     'avg_fk' => $result->avg_fk,
                     'avg_fd' => $result->avg_fd,
                     'avg_rating' => $result->avg_rating,
+                    'total_clutches_won' => (int) ($result->total_clutches_won ?? 0),
+                    'avg_clutch_factor' => $result->avg_clutch_factor !== null ? (float) $result->avg_clutch_factor : 0.0,
                     'consistency_index' => $result->consistency_index,
                     'consistency_provisional_index' => $result->consistency_provisional_index,
                     'consistency_sample_size' => $result->consistency_sample_size,
@@ -186,7 +194,8 @@ class PlayerController extends Controller
 
     public function show($id)
     {
-        $cacheKey = 'api_player_profile_'.$id;
+        $version = Cache::get('api_admin_cache_version', 'v2');
+        $cacheKey = 'api_player_profile_'.$version.'_'.$id;
 
         $playerData = Cache::remember($cacheKey, 3600, function () use ($id) {
             $player = Player::with([
@@ -266,11 +275,21 @@ class PlayerController extends Controller
                 }
             }
 
+            $avgQuality = $competition?->cqi_raw !== null ? (float) $competition->cqi_raw : null;
+            $rolePrior = ($avgQuality !== null && $avgQuality > 0)
+                ? CompetitionQualityConfig::sosAdjustedRolePriors($player->current_role ?? 'Flex', $avgQuality)
+                : (CompetitionQualityConfig::ROLE_EMPIRICAL_PRIORS[$player->current_role ?? 'Flex']
+                    ?? CompetitionQualityConfig::ROLE_EMPIRICAL_PRIORS['Flex']);
+
+            $clutchFactor = (float) ($player->avg_clutch_factor ?? 0);
+            $priorClutchMean = (float) ($rolePrior['clutch']['mean'] ?? 0.35);
+
             $radarStats = [
                 'ACS' => round(min(100, max(0, ($player->avg_acs / 300) * 100))),
                 'K/D' => round(min(100, max(0, ($player->avg_kd / 2.0) * 100))),
                 'KAST' => round($player->avg_kast),
                 'ADR' => round(min(100, max(0, ($player->avg_adr / 200) * 100))),
+                'Clutch' => round(min(100, max(0, ($clutchFactor / 2.0) * 100))),
                 'Adaptability' => round($player->meta_adaptability_index ?? 50),
                 'Flexibility' => round($player->flexibility_score ?? 50),
             ];
@@ -278,12 +297,6 @@ class PlayerController extends Controller
             if ($player->consistency_index !== null) {
                 $radarStats['Consistency'] = round($player->consistency_index);
             }
-
-            $avgQuality = $competition?->cqi_raw !== null ? (float) $competition->cqi_raw : null;
-            $rolePrior = ($avgQuality !== null && $avgQuality > 0)
-                ? CompetitionQualityConfig::sosAdjustedRolePriors($player->current_role ?? 'Flex', $avgQuality)
-                : (CompetitionQualityConfig::ROLE_EMPIRICAL_PRIORS[$player->current_role ?? 'Flex']
-                    ?? CompetitionQualityConfig::ROLE_EMPIRICAL_PRIORS['Flex']);
 
             $roleDelta = CompetitionQualityConfig::calculateRoleDelta(
                 $player->current_role,
@@ -299,6 +312,7 @@ class PlayerController extends Controller
                 'K/D' => round(min(100, max(0, ($rolePrior['kd']['mean'] / 2.0) * 100))),
                 'KAST' => round($rolePrior['kast']['mean']),
                 'ADR' => round(min(100, max(0, ($rolePrior['adr']['mean'] / 200) * 100))),
+                'Clutch' => round(min(100, max(0, ($priorClutchMean / 2.0) * 100))),
                 'Adaptability' => round($rolePrior['mai']['mean'] ?? 72),
                 'Flexibility' => 50,
             ];
@@ -350,6 +364,8 @@ class PlayerController extends Controller
                     'kd' => round($player->avg_kd, 2),
                     'kast' => round($player->avg_kast, 1).'%',
                     'adr' => round($player->avg_adr, 1),
+                    'clutches_won' => (int) ($player->total_clutches_won ?? 0),
+                    'clutch_factor' => round((float) ($player->avg_clutch_factor ?? 0), 2),
                 ],
                 'consistency' => [
                     'value' => $player->consistency_index === null ? null : round($player->consistency_index, 2),

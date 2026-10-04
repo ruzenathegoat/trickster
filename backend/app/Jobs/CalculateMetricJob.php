@@ -62,6 +62,8 @@ class CalculateMetricJob implements ShouldQueue
                     'total_assists' => 0,
                     'avg_fk' => 0,
                     'avg_fd' => 0,
+                    'total_clutches_won' => 0,
+                    'avg_clutch_factor' => 0,
                     'consistency_index' => null,
                     'consistency_provisional_index' => null,
                     'consistency_sample_size' => 0,
@@ -78,6 +80,7 @@ class CalculateMetricJob implements ShouldQueue
             $totalKills = $stats->sum('kills');
             $totalDeaths = $stats->sum('deaths');
             $totalAssists = $stats->sum('assists');
+            $totalClutchesWon = (int) $stats->sum('clutches_won');
 
             // Count wins: matches where this player's team won
             $matchIds = $stats->pluck('match_id')->unique();
@@ -95,6 +98,7 @@ class CalculateMetricJob implements ShouldQueue
             $wDeaths = 0.0;
             $wFk = 0.0;
             $wFd = 0.0;
+            $wClutch = 0.0;
             $wRatingSum = 0.0;
             $wRatingWeight = 0.0;
 
@@ -111,6 +115,7 @@ class CalculateMetricJob implements ShouldQueue
                 $wDeaths += ($w * (int) ($s->deaths ?? 0));
                 $wFk += ($w * (float) ($s->fk ?? 0));
                 $wFd += ($w * (float) ($s->fd ?? 0));
+                $wClutch += ($w * (float) ($s->clutch_points ?? 0));
 
                 if (isset($s->rating) && (float) $s->rating > 0) {
                     $wRatingSum += ($w * (float) $s->rating);
@@ -125,6 +130,7 @@ class CalculateMetricJob implements ShouldQueue
             $avgRating = $wRatingWeight > 0 ? round($wRatingSum / $wRatingWeight, 2) : round($stats->filter(fn ($s) => $s->rating > 0)->avg('rating') ?? 0, 2);
             $avgFk = $weightSum > 0 ? round($wFk / $weightSum, 2) : round($stats->avg('fk'), 2);
             $avgFd = $weightSum > 0 ? round($wFd / $weightSum, 2) : round($stats->avg('fd'), 2);
+            $avgClutchFactor = $weightSum > 0 ? round($wClutch / $weightSum, 2) : round($stats->avg('clutch_points') ?? 0, 2);
 
             $player->update([
                 'total_matches' => $totalMatches,
@@ -140,6 +146,8 @@ class CalculateMetricJob implements ShouldQueue
                 'total_assists' => $totalAssists,
                 'avg_fk' => $avgFk,
                 'avg_fd' => $avgFd,
+                'total_clutches_won' => $totalClutchesWon,
+                'avg_clutch_factor' => $avgClutchFactor,
                 'consistency_index' => $consistency['value'],
                 'consistency_provisional_index' => $consistency['provisional_value'],
                 'consistency_sample_size' => $consistency['sample_size'],

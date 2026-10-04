@@ -14,6 +14,8 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -241,6 +243,9 @@ class ParseMatchJob implements ShouldQueue
             }
 
             if ($matchData && $hasCompleteStats) {
+                if ($map) {
+                    $this->parseClutchStats($matchData, $map);
+                }
                 $historicalContext->backfillMatch($matchData->id);
             }
 
@@ -273,6 +278,100 @@ class ParseMatchJob implements ShouldQueue
         } catch (\Exception $e) {
             $this->queueItem->update(['status' => 'failed', 'error_message' => 'Parsing failed: '.$e->getMessage()]);
             throw $e;
+        }
+    }
+
+    protected function parseClutchStats(MatchData $matchData, Map $allMaps): void
+    {
+        try {
+            $perfUrl = rtrim($this->queueItem->url, '/') . '/?game=all&tab=performance';
+            $response = Http::timeout(15)
+                ->withoutVerifying()
+                ->withHeaders([
+                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                ])
+                ->get($perfUrl);
+
+            if (! $response->successful()) {
+                return;
+            }
+
+            $crawler = new Crawler($response->body());
+            $table = $crawler->filter('.vm-stats-game[data-game-id="all"] table.mod-adv-stats');
+            if ($table->count() === 0) {
+                $table = $crawler->filter('table.mod-adv-stats')->first();
+            }
+
+            if ($table->count() === 0) {
+                return;
+            }
+
+            $existingMapStats = PlayerMapStat::where('match_id', $matchData->id)
+                ->where('map_id', $allMaps->id)
+                ->with('player')
+                ->get()
+                ->keyBy(fn ($stat) => strtolower(trim((string) $stat->player?->ign)));
+
+            $table->filter('tr')->each(function (Crawler $tr) use ($existingMapStats) {
+                if ($tr->filter('th')->count() > 0) {
+                    return;
+                }
+
+                $teamDiv = $tr->filter('.team');
+                if ($teamDiv->count() === 0) {
+                    return;
+                }
+
+                $tag = $tr->filter('.team-tag')->count() > 0 ? trim($tr->filter('.team-tag')->text()) : '';
+                $rawText = trim($teamDiv->text());
+                $ign = trim(str_replace($tag, '', $rawText));
+                $lowerIgn = strtolower($ign);
+
+                $mapStat = $existingMapStats->get($lowerIgn);
+                if (! $mapStat) {
+                    foreach ($existingMapStats as $key => $val) {
+                        if (str_contains($key, $lowerIgn) || str_contains($lowerIgn, (string) $key)) {
+                            $mapStat = $val;
+                            break;
+                        }
+                    }
+                }
+
+                if (! $mapStat) {
+                    return;
+                }
+
+                $cells = $tr->filter('td');
+                $getVal = static function (Crawler $cell): int {
+                    $sq = $cell->filter('.stats-sq');
+                    if ($sq->count() === 0) {
+                        return 0;
+                    }
+                    $text = trim($sq->text(''));
+                    return is_numeric($text) ? (int) $text : 0;
+                };
+
+                $c1 = $getVal($cells->eq(6));
+                $c2 = $getVal($cells->eq(7));
+                $c3 = $getVal($cells->eq(8));
+                $c4 = $getVal($cells->eq(9));
+                $c5 = $getVal($cells->eq(10));
+
+                $won = $c1 + $c2 + $c3 + $c4 + $c5;
+                $points = (1.0 * $c1) + (2.0 * $c2) + (3.5 * $c3) + (5.0 * $c4) + (7.0 * $c5);
+
+                $mapStat->update([
+                    'clutch_1v1' => $c1,
+                    'clutch_1v2' => $c2,
+                    'clutch_1v3' => $c3,
+                    'clutch_1v4' => $c4,
+                    'clutch_1v5' => $c5,
+                    'clutches_won' => $won,
+                    'clutch_points' => $points,
+                ]);
+            });
+        } catch (\Throwable $e) {
+            Log::warning("Failed to parse clutch stats for match {$matchData->vlr_match_id}: " . $e->getMessage());
         }
     }
 }

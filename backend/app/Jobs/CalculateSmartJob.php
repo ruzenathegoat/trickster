@@ -126,6 +126,15 @@ class CalculateSmartJob implements ShouldQueue
 
                     return ['raw' => $raw, 'utility' => max(0.0, min(100.0, $raw))];
 
+                case 'Clutch Factor':
+                    $raw = (float) ($player->avg_clutch_factor ?? 0.0);
+                    $prior = $priors['clutch'] ?? ['mean' => 0.35, 'scale' => 0.14];
+                    $shrunk = ($b * $raw) + ((1.0 - $b) * $prior['mean']);
+                    $z = ($shrunk - $prior['mean']) / $prior['scale'];
+                    $utility = 100.0 / (1.0 + exp(-1.7 * $z));
+
+                    return ['raw' => $raw, 'utility' => max(0.0, min(100.0, $utility))];
+
                 default:
                     return null;
             }

@@ -21,6 +21,8 @@ export interface PlayerRawStats {
   kd: number;
   kast: string;
   adr: number;
+  clutches_won?: number;
+  clutch_factor?: number;
 }
 
 /**
@@ -199,6 +201,7 @@ export interface PlayerRadarStats {
   'K/D': number;
   KAST: number;
   ADR: number;
+  Clutch?: number;
   Consistency?: number;
   Adaptability: number;
   Flexibility: number;
@@ -270,12 +273,12 @@ export default function PlayerProfile() {
     const fetchPlayer = async () => {
       try {
         // Caching Layer 1: Check Session Storage first
-        const cacheKey = `trickster_player_profile_cqi_v3_${playerId}`;
+        const cacheKey = `trickster_player_profile_v4_clutch_${playerId}`;
         const cachedData = sessionStorage.getItem(cacheKey);
         if (cachedData) {
           try {
             const parsed = JSON.parse(cachedData);
-            if (parsed && parsed.radar_stats) {
+            if (parsed && parsed.radar_stats && parsed.raw_stats?.clutch_factor !== undefined) {
               setPlayer(parsed);
               setLoading(false);
               // Still fetch profile in background if user is logged in to check favorites
@@ -661,6 +664,16 @@ export default function PlayerProfile() {
                   <span className="font-numeric font-black text-[15px] text-theme-text tabular-nums">{player.raw_stats.win_rate}</span>
                 </div>
                 <div className="flex justify-between items-end border-b-2 border-theme-border/20 pb-2">
+                  <span className="text-[11px] font-black text-theme-text/50 uppercase tracking-widest">Clutch Factor</span>
+                  <span className="font-numeric font-black text-[15px] text-theme-text tabular-nums">
+                    {Number(player.raw_stats.clutch_factor ?? 0).toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-end border-b-2 border-theme-border/20 pb-2">
+                  <span className="text-[11px] font-black text-theme-text/50 uppercase tracking-widest">Clutches Won</span>
+                  <span className="font-numeric font-black text-[15px] text-theme-text tabular-nums">{player.raw_stats.clutches_won ?? 0}</span>
+                </div>
+                <div className="flex justify-between items-end border-b-2 border-theme-border/20 pb-2">
                   <span className="text-[11px] font-black text-theme-text/50 uppercase tracking-widest">Consistency Percentile</span>
                   <span className="font-numeric font-black text-[15px] text-theme-text tabular-nums">
                     {player.consistency?.eligible && player.consistency.value !== null
@@ -993,6 +1006,10 @@ export default function PlayerProfile() {
               <div className="flex-1 min-w-[110px] flex flex-col justify-between">
                 <span className="text-[10px] md:text-[11px] font-black text-theme-text/60 uppercase tracking-widest mb-2 whitespace-nowrap">ADR</span>
                 <span className="text-3xl sm:text-4xl lg:text-5xl font-display text-theme-text tracking-tight leading-none">{player.raw_stats.adr}</span>
+              </div>
+              <div className="flex-1 min-w-[110px] flex flex-col justify-between">
+                <span className="text-[10px] md:text-[11px] font-black text-theme-text/60 uppercase tracking-widest mb-2 whitespace-nowrap">Clutch Factor</span>
+                <span className="text-3xl sm:text-4xl lg:text-5xl font-display text-theme-text tracking-tight leading-none">{player.raw_stats.clutch_factor ?? 0}</span>
               </div>
             </div>
           </motion.div>

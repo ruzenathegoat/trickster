@@ -150,13 +150,14 @@ interface MomentumResponse {
 
 const ROLES = ['All', 'Duelist', 'Initiator', 'Controller', 'Sentinel', 'Flex'];
 const REGIONS = ['All', 'Americas', 'EMEA', 'Pacific', 'China'];
-const SORT_STATS = ['smart', 'acs', 'kd', 'adr', 'fkfd'];
+const SORT_STATS = ['smart', 'acs', 'kd', 'adr', 'fkfd', 'clutch'];
 const DISPLAY_NAMES: Record<string, string> = {
   smart: 'SMART',
   acs: 'ACS',
   kd: 'K/D',
   adr: 'ADR',
   fkfd: 'FK/FD',
+  clutch: 'CLUTCH',
 };
 const CATEGORY_LABELS: Record<MomentumCategory, string> = {
   breakout: 'Breakout',
@@ -715,6 +716,8 @@ export default function PlayerExplorer() {
           else if (sortBy === 'fkfd' && player.avg_fk != null && player.avg_fd != null) {
             const difference = parseFloat(player.avg_fk) - parseFloat(player.avg_fd);
             statValue = difference > 0 ? `+${difference.toFixed(2)}` : difference.toFixed(2);
+          } else if (sortBy === 'clutch') {
+            statValue = player.avg_clutch_factor != null ? `${Number(player.avg_clutch_factor).toFixed(2)} (${player.total_clutches_won ?? 0}W)` : '0.00';
           } else if (sortBy === 'smart') {
             statValue = globalResult?.final_score != null ? Number(globalResult.final_score).toFixed(1) : 'N/A';
           }

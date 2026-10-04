@@ -89,6 +89,7 @@ final class CompetitionQualityConfig
             'adr' => ['mean' => 148.0, 'scale' => 18.0],
             'fd' => ['mean' => 4.80, 'scale' => 1.40],
             'mai' => ['mean' => 72.0, 'scale' => 10.0],
+            'clutch' => ['mean' => 0.25, 'scale' => 0.12],
         ],
         'Initiator' => [
             'acs' => ['mean' => 198.0, 'scale' => 22.0],
@@ -97,6 +98,7 @@ final class CompetitionQualityConfig
             'adr' => ['mean' => 132.0, 'scale' => 14.0],
             'fd' => ['mean' => 2.80, 'scale' => 0.90],
             'mai' => ['mean' => 74.0, 'scale' => 9.0],
+            'clutch' => ['mean' => 0.35, 'scale' => 0.14],
         ],
         'Controller' => [
             'acs' => ['mean' => 188.0, 'scale' => 20.0],
@@ -105,6 +107,7 @@ final class CompetitionQualityConfig
             'adr' => ['mean' => 124.0, 'scale' => 13.0],
             'fd' => ['mean' => 2.50, 'scale' => 0.80],
             'mai' => ['mean' => 73.0, 'scale' => 9.0],
+            'clutch' => ['mean' => 0.45, 'scale' => 0.16],
         ],
         'Sentinel' => [
             'acs' => ['mean' => 192.0, 'scale' => 21.0],
@@ -113,6 +116,7 @@ final class CompetitionQualityConfig
             'adr' => ['mean' => 128.0, 'scale' => 14.0],
             'fd' => ['mean' => 2.60, 'scale' => 0.85],
             'mai' => ['mean' => 72.0, 'scale' => 9.5],
+            'clutch' => ['mean' => 0.45, 'scale' => 0.16],
         ],
         'Flex' => [
             'acs' => ['mean' => 198.0, 'scale' => 23.0],
@@ -121,6 +125,7 @@ final class CompetitionQualityConfig
             'adr' => ['mean' => 132.0, 'scale' => 15.0],
             'fd' => ['mean' => 3.00, 'scale' => 1.00],
             'mai' => ['mean' => 73.0, 'scale' => 9.0],
+            'clutch' => ['mean' => 0.35, 'scale' => 0.14],
         ],
     ];
 
@@ -335,6 +340,10 @@ final class CompetitionQualityConfig
             'mai' => [
                 'mean' => round($base['mai']['mean'] / $sosFactor, 2),
                 'scale' => $base['mai']['scale'],
+            ],
+            'clutch' => [
+                'mean' => round($base['clutch']['mean'] / $sosFactor, 3),
+                'scale' => $base['clutch']['scale'],
             ],
         ];
     }
