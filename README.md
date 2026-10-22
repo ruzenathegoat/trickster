@@ -124,7 +124,7 @@ Trickster employs a stark 3-layer design philosophy, pairing brutalism with math
 Built as a split monolith. You will need to spin up both the backend and frontend.
 
 ### Prerequisites
-- PHP 8.2+, Composer
+- PHP 8.3+ (recommended 8.3.33+), Composer
 - Node.js 20.x+, npm / yarn / pnpm
 
 ### Backend (Laravel)
