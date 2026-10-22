@@ -252,7 +252,7 @@ export default function UserProfile() {
       </motion.div>
 
       {/* Tab Navigation */}
-      <div className="flex flex-col md:flex-row flex-wrap gap-3 md:gap-4 mb-8 border-b-4 border-theme-border pb-4">
+      <div role="tablist" aria-label="Profile navigation" className="flex flex-col md:flex-row flex-wrap gap-3 md:gap-4 mb-8 border-b-4 border-theme-border pb-4">
         {[
           { id: 'account', label: 'Account & Preferences', icon: User },
           { id: 'favorites', label: 'Favorites', icon: Trophy },
@@ -262,6 +262,8 @@ export default function UserProfile() {
           return (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={activeTab === tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center justify-center gap-3 w-full md:w-auto px-4 md:px-6 py-3 font-display uppercase tracking-widest text-base md:text-xl border-4 border-theme-border transition-all ${
                 activeTab === tab.id 
@@ -292,8 +294,10 @@ export default function UserProfile() {
               </h2>
               <form onSubmit={handleUpdateProfile} className="space-y-4">
                 <div>
-                  <label className="block font-label text-[11px] font-black uppercase tracking-widest text-gray-500 mb-1">Name</label>
+                  <label htmlFor="profile-name" className="block font-label text-[11px] font-black uppercase tracking-widest text-gray-500 mb-1">Name</label>
                   <input 
+                    id="profile-name"
+                    name="name"
                     type="text" 
                     value={formData.name}
                     onChange={e => setFormData({...formData, name: e.target.value})}
@@ -301,8 +305,10 @@ export default function UserProfile() {
                   />
                 </div>
                 <div>
-                  <label className="block font-label text-[11px] font-black uppercase tracking-widest text-gray-500 mb-1">Email</label>
+                  <label htmlFor="profile-email" className="block font-label text-[11px] font-black uppercase tracking-widest text-gray-500 mb-1">Email</label>
                   <input 
+                    id="profile-email"
+                    name="email"
                     type="email" 
                     value={formData.email}
                     onChange={e => setFormData({...formData, email: e.target.value})}
@@ -310,8 +316,10 @@ export default function UserProfile() {
                   />
                 </div>
                 <div>
-                  <label className="block font-label text-[11px] font-black uppercase tracking-widest text-gray-500 mb-1">New Password (Optional)</label>
+                  <label htmlFor="profile-password" className="block font-label text-[11px] font-black uppercase tracking-widest text-gray-500 mb-1">New Password (Optional)</label>
                   <input 
+                    id="profile-password"
+                    name="password"
                     type="password" 
                     value={formData.password}
                     onChange={e => setFormData({...formData, password: e.target.value})}
@@ -319,8 +327,10 @@ export default function UserProfile() {
                   />
                 </div>
                 <div>
-                  <label className="block font-label text-[11px] font-black uppercase tracking-widest text-gray-500 mb-1">Profile Photo</label>
+                  <label htmlFor="profile-photo" className="block font-label text-[11px] font-black uppercase tracking-widest text-gray-500 mb-1">Profile Photo</label>
                   <input 
+                    id="profile-photo"
+                    name="profile_photo"
                     type="file" 
                     accept="image/*"
                     onChange={handlePhotoChange}
@@ -370,8 +380,10 @@ export default function UserProfile() {
                   </div>
                 </div>
                 <div>
-                  <label className="block font-label text-[11px] font-black uppercase tracking-widest text-gray-500 mb-2">Favorite Role</label>
+                  <label htmlFor="profile-favorite-role" className="block font-label text-[11px] font-black uppercase tracking-widest text-gray-500 mb-2">Favorite Role</label>
                   <select 
+                    id="profile-favorite-role"
+                    name="favorite_role"
                     value={formData.favorite_role}
                     onChange={e => setFormData({...formData, favorite_role: e.target.value})}
                     className="w-full border-2 border-theme-border p-3 font-bold font-sans focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] bg-theme-bg text-theme-text"

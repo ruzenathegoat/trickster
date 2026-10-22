@@ -65,15 +65,30 @@ export default function Users() {
 
   useEffect(() => { fetchData(); }, []);
 
-  // Lock body scroll and collapse sidebar when any modal open
+  // Lock body scroll, handle Escape key, and collapse sidebar when any modal open
   useEffect(() => {
     const isAnyModalOpen = isModalOpen || userToDelete !== null;
     document.body.style.overflow = isAnyModalOpen ? 'hidden' : '';
     // Dispatch custom event to tell AdminLayout to close/open sidebar
     window.dispatchEvent(new CustomEvent('toggleSidebar', { detail: { isOpen: !isAnyModalOpen } }));
     
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (userToDelete) {
+          setUserToDelete(null);
+        } else if (isModalOpen) {
+          closeModal();
+        }
+      }
+    };
+
+    if (isAnyModalOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+
     return () => { 
       document.body.style.overflow = ''; 
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isModalOpen, userToDelete]);
 
@@ -193,6 +208,8 @@ export default function Users() {
           <motion.button
             whileHover={{ scale: 1.1, y: -2, boxShadow: "2px 2px 0px 0px #111111" }}
             whileTap={{ scale: 0.9, y: 0, boxShadow: "0px 0px 0px 0px #111111" }}
+            type="button"
+            aria-label={`Edit user ${info.row.original.name}`}
             onClick={() => openModal(info.row.original)}
             className="p-2 border-2 border-theme-border bg-theme-bg hover:bg-[var(--color-primary)] transition-colors"
             title="Edit User"
@@ -202,6 +219,8 @@ export default function Users() {
           <motion.button
             whileHover={{ scale: 1.1, y: -2, boxShadow: "2px 2px 0px 0px #111111" }}
             whileTap={{ scale: 0.9, y: 0, boxShadow: "0px 0px 0px 0px #111111" }}
+            type="button"
+            aria-label={`Delete user ${info.row.original.name}`}
             onClick={() => confirmDelete(info.row.original)}
             className="p-2 border-2 border-theme-border transition-colors bg-theme-bg hover:bg-red-500 hover:text-white"
             title="Delete User"
@@ -247,6 +266,7 @@ export default function Users() {
           whileHover={{ scale: 1.05, y: -2, boxShadow: "6px 6px 0px 0px #111111" }}
           whileTap={{ scale: 0.95, y: 0, boxShadow: "0px 0px 0px 0px #111111" }}
           onClick={() => openModal()}
+          aria-label="Create new user clearance"
           className="flex items-center gap-2 px-6 py-4 bg-[var(--color-primary)] text-black border-4 border-theme-border font-display font-black uppercase text-xl shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] transition-all"
         >
           <Plus size={24} weight="bold" />
@@ -308,7 +328,7 @@ export default function Users() {
           
           {/* Pagination Command Line */}
           {!initialFetch && table.getPageCount() > 1 && (
-            <div className="flex items-center justify-between px-6 py-4 border-t-4 border-theme-border bg-[#f4f4f4]">
+            <nav aria-label="Pagination" className="flex items-center justify-between px-6 py-4 border-t-4 border-theme-border bg-[#f4f4f4]">
               <div className="font-label text-xs font-black text-theme-text uppercase tracking-widest bg-theme-bg border-2 border-theme-border px-3 py-1">
                 SECTOR {table.getState().pagination.pageIndex + 1} // {table.getPageCount()}
               </div>
@@ -318,6 +338,7 @@ export default function Users() {
                   whileTap={table.getCanPreviousPage() ? { scale: 0.95, y: 0, boxShadow: "0px 0px 0px 0px #111111" } : {}}
                   onClick={() => table.previousPage()}
                   disabled={!table.getCanPreviousPage()}
+                  aria-label="Previous page"
                   className="px-4 py-2 bg-theme-bg border-4 border-theme-border font-display text-sm font-black uppercase disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black hover:text-white transition-colors"
                 >
                   Recall
@@ -327,12 +348,13 @@ export default function Users() {
                   whileTap={table.getCanNextPage() ? { scale: 0.95, y: 0, boxShadow: "0px 0px 0px 0px #111111" } : {}}
                   onClick={() => table.nextPage()}
                   disabled={!table.getCanNextPage()}
+                  aria-label="Next page"
                   className="px-4 py-2 bg-theme-bg border-4 border-theme-border font-display text-sm font-black uppercase disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black hover:text-white transition-colors"
                 >
                   Advance
                 </motion.button>
               </div>
-            </div>
+            </nav>
           )}
         </div>
       </div>
@@ -351,6 +373,9 @@ export default function Users() {
             />
             
             <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="modal-personnel-title"
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -362,14 +387,15 @@ export default function Users() {
               <div className="flex items-center justify-between px-6 py-5 border-b-4 border-theme-border bg-[var(--color-primary)] flex-shrink-0">
                 <div className="flex items-center gap-3">
                   <UsersIcon size={28} weight="bold" />
-                  <span className="text-2xl md:text-3xl font-display font-black uppercase tracking-tighter text-theme-text leading-none pt-1">
+                  <h2 id="modal-personnel-title" className="text-2xl md:text-3xl font-display font-black uppercase tracking-tighter text-theme-text leading-none pt-1">
                     {editingUser ? 'MODIFY PERSONNEL' : 'REGISTER PERSONNEL'}
-                  </span>
+                  </h2>
                 </div>
                 <motion.button 
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                   type="button" 
+                  aria-label="Close modal"
                   onClick={closeModal} 
                   className="text-theme-text bg-theme-bg border-4 border-theme-border p-1 hover:bg-red-500 hover:text-white transition-colors"
                 >
@@ -382,10 +408,12 @@ export default function Users() {
                   
                   {/* Name Input */}
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 font-label text-xs font-black uppercase tracking-widest text-theme-text">
+                    <label htmlFor="name" className="flex items-center gap-2 font-label text-xs font-black uppercase tracking-widest text-theme-text">
                       <span className="bg-black text-white px-2 py-0.5">01</span> IDENTIFIER_NAME
                     </label>
                     <input 
+                      id="name"
+                      name="name"
                       type="text" 
                       value={formData.name}
                       onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -397,10 +425,12 @@ export default function Users() {
                   
                   {/* Email Input */}
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 font-label text-xs font-black uppercase tracking-widest text-theme-text">
+                    <label htmlFor="email" className="flex items-center gap-2 font-label text-xs font-black uppercase tracking-widest text-theme-text">
                       <span className="bg-black text-white px-2 py-0.5">02</span> CONTACT_ROUTING
                     </label>
                     <input 
+                      id="email"
+                      name="email"
                       type="email" 
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
@@ -412,11 +442,13 @@ export default function Users() {
                   
                   {/* Password Input */}
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 font-label text-xs font-black uppercase tracking-widest text-theme-text">
+                    <label htmlFor="password" className="flex items-center gap-2 font-label text-xs font-black uppercase tracking-widest text-theme-text">
                       <span className="bg-black text-white px-2 py-0.5">03</span> ENCRYPTION_KEY
                       {editingUser && <span className="text-gray-400 bg-gray-100 px-2 py-0.5 ml-2 border border-gray-300">LEAVE BLANK TO RETAIN EXISTING</span>}
                     </label>
                     <input 
+                      id="password"
+                      name="password"
                       type="password" 
                       value={formData.password}
                       onChange={(e) => setFormData({...formData, password: e.target.value})}
@@ -429,11 +461,13 @@ export default function Users() {
 
                   {/* Role Selection */}
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 font-label text-xs font-black uppercase tracking-widest text-theme-text">
+                    <label htmlFor="role" className="flex items-center gap-2 font-label text-xs font-black uppercase tracking-widest text-theme-text">
                       <span className="bg-black text-white px-2 py-0.5">04</span> CLEARANCE_LEVEL
                     </label>
                     <div className="relative">
                       <select 
+                        id="role"
+                        name="role"
                         value={formData.role}
                         onChange={(e) => setFormData({...formData, role: e.target.value})}
                         className="w-full border-4 border-theme-border p-4 font-display text-lg uppercase tracking-wider font-black appearance-none focus:outline-none focus:border-[var(--color-primary)] focus:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] transition-all bg-theme-bg cursor-pointer"
@@ -455,6 +489,7 @@ export default function Users() {
                     whileHover={{ scale: 1.05, boxShadow: "4px 4px 0px 0px #111111" }}
                     whileTap={{ scale: 0.95, boxShadow: "0px 0px 0px 0px #111111" }}
                     type="button"
+                    aria-label="Abort personnel registration"
                     onClick={closeModal}
                     className="w-full sm:w-auto px-6 py-4 border-4 border-theme-border bg-theme-bg font-display text-lg font-black uppercase tracking-tight text-theme-text transition-all"
                   >
@@ -464,6 +499,7 @@ export default function Users() {
                     whileHover={{ scale: 1.05, boxShadow: "4px 4px 0px 0px #111111" }}
                     whileTap={{ scale: 0.95, boxShadow: "0px 0px 0px 0px #111111" }}
                     type="submit"
+                    aria-label="Confirm personnel configuration"
                     disabled={loading}
                     className="w-full sm:w-auto bg-[var(--color-primary)] border-4 border-theme-border text-black px-8 py-4 font-display text-lg font-black uppercase tracking-tight transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -489,6 +525,10 @@ export default function Users() {
             />
             
             <motion.div
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="modal-purge-title"
+              aria-describedby="modal-purge-desc"
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -497,8 +537,8 @@ export default function Users() {
               onClick={e => e.stopPropagation()}
             >
               <div className="p-8 text-center space-y-6 bg-theme-bg border-b-8 border-theme-border">
-                 <h2 className="text-4xl font-display font-black uppercase text-red-600">CRITICAL WARNING: Purge User Clearance</h2>
-                 <p className="font-label text-lg font-bold text-theme-text uppercase tracking-widest">
+                 <h2 id="modal-purge-title" className="text-4xl font-display font-black uppercase text-red-600">CRITICAL WARNING: Purge User Clearance</h2>
+                 <p id="modal-purge-desc" className="font-label text-lg font-bold text-theme-text uppercase tracking-widest">
                    You are about to permanently purge the clearance for operative: <br/>
                    <span className="text-3xl font-display font-black bg-black text-white px-4 py-2 inline-block mt-4">{userToDelete.name}</span>
                  </p>
@@ -511,6 +551,7 @@ export default function Users() {
                     whileHover={{ scale: 1.05, boxShadow: "4px 4px 0px 0px #111111" }}
                     whileTap={{ scale: 0.95, boxShadow: "0px 0px 0px 0px #111111" }}
                     type="button"
+                    aria-label="Abort user purge"
                     onClick={() => setUserToDelete(null)}
                     className="flex-1 px-6 py-4 border-4 border-theme-border bg-theme-bg font-display text-lg font-black uppercase tracking-tight text-theme-text transition-all"
                   >
@@ -519,6 +560,8 @@ export default function Users() {
                   <motion.button
                     whileHover={{ scale: 1.05, boxShadow: "4px 4px 0px 0px #111111" }}
                     whileTap={{ scale: 0.95, boxShadow: "0px 0px 0px 0px #111111" }}
+                    type="button"
+                    aria-label="Execute user purge"
                     onClick={executeDelete}
                     className="flex-1 bg-red-500 border-4 border-theme-border text-white px-6 py-4 font-display text-lg font-black uppercase tracking-tight transition-all hover:bg-red-600"
                   >

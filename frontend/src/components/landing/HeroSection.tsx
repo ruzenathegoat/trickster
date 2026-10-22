@@ -68,7 +68,9 @@ export default function HeroSection() {
   };
 
   return (
-    <main 
+    <section 
+      id="hero"
+      aria-label="Hero"
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -245,6 +247,6 @@ export default function HeroSection() {
         </motion.div>
 
       </div>
-    </main>
+    </section>
   );
 }

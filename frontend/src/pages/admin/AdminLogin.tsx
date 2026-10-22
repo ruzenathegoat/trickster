@@ -41,10 +41,10 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-black">
+    <main id="main-content" className="min-h-screen w-full flex flex-col lg:flex-row bg-black">
       
       {/* Left Panel: Warning Visual */}
-      <div className="hidden lg:flex lg:w-1/2 min-h-screen bg-[var(--color-primary)] border-r-4 border-theme-border flex-col items-center justify-center relative overflow-hidden text-black z-10">
+      <aside aria-hidden="true" className="hidden lg:flex lg:w-1/2 min-h-screen bg-[var(--color-primary)] border-r-4 border-theme-border flex-col items-center justify-center relative overflow-hidden text-black z-10">
         
         {/* Halftone pattern background */}
         <div className="absolute inset-0 opacity-[0.1]" 
@@ -77,7 +77,7 @@ export default function AdminLogin() {
           </p>
         </div>
 
-      </div>
+      </aside>
 
       {/* Right Panel: Form */}
       <div className="w-full lg:w-1/2 min-h-screen flex items-center justify-center p-8 md:p-12 relative z-10 bg-black text-white">
@@ -164,6 +164,6 @@ export default function AdminLogin() {
         </motion.div>
       </div>
       
-    </div>
+    </main>
   );
 }

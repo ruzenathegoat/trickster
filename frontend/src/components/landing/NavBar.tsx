@@ -81,6 +81,8 @@ export default function NavBar() {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden text-[var(--color-primary)] p-2 active:scale-95 transition-transform"
               aria-label="Toggle mobile menu"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav-menu"
             >
               <List weight="bold" size={28} />
             </button>
@@ -89,16 +91,28 @@ export default function NavBar() {
 
         {/* Mobile Dropdown (Brutalist) */}
         {mobileMenuOpen && (
-          <div className="absolute top-24 right-4 w-64 bg-[#111111] border-4 border-theme-border shadow-[8px_8px_0px_var(--color-primary)] p-6 flex flex-col gap-6 md:hidden z-30 pointer-events-auto">
-            <a href="#leaderboard" onClick={() => setMobileMenuOpen(false)} className="text-white font-['JetBrains_Mono'] text-sm font-bold uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">
-              <span className="text-[var(--color-primary)] mr-2">//</span> METRICS
-            </a>
-            <a href="#scout" onClick={() => setMobileMenuOpen(false)} className="text-white font-['JetBrains_Mono'] text-sm font-bold uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">
-              <span className="text-[var(--color-primary)] mr-2">//</span> TELEMETRY
-            </a>
-            <a href="#talent" onClick={() => setMobileMenuOpen(false)} className="text-white font-['JetBrains_Mono'] text-sm font-bold uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">
-              <span className="text-[var(--color-primary)] mr-2">//</span> ARCHITECTURE
-            </a>
+          <nav 
+            id="mobile-nav-menu"
+            aria-label="Mobile Navigation"
+            className="absolute top-24 right-4 w-64 bg-[#111111] border-4 border-theme-border shadow-[8px_8px_0px_var(--color-primary)] p-6 flex flex-col gap-6 md:hidden z-30 pointer-events-auto"
+          >
+            <ul className="flex flex-col gap-6 list-none p-0 m-0">
+              <li>
+                <a href="#leaderboard" onClick={() => setMobileMenuOpen(false)} className="text-white font-['JetBrains_Mono'] text-sm font-bold uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors block">
+                  <span className="text-[var(--color-primary)] mr-2">//</span> METRICS
+                </a>
+              </li>
+              <li>
+                <a href="#scout" onClick={() => setMobileMenuOpen(false)} className="text-white font-['JetBrains_Mono'] text-sm font-bold uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors block">
+                  <span className="text-[var(--color-primary)] mr-2">//</span> TELEMETRY
+                </a>
+              </li>
+              <li>
+                <a href="#talent" onClick={() => setMobileMenuOpen(false)} className="text-white font-['JetBrains_Mono'] text-sm font-bold uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors block">
+                  <span className="text-[var(--color-primary)] mr-2">//</span> ARCHITECTURE
+                </a>
+              </li>
+            </ul>
             {user ? (
               <Link 
                 to="/app/dashboard"
@@ -128,7 +142,7 @@ export default function NavBar() {
                 </Link>
               </div>
             )}
-          </div>
+          </nav>
         )}
 
       </header>

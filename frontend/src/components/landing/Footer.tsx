@@ -7,9 +7,9 @@ export default function Footer() {
       
       {/* Decorative Background Text */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5">
-        <h1 className="font-display text-[15vw] leading-none text-white whitespace-nowrap">
+        <span aria-hidden="true" className="font-display text-[15vw] leading-none text-white whitespace-nowrap select-none">
           TRICKSTER
-        </h1>
+        </span>
       </div>
 
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-12 relative z-10">
@@ -27,35 +27,37 @@ export default function Footer() {
         </div>
 
         {/* Center: Links */}
-        <ul className="flex flex-col md:flex-row gap-6 md:gap-10">
-          <li>
-            <Link to="/docs" className="font-label text-[12px] font-bold text-gray-400 hover:text-[var(--color-primary)] uppercase tracking-widest transition-colors">
-              Methodology Docs
-            </Link>
-          </li>
-          <li>
-            <a href="#terms" className="font-label text-[12px] font-bold text-gray-400 hover:text-[var(--color-primary)] uppercase tracking-widest transition-colors">
-              Terms of Service
-            </a>
-          </li>
-          <li>
-            <a href="#privacy" className="font-label text-[12px] font-bold text-gray-400 hover:text-[var(--color-primary)] uppercase tracking-widest transition-colors">
-              Privacy Policy
-            </a>
-          </li>
-          <li>
-            <a href="#twitter" className="font-label text-[12px] font-bold text-gray-400 hover:text-[var(--color-primary)] uppercase tracking-widest transition-colors flex items-center gap-2">
-              <XLogo size={14} weight="bold" />
-              Twitter
-            </a>
-          </li>
-          <li>
-            <a href="#discord" className="font-label text-[12px] font-bold text-gray-400 hover:text-[var(--color-primary)] uppercase tracking-widest transition-colors flex items-center gap-2">
-              <DiscordLogo size={14} weight="bold" />
-              Discord
-            </a>
-          </li>
-        </ul>
+        <nav aria-label="Footer Navigation">
+          <ul className="flex flex-col md:flex-row gap-6 md:gap-10">
+            <li>
+              <Link to="/docs" className="font-label text-[12px] font-bold text-gray-400 hover:text-[var(--color-primary)] uppercase tracking-widest transition-colors">
+                Methodology Docs
+              </Link>
+            </li>
+            <li>
+              <a href="#terms" className="font-label text-[12px] font-bold text-gray-400 hover:text-[var(--color-primary)] uppercase tracking-widest transition-colors">
+                Terms of Service
+              </a>
+            </li>
+            <li>
+              <a href="#privacy" className="font-label text-[12px] font-bold text-gray-400 hover:text-[var(--color-primary)] uppercase tracking-widest transition-colors">
+                Privacy Policy
+              </a>
+            </li>
+            <li>
+              <a href="#twitter" className="font-label text-[12px] font-bold text-gray-400 hover:text-[var(--color-primary)] uppercase tracking-widest transition-colors flex items-center gap-2">
+                <XLogo size={14} weight="bold" />
+                Twitter
+              </a>
+            </li>
+            <li>
+              <a href="#discord" className="font-label text-[12px] font-bold text-gray-400 hover:text-[var(--color-primary)] uppercase tracking-widest transition-colors flex items-center gap-2">
+                <DiscordLogo size={14} weight="bold" />
+                Discord
+              </a>
+            </li>
+          </ul>
+        </nav>
 
         {/* Right: Copyright */}
         <div className="flex flex-col items-start md:items-end gap-2">

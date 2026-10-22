@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import axios from '../../lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CaretLeft, CaretRight, MagnifyingGlass } from '@phosphor-icons/react';
@@ -121,7 +121,9 @@ export default function TeamExplorer() {
             {/* Content bottom */}
             <div className="relative z-10 p-6 md:p-8 lg:p-10">
               <h2 className="text-4xl md:text-5xl lg:text-7xl font-display uppercase tracking-tighter leading-none text-theme-text mb-4 group-hover:translate-x-2 transition-transform">
-                {rank1.name}
+                <Link to={`/app/teams/${rank1.id}`} className="hover:underline">
+                  {rank1.name}
+                </Link>
               </h2>
               <div className="flex items-end gap-8">
                 <div>
@@ -166,7 +168,9 @@ export default function TeamExplorer() {
                 {/* Text */}
                 <div className="flex-1 min-w-0">
                   <h3 className="font-display text-xl md:text-2xl uppercase tracking-tighter truncate group-hover:text-[var(--color-primary)] transition-colors">
-                    {team.name}
+                    <Link to={`/app/teams/${team.id}`} className="hover:underline">
+                      {team.name}
+                    </Link>
                   </h3>
                   <div className="flex gap-6 mt-1">
                     <span className="font-label text-[11px] font-bold uppercase tracking-widest text-gray-500 group-hover:text-white/60">{team.region}</span>
@@ -190,10 +194,11 @@ export default function TeamExplorer() {
       <section>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b-4 border-theme-border pb-6 mb-8">
           <h2 className="text-3xl font-display uppercase tracking-tight">All Teams</h2>
-          <div className="relative w-full md:w-auto md:min-w-[320px]">
+          <div role="search" className="relative w-full md:w-auto md:min-w-[320px]">
             <MagnifyingGlass weight="bold" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-theme-text" />
             <input
-              type="text"
+              type="search"
+              aria-label="Search teams"
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -252,9 +257,9 @@ export default function TeamExplorer() {
                             <span className="font-display text-xs text-gray-300">?</span>
                           </div>
                         )}
-                        <span className="font-display uppercase text-base group-hover:text-theme-text transition-colors truncate max-w-[120px] sm:max-w-xs md:max-w-none block">
+                        <Link to={`/app/teams/${team.id}`} className="font-display uppercase text-base group-hover:text-theme-text transition-colors truncate max-w-[120px] sm:max-w-xs md:max-w-none block hover:underline">
                           {team.name}
-                        </span>
+                        </Link>
                       </div>
                     </td>
                     <td className="py-4 px-3 md:px-5 font-label text-gray-500 text-[10px] md:text-[11px] uppercase tracking-widest whitespace-nowrap">
@@ -298,12 +303,14 @@ export default function TeamExplorer() {
         </div>
 
         {/* Pagination */}
-        <div className="mt-6 flex justify-between items-center">
+        <nav aria-label="Pagination" className="mt-6 flex justify-between items-center">
           <span className="font-label text-[12px] font-bold text-gray-400 uppercase tracking-widest tabular-nums">
             Page {page} of {totalPages}
           </span>
           <div className="flex gap-2">
             <button
+              type="button"
+              aria-label="Previous page"
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1 || loadingTable}
               className="p-3 border-4 border-theme-border bg-theme-bg hover:bg-black hover:text-white disabled:opacity-30 disabled:hover:bg-theme-bg disabled:hover:text-theme-text transition-colors active:scale-95"
@@ -311,6 +318,8 @@ export default function TeamExplorer() {
               <CaretLeft size={20} weight="bold" />
             </button>
             <button
+              type="button"
+              aria-label="Next page"
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages || loadingTable}
               className="p-3 border-4 border-theme-border bg-theme-bg hover:bg-black hover:text-white disabled:opacity-30 disabled:hover:bg-theme-bg disabled:hover:text-theme-text transition-colors active:scale-95"
@@ -318,7 +327,7 @@ export default function TeamExplorer() {
               <CaretRight size={20} weight="bold" />
             </button>
           </div>
-        </div>
+        </nav>
       </section>
     </div>
   );

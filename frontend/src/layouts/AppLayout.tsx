@@ -285,7 +285,7 @@ export default function AppLayout() {
     <div className="min-h-screen bg-theme-bg flex flex-col md:flex-row text-theme-text">
       
       {/* Mobile Header (Visible only on small screens) */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-[var(--color-primary)] border-b-4 border-theme-border sticky top-0 z-40">
+      <header className="md:hidden flex items-center justify-between p-4 bg-[var(--color-primary)] border-b-4 border-theme-border sticky top-0 z-40">
         <Link to="/app/dashboard" className="flex items-center gap-3 font-display text-xl uppercase tracking-tighter text-white">
           <div className="w-8 h-8 flex items-center justify-center shrink-0">
             <img src="/logo.png" alt="Trickster" className="w-full h-full object-contain filter invert" />
@@ -294,11 +294,13 @@ export default function AppLayout() {
         </Link>
         <button 
           onClick={() => setMobileMenuOpen(true)}
+          aria-label="Open mobile menu"
+          aria-expanded={mobileMenuOpen}
           className="p-2 border-2 border-theme-border bg-theme-bg active:scale-95 transition-transform"
         >
           <List weight="bold" size={24} />
         </button>
-      </div>
+      </header>
 
       {/* Mobile Overlay Backdrop */}
       {mobileMenuOpen && (
@@ -310,6 +312,7 @@ export default function AppLayout() {
 
       {/* Sidebar */}
       <aside 
+        aria-label="Sidebar navigation"
         className={clsx(
           "bg-theme-bg border-r-4 border-theme-border transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] flex flex-col z-50 h-screen shrink-0 fixed md:sticky top-0",
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
@@ -335,6 +338,8 @@ export default function AppLayout() {
                 setCollapsed(!collapsed);
               }
             }}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-expanded={!collapsed}
             className={clsx(
               "p-2 border-2 border-theme-border bg-theme-bg hover:bg-black hover:text-white transition-colors active:scale-95",
               collapsed && "mx-auto hidden md:block" // Hide collapse button on mobile when collapsed is forced
@@ -458,11 +463,11 @@ export default function AppLayout() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Topbar */}
         <header className="hidden md:flex h-[80px] sticky top-0 bg-theme-bg border-b-4 border-theme-border items-center justify-between px-8 shrink-0 z-30 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiMwMDAwMDAiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')]">
-          <div className="flex-1 max-w-xl relative" ref={searchWrapperRef}>
+          <div role="search" className="flex-1 max-w-xl relative" ref={searchWrapperRef}>
             <div className="relative group z-20">
               <MagnifyingGlass weight="bold" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-theme-text transition-transform group-focus-within:scale-110" />
               <input 
-                type="text" 
+                type="search" 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
@@ -482,24 +487,31 @@ export default function AppLayout() {
                     <div className="px-4 py-2 bg-[var(--color-theme-muted)] border-b-4 border-theme-border font-['Archivo_Black'] text-xs text-gray-500 uppercase tracking-widest sticky top-0 z-10">
                       Recent Searches
                     </div>
-                    {searchHistory.map((item, idx) => (
-                      <div 
-                        key={idx}
-                        onClick={() => handleHistoryClick(item)}
-                        className="flex justify-between items-center px-4 py-3 border-b-2 border-[var(--color-theme-divider)] hover:bg-[var(--color-primary)] cursor-pointer group transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          <ClockCounterClockwise size={16} className="text-gray-400 group-hover:text-black" />
-                          <span className="font-['JetBrains_Mono'] text-sm font-bold text-theme-text group-hover:text-black">{item.query}</span>
-                        </div>
-                        <button 
-                          onClick={(e) => removeHistoryItem(item, e)}
-                          className="p-1 hover:bg-black hover:text-white rounded transition-colors"
+                    <ul role="list" className="flex flex-col list-none p-0 m-0">
+                      {searchHistory.map((item, idx) => (
+                        <li 
+                          key={idx}
+                          className="flex justify-between items-center px-4 py-3 border-b-2 border-[var(--color-theme-divider)] hover:bg-[var(--color-primary)] transition-colors group"
                         >
-                          <X weight="bold" size={16} />
-                        </button>
-                      </div>
-                    ))}
+                          <button 
+                            type="button"
+                            onClick={() => handleHistoryClick(item)}
+                            className="flex items-center gap-3 flex-1 text-left bg-transparent border-none p-0 cursor-pointer"
+                          >
+                            <ClockCounterClockwise size={16} className="text-gray-400 group-hover:text-black shrink-0" />
+                            <span className="font-['JetBrains_Mono'] text-sm font-bold text-theme-text group-hover:text-black">{item.query}</span>
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={(e) => removeHistoryItem(item, e)}
+                            aria-label={`Remove ${item.query} from history`}
+                            className="p-1 hover:bg-black hover:text-white rounded transition-colors"
+                          >
+                            <X weight="bold" size={16} />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
                     <button 
                       onClick={clearAllHistory}
                       className="px-4 py-3 bg-black text-white hover:bg-gray-800 font-['Archivo_Black'] text-xs uppercase tracking-widest text-center transition-colors mt-auto"
@@ -602,7 +614,11 @@ export default function AppLayout() {
               <span className="text-[12px] font-bold font-label uppercase tracking-widest">Patch {activePatch}</span>
             </div>
             
-            <button className="p-2.5 border-4 border-theme-border bg-theme-bg hover:bg-[var(--color-primary)] hover:scale-110 transition-transform active:scale-95 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]">
+            <button 
+              type="button"
+              aria-label="Notifications"
+              className="p-2.5 border-4 border-theme-border bg-theme-bg hover:bg-[var(--color-primary)] hover:scale-110 transition-transform active:scale-95 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]"
+            >
               <Bell weight="bold" size={20} className="text-theme-text" />
             </button>
           </div>

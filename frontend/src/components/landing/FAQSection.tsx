@@ -75,7 +75,10 @@ export default function FAQSection() {
             className="md:col-span-7 bg-theme-bg border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:shadow-[12px_12px_0px_var(--color-primary)] transition-shadow duration-300"
           >
             <button 
+              type="button"
               onClick={() => toggleOpen(1)}
+              aria-expanded={openIndex === 1}
+              aria-controls="faq-answer-1"
               className="w-full text-left p-8 md:p-12 flex justify-between items-start focus:outline-none group"
             >
               <div>
@@ -93,6 +96,9 @@ export default function FAQSection() {
             <AnimatePresence>
               {openIndex === 1 && (
                 <motion.div
+                  id="faq-answer-1"
+                  role="region"
+                  aria-label="How fresh is the data?"
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
@@ -117,7 +123,10 @@ export default function FAQSection() {
             className="md:col-span-5 bg-[var(--color-primary)] border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] hover:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] transition-shadow duration-300"
           >
             <button 
+              type="button"
               onClick={() => toggleOpen(2)}
+              aria-expanded={openIndex === 2}
+              aria-controls="faq-answer-2"
               className="w-full text-left p-8 md:p-12 flex justify-between items-start focus:outline-none group"
             >
               <div>
@@ -135,6 +144,9 @@ export default function FAQSection() {
             <AnimatePresence>
               {openIndex === 2 && (
                 <motion.div
+                  id="faq-answer-2"
+                  role="region"
+                  aria-label="Do you track Tier 2 & 3?"
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
@@ -160,7 +172,10 @@ export default function FAQSection() {
             className="md:col-span-5 bg-black border-4 border-theme-border shadow-[8px_8px_0px_rgba(0,0,0,0.3)] hover:shadow-[12px_12px_0px_var(--color-primary)] transition-shadow duration-300"
           >
             <button 
+              type="button"
               onClick={() => toggleOpen(3)}
+              aria-expanded={openIndex === 3}
+              aria-controls="faq-answer-3"
               className="w-full text-left p-8 md:p-12 flex justify-between items-start focus:outline-none group"
             >
               <div>
@@ -178,6 +193,9 @@ export default function FAQSection() {
             <AnimatePresence>
               {openIndex === 3 && (
                 <motion.div
+                  id="faq-answer-3"
+                  role="region"
+                  aria-label="SMART score vs Raw ACS?"
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
@@ -206,7 +224,10 @@ export default function FAQSection() {
                  style={{ backgroundImage: 'radial-gradient(black 2px, transparent 2px)', backgroundSize: '16px 16px' }} />
             
             <button 
+              type="button"
               onClick={() => toggleOpen(4)}
+              aria-expanded={openIndex === 4}
+              aria-controls="faq-answer-4"
               className="relative z-10 w-full text-left p-8 md:p-12 flex justify-between items-start focus:outline-none group"
             >
               <div>
@@ -224,6 +245,9 @@ export default function FAQSection() {
             <AnimatePresence>
               {openIndex === 4 && (
                 <motion.div
+                  id="faq-answer-4"
+                  role="region"
+                  aria-label="Can I export the data?"
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}

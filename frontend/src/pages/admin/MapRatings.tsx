@@ -98,6 +98,22 @@ export default function MapRatings() {
 
   useEffect(() => { fetchData(); }, []);
 
+  // Handle Escape key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isModalOpen) {
+        setIsModalOpen(false);
+      }
+    };
+
+    if (isModalOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isModalOpen]);
+
   const openModal = async (patch: Patch) => {
     setSelectedPatch(patch);
     setActiveMap(null);
@@ -218,6 +234,8 @@ export default function MapRatings() {
         <motion.button
           whileHover={{ scale: 1.05, y: -2, boxShadow: "4px 4px 0px 0px #111111" }}
           whileTap={{ scale: 0.95, y: 0, boxShadow: "0px 0px 0px 0px #111111" }}
+          type="button"
+          aria-label={`Edit configuration for patch ${info.row.original.version}`}
           onClick={() => openModal(info.row.original)}
           className="flex items-center gap-2 bg-black text-white px-4 py-2 border-2 border-theme-border font-label text-xs font-black uppercase tracking-wider transition-colors hover:bg-[var(--color-primary)] hover:text-black"
         >
@@ -319,6 +337,9 @@ export default function MapRatings() {
           <div className="absolute inset-0 bg-[#f4f4f4]/90" style={{ backgroundImage: 'radial-gradient(black 2px, transparent 2px)', backgroundSize: '16px 16px' }} />
           
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-map-title"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -341,11 +362,11 @@ export default function MapRatings() {
                     <span>Return</span>
                   </motion.button>
                 )}
-                <span className="text-2xl md:text-3xl font-display font-black uppercase tracking-tighter text-theme-text leading-none pt-1">
+                <h2 id="modal-map-title" className="text-2xl md:text-3xl font-display font-black uppercase tracking-tighter text-theme-text leading-none pt-1">
                   {activeMap
                     ? `PATCH ${selectedPatch?.version} // ${activeMap}`
                     : `MAP RATINGS // PATCH ${selectedPatch?.version}`}
-                </span>
+                </h2>
                 {!activeMap && (
                   <span className="font-label text-xs font-black bg-black text-white px-3 py-1 uppercase tracking-widest border-2 border-theme-border">
                     {mapPool.size} MAPS ACTIVE
@@ -356,6 +377,7 @@ export default function MapRatings() {
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
                 type="button" 
+                aria-label="Close modal"
                 onClick={() => setIsModalOpen(false)} 
                 className="text-theme-text bg-theme-bg border-4 border-theme-border p-1 hover:bg-red-500 hover:text-white transition-colors"
               >

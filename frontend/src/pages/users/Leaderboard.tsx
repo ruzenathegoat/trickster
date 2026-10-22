@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from '../../lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CaretLeft, CaretRight, User } from '@phosphor-icons/react';
@@ -135,7 +135,9 @@ export default function Leaderboard() {
                        <span className="w-2 h-2 bg-black inline-block" /> {topPlayers[0].team_name}
                      </p>
                      <h2 className="text-6xl md:text-8xl font-['Archivo_Black'] uppercase tracking-tighter text-black leading-none mb-4 group-hover:translate-x-2 transition-transform duration-300">
-                       {topPlayers[0].ign}
+                       <Link to={`/app/players/${topPlayers[0].id}`} className="hover:underline">
+                         {topPlayers[0].ign}
+                       </Link>
                      </h2>
                      <p className="text-black/70 font-['JetBrains_Mono'] text-[13px] font-bold tracking-widest uppercase mb-8">
                        {topPlayers[0].role}
@@ -201,7 +203,9 @@ export default function Leaderboard() {
                            {player.team_name} &bull; {player.role}
                          </p>
                          <h2 className="text-4xl md:text-5xl font-['Archivo_Black'] uppercase tracking-tighter text-theme-text leading-none mb-6 group-hover:text-[var(--color-primary)] transition-colors">
-                           {player.ign}
+                           <Link to={`/app/players/${player.id}`} className="hover:underline">
+                             {player.ign}
+                           </Link>
                          </h2>
                          <div className="flex flex-wrap items-end gap-6 border-t-2 border-theme-border pt-4 mt-auto">
                            <div>
@@ -257,10 +261,12 @@ export default function Leaderboard() {
             </p>
           </div>
           
-          <div className="flex items-center gap-0 w-full md:w-auto overflow-x-auto border-2 border-theme-border">
+          <div role="tablist" aria-label="Role filters" className="flex items-center gap-0 w-full md:w-auto overflow-x-auto border-2 border-theme-border">
             {ROLES.map((role, idx) => (
               <button
                 key={role}
+                role="tab"
+                aria-selected={roleFilter === role}
                 onClick={() => { setRoleFilter(role); setPage(1); }}
                 className={`px-6 py-3 text-[13px] font-black uppercase transition-all whitespace-nowrap ${
                   idx !== ROLES.length - 1 ? 'border-r-2 border-theme-border' : ''
@@ -326,7 +332,9 @@ export default function Leaderboard() {
                             <User weight="fill" size={20} className="text-gray-300 md:text-[24px]" />
                           )}
                         </div>
-                        {player.ign}
+                        <Link to={`/app/players/${player.id}`} className="hover:underline">
+                          {player.ign}
+                        </Link>
                       </div>
                     </td>
                     <td className="py-4 px-3 md:py-6 md:px-6 font-bold text-gray-500 group-hover:text-theme-text uppercase text-[11px] md:text-[13px] tracking-widest transition-colors whitespace-nowrap">
@@ -376,12 +384,14 @@ export default function Leaderboard() {
         </div>
 
         {/* Pagination Controls */}
-        <div className="mt-8 pt-6 flex justify-between items-center">
+        <nav aria-label="Pagination" className="mt-8 pt-6 flex justify-between items-center">
           <span className="text-[13px] font-bold font-['JetBrains_Mono'] uppercase tracking-widest text-theme-text">
             Page {page} / {totalPages}
           </span>
           <div className="flex gap-4">
             <button
+              type="button"
+              aria-label="Previous page"
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1 || loadingTable}
               className="px-6 py-3 bg-theme-bg border-2 border-theme-border hover:bg-black hover:text-white disabled:opacity-50 disabled:hover:bg-theme-bg disabled:hover:text-theme-text transition-colors active:scale-95 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] disabled:shadow-none flex items-center justify-center"
@@ -389,6 +399,8 @@ export default function Leaderboard() {
               <CaretLeft size={20} weight="bold" />
             </button>
             <button
+              type="button"
+              aria-label="Next page"
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages || loadingTable}
               className="px-6 py-3 bg-theme-bg border-2 border-theme-border hover:bg-black hover:text-white disabled:opacity-50 disabled:hover:bg-theme-bg disabled:hover:text-theme-text transition-colors active:scale-95 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] disabled:shadow-none flex items-center justify-center"
@@ -396,7 +408,7 @@ export default function Leaderboard() {
               <CaretRight size={20} weight="bold" />
             </button>
           </div>
-        </div>
+        </nav>
       </motion.section>
     </div>
   );

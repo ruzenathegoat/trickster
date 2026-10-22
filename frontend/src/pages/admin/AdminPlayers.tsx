@@ -117,6 +117,8 @@ export default function AdminPlayers() {
           <motion.button
             whileHover={{ scale: 1.05, y: -2, boxShadow: "4px 4px 0px 0px #111111" }}
             whileTap={{ scale: 0.95, y: 0, boxShadow: "0px 0px 0px 0px #111111" }}
+            type="button"
+            aria-label={`${player.is_igl ? 'Remove IGL status from' : 'Set as IGL for'} ${player.ign}`}
             onClick={() => toggleIgl(player.id, player.is_igl)}
             className={`font-label text-[10px] font-black uppercase tracking-widest border-2 border-theme-border px-3 py-2 transition-colors ${
               player.is_igl 
@@ -159,12 +161,13 @@ export default function AdminPlayers() {
       <div className="flex flex-col space-y-6">
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex bg-theme-bg border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] max-w-md focus-within:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] focus-within:-translate-y-1 transition-all w-full sm:w-auto">
+          <div role="search" className="flex bg-theme-bg border-4 border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] max-w-md focus-within:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] focus-within:-translate-y-1 transition-all w-full sm:w-auto">
             <div className="flex items-center justify-center px-4 bg-gray-100 border-r-4 border-theme-border">
               <MagnifyingGlass size={20} weight="bold" />
             </div>
             <input 
-              type="text" 
+              type="search" 
+              aria-label="Search IGN or Name"
               placeholder="SEARCH IGN OR NAME..." 
               value={search}
               onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
@@ -228,7 +231,7 @@ export default function AdminPlayers() {
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6 bg-theme-bg border-4 border-theme-border shadow-[4px_4px_0px_#000] p-4">
+            <nav aria-label="Pagination" className="flex items-center justify-between mt-6 bg-theme-bg border-4 border-theme-border shadow-[4px_4px_0px_#000] p-4">
               <span className="font-label text-xs font-black uppercase tracking-widest text-gray-500">
                 SHOWING {((currentPage - 1) * 10) + 1} - {Math.min(currentPage * 10, filteredPlayers.length)} OF {filteredPlayers.length}
               </span>
@@ -238,6 +241,8 @@ export default function AdminPlayers() {
                   whileTap={currentPage > 1 ? { scale: 0.95, y: 0, boxShadow: "0px 0px 0px 0px #111111" } : {}}
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
+                  type="button"
+                  aria-label="Previous page"
                   className="flex items-center gap-1 font-label text-xs font-black uppercase tracking-widest border-2 border-theme-border px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-100 hover:bg-gray-200 transition-colors"
                 >
                   <CaretLeft weight="bold" /> PREV
@@ -250,12 +255,14 @@ export default function AdminPlayers() {
                   whileTap={currentPage < totalPages ? { scale: 0.95, y: 0, boxShadow: "0px 0px 0px 0px #111111" } : {}}
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
+                  type="button"
+                  aria-label="Next page"
                   className="flex items-center gap-1 font-label text-xs font-black uppercase tracking-widest border-2 border-theme-border px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-100 hover:bg-gray-200 transition-colors"
                 >
                   NEXT <CaretRight weight="bold" />
                 </motion.button>
               </div>
-            </div>
+            </nav>
           )}
         </div>
       </div>

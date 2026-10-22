@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from '../../lib/axios';
 import { motion } from 'framer-motion';
 import Highcharts from 'highcharts';
@@ -569,16 +569,19 @@ export default function PlayerProfile() {
   return (
     <div className="max-w-7xl pb-24">
       <div className="flex justify-between items-center mb-12">
-        <button 
-          onClick={() => navigate(-1)}
+        <Link 
+          to="/app/leaderboard"
+          aria-label="Back to Leaderboard"
           className="flex items-center gap-3 font-label text-[13px] font-black uppercase tracking-widest text-theme-text/50 hover:text-theme-text transition-colors"
         >
           <ArrowLeft size={20} weight="bold" />
           Back to Leaderboard
-        </button>
+        </Link>
 
         {user && (
           <button 
+            type="button"
+            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
             onClick={toggleFavorite}
             className={`flex items-center gap-2 font-label text-[13px] font-black uppercase tracking-widest px-4 py-2 border-2 transition-all ${isFavorite ? 'bg-[var(--color-primary)] border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] text-black hover:translate-y-1 hover:shadow-none' : 'bg-theme-bg border-gray-300 text-gray-500 hover:border-theme-border hover:text-black'}`}
           >
@@ -1066,10 +1069,12 @@ export default function PlayerProfile() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="flex border-2 border-theme-border bg-theme-bg p-0.5 shadow-[2px_2px_0px_0px_var(--color-theme-shadow)]">
+                  <div role="tablist" aria-label="Timeframe selector" className="flex border-2 border-theme-border bg-theme-bg p-0.5 shadow-[2px_2px_0px_0px_var(--color-theme-shadow)]">
                     {(['24h', '7d', '30d'] as const).map(tf => (
                       <button
                         key={tf}
+                        role="tab"
+                        aria-selected={timeframe === tf}
                         onClick={() => setTimeframe(tf)}
                         className={`px-3 py-1 font-label text-xs font-black uppercase tracking-wider transition-all ${
                           timeframe === tf 

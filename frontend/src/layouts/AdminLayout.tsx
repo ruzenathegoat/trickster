@@ -167,7 +167,10 @@ export default function AdminLayout() {
       <div className="flex flex-1 overflow-hidden flex-col md:flex-row relative">
         
         {/* 2. Sidebar */}
-        <aside className={`${isSidebarOpen ? 'w-full md:w-64 md:border-r-4 opacity-100' : 'w-0 border-r-0 opacity-0 pointer-events-none'} bg-theme-bg border-b-4 md:border-b-0 border-theme-border shrink-0 flex flex-col z-40 relative transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]`}>
+        <aside 
+          aria-label="Admin Navigation"
+          className={`${isSidebarOpen ? 'w-full md:w-64 md:border-r-4 opacity-100' : 'w-0 border-r-0 opacity-0 pointer-events-none'} bg-theme-bg border-b-4 md:border-b-0 border-theme-border shrink-0 flex flex-col z-40 relative transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]`}
+        >
           <div className="min-w-[16rem] h-full flex flex-col">
             <div className="p-4 border-b-4 border-theme-border bg-[#f4f4f4]">
               <h2 className="font-label text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">
@@ -175,7 +178,7 @@ export default function AdminLayout() {
               </h2>
             </div>
 
-            <nav className="flex flex-col flex-grow p-4 gap-3 overflow-y-auto">
+            <nav aria-label="Admin Primary Navigation" className="flex flex-col flex-grow p-4 gap-3 overflow-y-auto">
               {navLinks.map((link) => {
                 const isActive = location.pathname.startsWith(link.path);
                 const Icon = link.icon;
@@ -201,7 +204,7 @@ export default function AdminLayout() {
         </aside>
 
         {/* 3. Main Content Area */}
-        <main className="flex-1 overflow-y-auto relative flex flex-col">
+        <main id="main-content" className="flex-1 overflow-y-auto relative flex flex-col">
           
           {/* Blueprint/Grid Background */}
           <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0" 

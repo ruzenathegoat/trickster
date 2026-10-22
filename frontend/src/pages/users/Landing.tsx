@@ -18,41 +18,43 @@ export default function Landing() {
     <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-on-background)] font-['Inter'] selection:bg-[var(--color-primary-container)] selection:text-[var(--color-on-background)] relative">
       <NavBar />
       
-      {/* 1. Hero */}
-      <HeroSection />
-      
-      {/* 2. Trusted By / Social Proof */}
-      <TrustedBySection />
-      
-      {/* 3. Why Trickster Exists */}
-      <WhyTricksterSection />
-      
-      {/* 4. Core Features */}
-      <FeaturesSection />
-      
-      {/* 5. How It Works */}
-      <HowItWorksSection />
-      
-      {/* 6. Recommendation Preview */}
-      <RecommendationPreviewSection />
-      
-      {/* 7. Player Profile Preview */}
-      <PlayerProfilePreviewSection />
-      
-      {/* 8. Team Simulation Preview */}
-      <TeamSimulationPreviewSection />
-      
-      {/* 9. Dashboard Preview */}
-      <DashboardPreviewSection />
-      
-      {/* 10. Technology & Methodology */}
-      <TechMethodologySection />
-      
-      {/* 11. FAQ */}
-      <FAQSection />
-      
-      {/* 12. CTA */}
-      <CTASection />
+      <main id="main-content">
+        {/* 1. Hero */}
+        <HeroSection />
+        
+        {/* 2. Trusted By / Social Proof */}
+        <TrustedBySection />
+        
+        {/* 3. Why Trickster Exists */}
+        <WhyTricksterSection />
+        
+        {/* 4. Core Features */}
+        <FeaturesSection />
+        
+        {/* 5. How It Works */}
+        <HowItWorksSection />
+        
+        {/* 6. Recommendation Preview */}
+        <RecommendationPreviewSection />
+        
+        {/* 7. Player Profile Preview */}
+        <PlayerProfilePreviewSection />
+        
+        {/* 8. Team Simulation Preview */}
+        <TeamSimulationPreviewSection />
+        
+        {/* 9. Dashboard Preview */}
+        <DashboardPreviewSection />
+        
+        {/* 10. Technology & Methodology */}
+        <TechMethodologySection />
+        
+        {/* 11. FAQ */}
+        <FAQSection />
+        
+        {/* 12. CTA */}
+        <CTASection />
+      </main>
       
       {/* 13. Footer */}
       <Footer />

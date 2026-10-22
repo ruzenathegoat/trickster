@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from '../../lib/axios';
 import { motion } from 'framer-motion';
 import Highcharts from 'highcharts';
@@ -148,16 +148,19 @@ export default function TeamProfile() {
     <div className="max-w-7xl mx-auto pb-16 space-y-12">
       {/* Back */}
       <div className="flex justify-between items-center">
-        <button
-          onClick={() => navigate('/app/teams')}
+        <Link
+          to="/app/teams"
+          aria-label="Back to Teams"
           className="flex items-center gap-2 font-label text-[12px] font-bold uppercase tracking-widest text-gray-500 hover:text-theme-text transition-colors"
         >
           <ArrowLeft size={16} weight="bold" />
           Back to Teams
-        </button>
+        </Link>
 
         {user && (
           <button 
+            type="button"
+            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
             onClick={toggleFavorite}
             className={`flex items-center gap-2 font-label text-[11px] font-bold uppercase tracking-widest px-4 py-2 border-2 transition-all ${isFavorite ? 'bg-[var(--color-primary)] border-theme-border shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] text-black hover:translate-y-1 hover:shadow-none' : 'bg-theme-bg border-gray-300 text-gray-500 hover:border-theme-border hover:text-black'}`}
           >
@@ -364,10 +367,10 @@ export default function TeamProfile() {
             <div className="divide-y-2 divide-gray-200">
               {team.players && team.players.length > 0 ? (
                 team.players.map((player: any) => (
-                  <div
+                  <Link
                     key={player.id}
-                    onClick={() => navigate(`/app/players/${player.id}`)}
-                    className="flex items-center justify-between p-4 hover:bg-[var(--color-primary)] transition-colors cursor-pointer group"
+                    to={`/app/players/${player.id}`}
+                    className="flex items-center justify-between p-4 hover:bg-[var(--color-primary)] transition-colors group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-10 h-10 border-2 border-theme-border bg-gray-100 shrink-0 overflow-hidden flex items-center justify-center">
@@ -387,7 +390,7 @@ export default function TeamProfile() {
                         {player.current_role}
                       </span>
                     )}
-                  </div>
+                  </Link>
                 ))
               ) : (
                 <p className="font-label text-sm text-gray-400 text-center py-8 uppercase tracking-widest">No active players found.</p>

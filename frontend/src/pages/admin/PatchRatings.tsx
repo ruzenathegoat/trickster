@@ -93,6 +93,22 @@ export default function PatchRatings() {
 
   useEffect(() => { fetchData(); }, []);
 
+  // Handle Escape key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isModalOpen) {
+        setIsModalOpen(false);
+      }
+    };
+
+    if (isModalOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isModalOpen]);
+
   const openBulkEditModal = (patch: Patch) => {
     setSelectedPatch(patch);
     
@@ -188,6 +204,8 @@ export default function PatchRatings() {
         <motion.button 
           whileHover={{ scale: 1.05, y: -2, boxShadow: "4px 4px 0px 0px #111111" }}
           whileTap={{ scale: 0.95, y: 0, boxShadow: "0px 0px 0px 0px #111111" }}
+          type="button"
+          aria-label={`Configure ratings for patch v${info.row.original.version}`}
           onClick={() => openBulkEditModal(info.row.original)}
           className="flex items-center gap-2 bg-black text-white px-4 py-2 border-2 border-theme-border font-label text-xs font-black uppercase tracking-widest hover:bg-[var(--color-primary)] hover:text-black transition-colors w-fit"
         >
@@ -324,6 +342,9 @@ export default function PatchRatings() {
             />
             
             <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="modal-patch-title"
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -337,15 +358,16 @@ export default function PatchRatings() {
                   <Target size={32} weight="bold" />
                   <div className="flex flex-col">
                     <span className="text-xs font-label font-black uppercase tracking-widest text-theme-text/70">MASS CONFIGURATION PROTOCOL</span>
-                    <span className="text-2xl md:text-4xl font-display font-black uppercase tracking-tighter text-theme-text leading-none pt-1">
+                    <h2 id="modal-patch-title" className="text-2xl md:text-4xl font-display font-black uppercase tracking-tighter text-theme-text leading-none pt-1">
                       PATCH v{selectedPatch?.version}
-                    </span>
+                    </h2>
                   </div>
                 </div>
                 <motion.button 
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                   type="button" 
+                  aria-label="Close modal"
                   onClick={() => setIsModalOpen(false)} 
                   className="text-theme-text bg-theme-bg border-4 border-theme-border p-2 hover:bg-red-500 hover:text-white transition-colors"
                 >
@@ -441,6 +463,7 @@ export default function PatchRatings() {
                     whileHover={{ scale: 1.05, boxShadow: "4px 4px 0px 0px #111111" }}
                     whileTap={{ scale: 0.95, boxShadow: "0px 0px 0px 0px #111111" }}
                     type="button"
+                    aria-label="Abort configuration"
                     onClick={() => setIsModalOpen(false)}
                     className="w-full sm:w-auto px-6 py-4 border-4 border-theme-border bg-theme-bg font-display text-lg font-black uppercase tracking-tight text-theme-text transition-all"
                   >
@@ -450,6 +473,7 @@ export default function PatchRatings() {
                     whileHover={{ scale: 1.05, boxShadow: "4px 4px 0px 0px #111111" }}
                     whileTap={{ scale: 0.95, boxShadow: "0px 0px 0px 0px #111111" }}
                     type="submit"
+                    aria-label="Commit mass configuration"
                     disabled={loading}
                     className="w-full sm:w-auto bg-[var(--color-primary)] border-4 border-theme-border text-black px-8 py-4 font-display text-lg font-black uppercase tracking-tight transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >

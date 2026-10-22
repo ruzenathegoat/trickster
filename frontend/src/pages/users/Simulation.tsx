@@ -264,6 +264,8 @@ const calculateSynergy = async () => {
           <div className="mt-6 border-t-4 border-theme-border pt-4">
             <button
               type="button"
+              aria-expanded={analysisOpen}
+              aria-controls="composition-analysis-details"
               onClick={() => setAnalysisOpen(prev => !prev)}
               className="w-full flex items-center justify-between gap-2 group"
             >
@@ -291,6 +293,9 @@ const calculateSynergy = async () => {
             <AnimatePresence initial={false}>
               {analysisOpen && (
                 <motion.div
+                  id="composition-analysis-details"
+                  role="region"
+                  aria-label="Composition Analysis Details"
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
@@ -400,7 +405,7 @@ const calculateSynergy = async () => {
 
         {/* Right: Player pool */}
         <div className="relative z-20 flex flex-col h-fit max-h-[calc(100vh-4rem)] overflow-y-auto border-4 border-theme-border bg-theme-bg p-5 shadow-[4px_4px_0px_0px_var(--color-theme-shadow)] sm:p-6 lg:col-span-5 lg:sticky lg:top-8 lg:p-8" data-lenis-prevent>
-          <div className="relative mb-5 flex border-b-4 border-theme-border pb-1" role="tablist">
+          <div className="relative mb-5 flex border-b-4 border-theme-border pb-1" role="tablist" aria-label="Player pool categories">
             {(['recommended', 'all'] as const).map((key) => (
               <button
                 key={key}
@@ -424,14 +429,15 @@ const calculateSynergy = async () => {
           </div>
 
           {tab === 'all' && (
-            <div className="relative mb-4">
+            <div role="search" className="relative mb-4">
               <MagnifyingGlass
                 size={16}
                 weight="regular"
                 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]"
               />
               <input
-                type="text"
+                type="search"
+                aria-label="Search players"
                 placeholder="Search players…"
                 className="w-full border-4 border-theme-border bg-theme-bg py-2.5 pl-9 pr-3 text-sm font-bold text-theme-text placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:shadow-[4px_4px_0px_0px_var(--color-theme-shadow)]"
                 value={search}

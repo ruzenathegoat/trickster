@@ -46,7 +46,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-theme-bg">
+    <main id="main-content" className="min-h-screen w-full flex flex-col lg:flex-row bg-theme-bg">
       
       {/* Left Panel: Form */}
       <div className="w-full lg:w-1/2 min-h-screen flex items-center justify-center p-6 md:p-12 relative z-10">
@@ -181,7 +181,7 @@ export default function Login() {
       </div>
 
       {/* Right Panel: Brand Visual */}
-      <div className="hidden lg:flex lg:w-1/2 min-h-screen bg-black border-l-4 border-theme-border flex-col items-center justify-center p-12 relative overflow-hidden text-white">
+      <aside aria-hidden="true" className="hidden lg:flex lg:w-1/2 min-h-screen bg-black border-l-4 border-theme-border flex-col items-center justify-center p-12 relative overflow-hidden text-white">
         
         {/* Halftone pattern background */}
         <div className="absolute inset-0 opacity-[0.1]" 
@@ -210,8 +210,8 @@ export default function Login() {
           </div>
         </div>
 
-      </div>
+      </aside>
       
-    </div>
+    </main>
   );
 }
