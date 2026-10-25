@@ -36,30 +36,30 @@
 - Data is dynamically weighted for opponent strength, map bias, and patch changes.
 
 ### 2. SMART Engine v3 (Quality-Adjusted Empirical Bayesian Framework & Dynamic ELO)
-- **Quality & Time-Decay Unified Map Weighting ($W_i = 2^{-\Delta t / 45.0} \times Q_i$)**:
-  - Incorporates exponential recency decay ($T_{1/2} = 45.0$ days) combined with match quality ($Q_i = \text{EventBase} \times \text{StageFactor} \times \text{OpponentFactor} \times \text{RegionalCoeff}$).
-  - Computes **Effective Maps** ($M_{\text{eff}} = \sum W_i / 3.0$) and quality-weighted combat averages ($\text{Stat}^* = \sum W_i \cdot \text{stat}_i / \sum W_i$).
+- **Quality & Time-Decay Unified Map Weighting ($`W_i = 2^{-\Delta t / 45.0} \times Q_i`$)**:
+  - Incorporates exponential recency decay ($`T_{1/2} = 45.0`$ days) combined with match quality ($`Q_i = \text{EventBase} \times \text{StageFactor} \times \text{OpponentFactor} \times \text{RegionalCoeff}`$).
+  - Computes **Effective Maps** ($`M_{\text{eff}} = \sum W_i / 3.0`$) and quality-weighted combat averages ($`\text{Stat}^* = \sum W_i \cdot \text{stat}_i / \sum W_i`$).
   - Prevents "inactivity camping" by shrinking idle players back towards their role baseline as time passes.
 - **Strength of Schedule (SoS) Role Baseline Adjustment**:
-  - Dynamically adjusts empirical role baseline priors ($\mu^*_{\text{role}}$) based on the caliber of opponents faced ($\bar{Q} = \sum (\text{decay} \cdot Q) / \sum \text{decay}$):
-    $$\mu^*_{\text{benefit}} = \frac{\mu_{\text{role}}}{(\bar{Q} / 3.0)^{0.15}}, \quad \mu^*_{\text{fd}} = \mu_{\text{fd}} \times \left(\frac{\bar{Q}}{3.0}\right)^{0.10}$$
+  - Dynamically adjusts empirical role baseline priors ($`\mu^*_{\text{role}}`$) based on the caliber of opponents faced ($`\bar{Q} = \sum (\text{decay} \cdot Q) / \sum \text{decay}`$):
+    - **Benefit metrics** (ACS, K/D, ADR, KAST): $`\mu^*_{\text{benefit}} = \mu_{\text{role}} / (\bar{Q} / 3.0)^{0.15}`$
+    - **Cost metrics** (First Death Rate): $`\mu^*_{\text{fd}} = \mu_{\text{fd}} \times (\bar{Q} / 3.0)^{0.10}`$
   - First Death Rate remains a strict **COST CRITERION** (lower is better), while granting proportional leeway when facing world-class aimers (e.g. Sentinels, Paper Rex, Gen.G).
   - Ensures elite international performers (e.g. Paper Rex finalists) are objectively rewarded for battling on the hardest stages in the world rather than penalizing them against regional stat-padders.
 - **Uncapped International Proof Bonus**:
-  - Replaces rigid evidence saturation with a logarithmic proof curve:
-    $$\text{Bonus}_{\text{intl}} = \log_{10}(1 + N_{\text{intl}}) \times 0.12$$
+  - Replaces rigid evidence saturation with a logarithmic proof curve: $`\text{Bonus}_{\text{intl}} = \log_{10}(1 + N_{\text{intl}}) \times 0.12`$
   - Players who consistently qualify for and win deep runs at Masters and Champions receive continuous, proportional elevation in Proven Consistency.
 - **Empirical Bayesian Shrinkage & Role-Centered Normalization**:
-  - Shrinkage factor $b = M_{\text{eff}} / (M_{\text{eff}} + \kappa_{\text{maps}})$, where $\kappa_{\text{maps}} = 12.0$ maps.
-  - Decoupled Sigmoid Utility mapping transforms role-adjusted Z-scores: $u = 100 / (1 + \exp(\mp 1.7 z))$, completely immune to daily cohort min/max fluctuations.
+  - Shrinkage factor $`b = M_{\text{eff}} / (M_{\text{eff}} + \kappa_{\text{maps}})`$, where $`\kappa_{\text{maps}} = 12.0`$ maps.
+  - Decoupled Sigmoid Utility mapping transforms role-adjusted Z-scores: $`u = 100 / (1 + \exp(\mp 1.7 z))`$, completely immune to daily cohort min/max fluctuations.
 - **Strict Tier-1 Exclusivity (No Challengers)**:
   - Challengers and non-VCT events are 100% excluded via database sanitization and scraper hard-guards, ensuring pure Tier-1 professional baselines.
 - **Dynamic Pre-Match ELO & Regional Strength Matrix**:
-  - Implements an adaptive ELO engine ($K_{\text{base}} \times M_{\text{stakes}} \times M_{\text{margin}}$) where clean 2-0 / 3-0 sweeps and high-stakes international events dynamically scale rating transfers.
-  - Updates the **Regional Strength Vector** ($\vec{R}_{\text{region}}$) whenever cross-regional matches occur in international tournaments (Masters/Champions), yielding real-time regional coefficients ($C_{\text{region}} = R_{\text{region}} / 1500.0$).
+  - Implements an adaptive ELO engine ($`K_{\text{base}} \times M_{\text{stakes}} \times M_{\text{margin}}`$) where clean 2-0 / 3-0 sweeps and high-stakes international events dynamically scale rating transfers.
+  - Updates the **Regional Strength Vector** ($`\vec{R}_{\text{region}}`$) whenever cross-regional matches occur in international tournaments (Masters/Champions), yielding real-time regional coefficients ($`C_{\text{region}} = R_{\text{region}} / 1500.0`$).
 - **Meta Adaptability Index (MAI) via Bayesian Conjugate Shrinkage**:
-  - Shrunk across Meta Alignment ($\kappa = 15$), Performance Retention ($\kappa = 3$), Meta Response ($\kappa = 2$), and Role Versatility Entropy: $\text{MAI} = 0.45 \cdot M_{\text{align}} + 0.25 \cdot P_{\text{ret}} + 0.20 \cdot M_{\text{resp}} + 0.10 \cdot R_{\text{flex}}$.
-- **Bayesian Variance Shrinkage (Consistency Index)**: Uses an Inverse-Gamma conjugate model to estimate true performance dispersion, preventing small-sample anomalies while giving mature sample sizes full statistical weight.
+  - Shrunk across Meta Alignment ($`\kappa = 15`$), Performance Retention ($`\kappa = 3`$), Meta Response ($`\kappa = 2`$), and Role Versatility Entropy: $`\text{MAI} = 0.45 \cdot M_{\text{align}} + 0.25 \cdot P_{\text{ret}} + 0.20 \cdot M_{\text{resp}} + 0.10 \cdot R_{\text{flex}}`$.
+  - **Bayesian Variance Shrinkage (Consistency Index)**: Uses an Inverse-Gamma conjugate model to estimate true performance dispersion, preventing small-sample anomalies while giving mature sample sizes full statistical weight.
 
 ### 3. Transfer Simulation (The Lab)
 - Interactive drag-and-drop player roster slots.
